@@ -145,6 +145,8 @@ namespace admrender {
 		StreamInformation m_channelInformation;
 
 		Layout m_outputLayout;
+		// The speaker index of the LFE in the output array. Is -1 if there is no LFE
+		int m_lfeInd = -1;
 
 		// Vector holding the last unique set metadata for each object in the stream
 		std::vector<ObjectMetadata> m_objectMetadata;

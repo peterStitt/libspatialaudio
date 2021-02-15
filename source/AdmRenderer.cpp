@@ -170,6 +170,16 @@ namespace admrender {
 		if (!bBinConf)
 			return false;
 
+		// If the output layout has an LFE then get its index
+		if (m_outputLayout.hasLFE)
+		{
+			for (int iSpk = 0; iSpk < m_outputLayout.channels.size(); ++iSpk)
+				if (m_outputLayout.channels[iSpk].isLFE)
+					m_lfeInd = iSpk;
+		}
+		else
+			m_lfeInd = -1;
+
 		// Set up the buffers holding the direct and diffuse speaker signals
 		size_t nAmbiCh = m_outputLayout.channels.size();
 		m_speakerOut.resize(m_nOutputChannels);
@@ -235,13 +245,24 @@ namespace admrender {
 			// Store the metadata
 			m_objectMetadata[iObj] = metadata;
 			// Calculate a new gain vector with this metadata
-			std::vector<double> directGains;
-			std::vector<double> diffuseGains;
-			m_objectGainCalc->CalculateGains(metadata, directGains, diffuseGains);
+			std::vector<double> directGainsNoLFE;
+			std::vector<double> diffuseGainsNoLFE;
+			m_objectGainCalc->CalculateGains(metadata, directGainsNoLFE, diffuseGainsNoLFE);
 
 			// Apply scattering to the diffuse gains when output is binaural
 			if (m_RenderLayout == OutputLayout::Binaural)
-				diffuseGains = multiplyMatVec(m_scatteringMatrix, diffuseGains);
+				diffuseGainsNoLFE = multiplyMatVec(m_scatteringMatrix, diffuseGainsNoLFE);
+
+			std::vector<double> directGains(m_nOutputChannels, 0.);
+			std::vector<double> diffuseGains(m_nOutputChannels, 0.);
+			// Advance the index of any speakers after the LFE to leave a gap for the LFE
+			if(m_outputLayout.hasLFE)
+				for (int i = 0; i < m_nOutputChannels - 1; ++i)
+				{
+					int ind = i >= m_lfeInd ? i + 1 : i;
+					directGains[ind] = directGainsNoLFE[i];
+					diffuseGains[ind] = diffuseGainsNoLFE[i];
+				}
 
 			// Get the interpolation time
 			unsigned int interpLength = 0;
