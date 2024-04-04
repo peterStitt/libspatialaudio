@@ -24,15 +24,21 @@ CLinkwitzRileyIIR::~CLinkwitzRileyIIR()
 {
 }
 
-void CLinkwitzRileyIIR::Configure(unsigned int nCh, unsigned int sampleRate, float crossoverFreq)
+bool CLinkwitzRileyIIR::Configure(unsigned int nCh, unsigned int sampleRate, float crossoverFreq)
 {
     for (int i = 0; i < 2; ++i)
     {
-        m_lp[i].Configure(nCh, sampleRate, crossoverFreq, std::sqrt(0.5f), CIIRFilter::FilterType::LowPass);
-        m_hp[i].Configure(nCh, sampleRate, crossoverFreq, std::sqrt(0.5f), CIIRFilter::FilterType::HighPass);
+        bool success = m_lp[i].Configure(nCh, sampleRate, crossoverFreq, std::sqrt(0.5f), CIIRFilter::FilterType::LowPass);
+        if (!success)
+            return false;
+        success = m_hp[i].Configure(nCh, sampleRate, crossoverFreq, std::sqrt(0.5f), CIIRFilter::FilterType::HighPass);
+        if (!success)
+            return false;
     }
 
     Reset();
+
+    return true;
 }
 
 void CLinkwitzRileyIIR::Reset()

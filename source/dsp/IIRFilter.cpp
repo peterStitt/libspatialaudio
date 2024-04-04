@@ -26,8 +26,13 @@ CIIRFilter::~CIIRFilter()
 {
 }
 
-void CIIRFilter::Configure(unsigned int nCh, unsigned int sampleRate, float frequency, float q, FilterType filterType)
+bool CIIRFilter::Configure(unsigned int nCh, unsigned int sampleRate, float frequency, float q, FilterType filterType)
 {
+    // Must process at least one channel, have a positive, non-zero sample rate and
+    // the cutoff frequency must not be above Nyquist
+    if (nCh < 1 || sampleRate <= 0 || frequency >= static_cast<float>(sampleRate) / 2.f)
+        return false;
+
     m_nCh = nCh;
 
     // Allocate state for each of the channels
@@ -61,6 +66,8 @@ void CIIRFilter::Configure(unsigned int nCh, unsigned int sampleRate, float freq
     }
 
     Reset();
+
+    return true;
 }
 
 void CIIRFilter::Reset()

@@ -25,11 +25,12 @@ public:
     ~CLinkwitzRileyIIR();
 
     /** Configure the filter with the sample rate and cross-over frequency.
-     * @param nCh               The number of channels to be processed
-     * @param sampleRate        The sample rate of the signal to be processed
-     * @param crossoverFreq     The cross-over frequency between the low- and high-pass bands
-     */
-    void Configure(unsigned int nCh, unsigned int sampleRate, float crossoverFreq);
+    * @param nCh               The number of channels to be processed
+    * @param sampleRate        The sample rate of the signal to be processed
+    * @param crossoverFreq     The cross-over frequency between the low- and high-pass bands
+    * @return                  Returns true on successful configuration
+    */
+    bool Configure(unsigned int nCh, unsigned int sampleRate, float crossoverFreq);
 
     /** Reset the filter. */
     void Reset();

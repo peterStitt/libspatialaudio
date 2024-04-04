@@ -35,8 +35,9 @@ public:
      * @param frequency         The cutoff frequency of the filter
      * @param q                 The q-factor of the filter
      * @param filterType        The type of filter. Either low- or high-pass
+     * @return                  Returns true on successful configuration
      */
-    void Configure(unsigned int nCh, unsigned int sampleRate, float frequency, float q, FilterType filterType);
+    bool Configure(unsigned int nCh, unsigned int sampleRate, float frequency, float q, FilterType filterType);
 
     /** Reset the filter. */
     void Reset();
