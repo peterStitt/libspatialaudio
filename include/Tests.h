@@ -439,8 +439,8 @@ void testLinkwitzRileyFilter()
 		delete[] pOutHP[iCh];
 		delete[] pSum[iCh];
 	}
-	delete pIn;
-	delete pOutLP;
-	delete pOutHP;
-	delete pSum;
+	delete[] pIn;
+	delete[] pOutLP;
+	delete[] pOutHP;
+	delete[] pSum;
 }
