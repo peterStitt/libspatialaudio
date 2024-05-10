@@ -114,10 +114,15 @@ char ComponentToChannelLabel(unsigned nComponent, bool b3D)
     return cLabel;
 }
 
-unsigned ComponentPositionToDegree(unsigned nComponent, bool b3D)
+unsigned ComponentPositionToOrder(unsigned nComponent, bool b3D)
 {
     if (b3D)
         return (unsigned)floorf(sqrtf(nComponent));
     else
         return (unsigned)floorf((nComponent + 1.f) * 0.5f);
+}
+
+unsigned OrderAndDegreeToComponent(int order, int degree)
+{
+    return order * (order + 1) + degree;
 }
