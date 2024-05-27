@@ -67,7 +67,7 @@ void CAmbisonicEncoder::Process(float* pfSrc, unsigned nSamples, CBFormat* pfDst
 
 void CAmbisonicEncoder::ProcessAccumul(float* pfSrc, unsigned nSamples, CBFormat* pfDst, unsigned int nOffset, float fGain)
 {
-    assert(nSamples + nOffset < pfDst->GetSampleCount()); // Cannot write beyond the of the destination buffers!
+    assert(nSamples + nOffset <= pfDst->GetSampleCount()); // Cannot write beyond the of the destination buffers!
 
     m_coeffInterp.ProcessAccumul(pfSrc, pfDst->m_ppfChannels.get(), nSamples, nOffset, fGain);
 }
