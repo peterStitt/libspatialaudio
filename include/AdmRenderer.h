@@ -24,7 +24,6 @@
 #include "GainInterp.h"
 #include "AdmDirectSpeakerGainCalc.h"
 #include "Decorrelate.h"
-#include "PolarExtent.h"
 #include "GainCalculator.h"
 
 namespace admrender {
