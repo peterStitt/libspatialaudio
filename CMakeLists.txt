@@ -152,8 +152,7 @@ configure_file(
 )
 
 if(MYSOFA_FOUND)
-    get_filename_component(MYSOFA_LIB_DIR "${MYSOFA_LIBRARIES}" DIRECTORY)
-    set(MYSOFA_LIB "-L${MYSOFA_LIB_DIR} -lmysofa")
+    set(MYSOFA_LIB "-L${MYSOFA_LIBDIR} -lmysofa")
     set(MYSOFA_INCLUDE "-I${MYSOFA_INCLUDE_DIRS}")
 endif(MYSOFA_FOUND)
 
