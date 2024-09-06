@@ -74,7 +74,7 @@ double CSpreadPannerBase::CalculateWeights(CartesianPosition position)
 		m_closestCircle[2] = m_circularCapPosition.z;
 		// Sometimes the dot product of the 2 unit vectors can be greater than one, which leads to a nan from acos()
 		// so it is capped to 1
-		double dotProd = std::min(dotProduct(m_positionBasis, m_closestCircle), 1.);
+		double dotProd = clamp(dotProduct(m_positionBasis, m_closestCircle), -1., 1.);
 		distance = std::acos(dotProd) * RAD2DEG - 0.5 * m_height;
 	}
 
@@ -227,7 +227,7 @@ double CPolarExtentHandlerBase::PolarExtentModification(double distance, double 
 	else if (e_d >= e_1)
 		return extent + (360. - extent) * (e_d - e_1) / (360. - e_1);
 
-	return distance;
+	return extent;
 }
 
 // PolarExtentHandler ==========================================================================
@@ -300,7 +300,9 @@ void CPolarExtentHandler::CalculatePolarExtentGains(CartesianPosition position, 
 	}
 	if (p > 0.)
 	{
-		m_spreadPanner.CalculateGains(position, width, height, m_g_s);
+		double modWidth = std::max(width, m_minExtent);
+		double modHeight = std::max(height, m_minExtent);
+		m_spreadPanner.CalculateGains(position, modWidth, modHeight, m_g_s);
 	}
 	else
 	{
