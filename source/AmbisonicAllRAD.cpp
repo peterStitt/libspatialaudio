@@ -27,7 +27,7 @@ CAmbisonicAllRAD::~CAmbisonicAllRAD()
 {
 }
 
-bool ::CAmbisonicAllRAD::Configure(unsigned nOrder, unsigned nBlockSize, unsigned sampleRate, const std::string& layoutName, bool useLFE)
+bool ::CAmbisonicAllRAD::Configure(unsigned nOrder, unsigned nBlockSize, unsigned sampleRate, const std::string& layoutName, bool useLFE, bool useOptimFilts)
 {
     bool success = CAmbisonicBase::Configure(nOrder, true, 0);
     if(!success)
@@ -44,7 +44,9 @@ bool ::CAmbisonicAllRAD::Configure(unsigned nOrder, unsigned nBlockSize, unsigne
         m_layout = getLayoutWithoutLFE(m_layout);
 
     // Set up the ambisonic shelf filters
-    m_shelfFilters.Configure(nOrder, m_b3D, nBlockSize, sampleRate);
+    m_useOptimFilters = useOptimFilts;
+    if (m_useOptimFilters)
+        m_shelfFilters.Configure(nOrder, m_b3D, nBlockSize, sampleRate);
 
     // Set up the low pass IIR
     unsigned int nLFE = 0;
@@ -78,7 +80,8 @@ void CAmbisonicAllRAD::Process(const CBFormat* pBFSrc, unsigned nSamples, float*
 {
         // Process a copy of the input to avoid overwriting it
         m_pBFSrcTmp = *pBFSrc;
-        m_shelfFilters.Process(&m_pBFSrcTmp, nSamples);
+        if (m_useOptimFilters)
+            m_shelfFilters.Process(&m_pBFSrcTmp, nSamples);
 
         // Decode the input signal
         unsigned int ii = 0;
@@ -114,6 +117,11 @@ void CAmbisonicAllRAD::Process(const CBFormat* pBFSrc, unsigned nSamples, float*
 unsigned CAmbisonicAllRAD::GetSpeakerCount()
 {
     return (unsigned)m_layout.channels.size();
+}
+
+bool CAmbisonicAllRAD::GetUseOptimFilters()
+{
+    return m_useOptimFilters;
 }
 
 void CAmbisonicAllRAD::ConfigureAllRADMatrix()

@@ -39,10 +39,11 @@ public:
      * @param nBlockSize    Maximum number of samples to be decoded.
      * @param sampleRate    Sample rate of the signal to be decoded.
      * @param layoutName    Loudspeaker layout name in the format X+Y+Z.
-     * @param useLFE        If true (and the layout contains one) the LFE channel will be rendered. If not, the LFE channel will be removed.
+     * @param useLFE        (Optional) If true (and the layout contains one) the LFE channel will be rendered. If not, the LFE channel will be removed.
+     * @param useOptimFilts (Optional) If true then psychacoustic optimisation filtering will be applied before decoding. This is false by default.
      * @return              Returns true if successfully configured.
      */
-    bool Configure(unsigned nOrder, unsigned nBlockSize, unsigned sampleRate, const std::string& layoutName, bool useLFE = true);
+    bool Configure(unsigned nOrder, unsigned nBlockSize, unsigned sampleRate, const std::string& layoutName, bool useLFE = true, bool useOptimFilts = false);
 
     /** Resets the internal state. */
     void Reset();
@@ -61,6 +62,9 @@ public:
      * @return  Number of speakers.
      */
     unsigned GetSpeakerCount();
+
+    /** Returns true if psychoacoustic optimisation filters are enabled. */
+    bool GetUseOptimFilters();
 
 private:
     CAmbisonicOptimFilters m_shelfFilters;
@@ -82,6 +86,9 @@ private:
     unsigned m_nBlockSize = 0;
     // Sample rate of the signal to process
     unsigned m_sampleRate = 0;
+
+    // Apply psychoacoustic optimisation shelf filtering or not
+    bool m_useOptimFilters = false;
 };
 
 #endif // _AMBISONIC_ALLRAD_H
