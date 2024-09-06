@@ -177,8 +177,6 @@ namespace admrender {
 
 		// Ambisonic Decoder
 		CAmbisonicAllRAD m_hoaDecoder;
-		// Buffers to hold the temp HOA signal when doing binaural decoding
-		CBFormat m_hoaBinTmp;
 		// Ambisonic encoders to use convert from speaker feeds to HOA for binaural decoding
 		std::vector<CAmbisonicEncoder> m_hoaEncoders;
 		// Ambisonic rotation for binaural with head-tracking
@@ -195,9 +193,13 @@ namespace admrender {
 		float** m_speakerOutDiffuse;
 		// Buffers to the hold the virtual speaker layout signals when rendering to binaural
 		float** m_virtualSpeakerOut;
+		// Buffers to hold binaural signals added via AddBinaural() when rendering to binaural
+		float** m_binauralOut;
 		void ClearOutputBuffer();
 		void ClearObjectDirectBuffer();
 		void ClearObjectDiffuseBuffer();
+		void ClearBinauralBuffer();
+		void ClearVirtualSpeakerBuffer();
 
 		// Decorrelator filter processor
 		CDecorrelate m_decorrelate;
