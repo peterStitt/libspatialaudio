@@ -120,8 +120,8 @@ namespace admrender {
 	struct ObjectDivergence
 	{
 		double value = 0.0;
-		Optional<double> azimuthRange = 45.0;
-		Optional<double> positionRange = 0.;
+		Optional<double> azimuthRange;
+		Optional<double> positionRange;
 	};
 	inline bool operator==(const ObjectDivergence& lhs, const ObjectDivergence& rhs)
 	{
