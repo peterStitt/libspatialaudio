@@ -41,6 +41,8 @@ unsigned CAmbisonicBase::GetChannelCount()
 bool CAmbisonicBase::Configure(unsigned nOrder, bool b3D, unsigned /*nMisc*/)
 {
     assert(nOrder <= 3); // Only supports up to 3rd order
+    if (nOrder > 3)
+        return false;
     m_nOrder = nOrder;
     m_b3D = b3D;
     m_nChannelCount = OrderToComponents(m_nOrder, m_b3D);
