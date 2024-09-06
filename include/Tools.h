@@ -359,6 +359,9 @@ static inline void multiplyMatVec(const std::vector<std::vector<double>>& A, con
 
 	assert(y.size() == rowsA);
 
+	for (size_t i = 0; i < colsA; ++i)
+		y[i] = 0.;
+
 	for (size_t i = 0; i < rowsA; ++i)
 		for (size_t k = 0; k < colsA; ++k)
 			y[i] += A[i][k] * x[k];
