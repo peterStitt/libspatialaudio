@@ -738,7 +738,7 @@ void CAmbisonicDecoder::ConfigureDecoderMatrix()
             for (int iSpk = 0; iSpk < m_nSpeakers; ++iSpk)
                 for (int iOrder = 0; iOrder < processingOrder + 1; ++iOrder)
                     for (int iDegree = -iOrder + 1; iDegree < iOrder; ++iDegree)
-                        m_pAmbSpeakers[iSpk].SetCoefficient(OrderAndDegreeToComponent(iOrder, iDegree), 0.f);
+                        m_pAmbSpeakers[iSpk].SetCoefficient(OrderAndDegreeToComponent(iOrder, iDegree, true), 0.f);
         }
         else
         {

@@ -112,9 +112,18 @@ unsigned ComponentPositionToOrder(unsigned nComponent, bool b3D);
 /** Get the AmbiX channel index for a spherical harmonic of specified order and degree.
  * @param order     Order of the signal such that order <= maxOrder.
  * @param degree    Degree of the signal such that -order <= degree <= order.
+ * @param b3D       True if the component index is for a 3D signal.
  * @return          AmbiX component index.
  */
-unsigned OrderAndDegreeToComponent(int order, int degree);
+unsigned OrderAndDegreeToComponent(int order, int degree, bool b3D);
+
+/** Get the spherical harmonic order and degree for a specified AmbiX channel index.
+ * @param order     Order of the signal such that order <= maxOrder.
+ * @param degree    Degree of the signal such that -order <= degree <= order.
+ * @param b3D       True if the component index is for a 3D signal.
+ * @return          AmbiX component index.
+ */
+void ComponentToOrderAndDegree(int nComponent, bool b3D, int& order, int& degree);
 
 /** Returns the gain to convert an N3D signal to an SN3D one.
  * @param order     Order of the signal such that order <= maxOrder.
