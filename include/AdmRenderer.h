@@ -87,7 +87,7 @@ namespace admrender {
 		 *
 		 * @param pIn		Pointer to the object buffer to be rendered.
 		 * @param nSamples	Number of samples in the stream.
-		 * @param metadata	Metadata for the object stream. If the metadata is in Cartesian format it will be converted to polar.
+		 * @param metadata	Metadata for the object stream.
 		 * @param nOffset	Number of samples of delay to applied to the signal.
 		 */
 		void AddObject(float* pIn, unsigned int nSamples, const ObjectMetadata& metadata, unsigned int nOffset = 0);
