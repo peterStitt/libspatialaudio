@@ -219,11 +219,11 @@ void CPointSourcePannerGainCalc::CalculateGains(CartesianPosition position, std:
 		for (int i = 0; i < 2; ++i)
 			for (int j = 0; j < 5; ++j)
 				gains[i] += stereoDownmix[i][j] * m_gainsTmp[j];
-		double a_front;
+		double a_front = 0;
 		int i = 0;
 		for (i = 0; i < 3; ++i)
 			a_front = std::max(a_front, m_gainsTmp[i]);
-		double a_rear;
+		double a_rear = 0;
 		for (i = 3; i < 5; ++i)
 			a_rear = std::max(a_rear, m_gainsTmp[i]);
 		double r = a_rear / (a_front + a_rear);
