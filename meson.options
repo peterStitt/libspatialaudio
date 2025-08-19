@@ -1,0 +1,2 @@
+option('libmysofa', type : 'feature', value : 'auto')
+option('mit_hrtf', type : 'feature', value : 'auto')

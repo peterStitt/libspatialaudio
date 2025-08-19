@@ -1,0 +1,73 @@
+config_h = configure_file(
+    output : 'config.h',
+    configuration : conf_data
+)
+
+# Public header files that are installed
+spatialaudio_headers = [files(
+    'AdmConversions.h',
+    'AdmDirectSpeakerGainCalc.h',
+    'AdmMappingRules.h',
+    'AdmMetadata.h',
+    'AdmRenderer.h',
+    'AllocentricPannerGainCalc.h',
+    'AllocentricExtent.h',
+    'AmbisonicAllRAD.h',
+    'AmbisonicBase.h',
+    'AmbisonicBinauralizer.h',
+    'AmbisonicCommons.h',
+    'AmbisonicDecoder.h',
+    'AmbisonicDecoderPresets.h',
+    'AmbisonicEncoderDist.h',
+    'AmbisonicEncoder.h',
+    'AmbisonicMicrophone.h',
+    'AmbisonicProcessor.h',
+    'AmbisonicPsychoacousticFilters.h',
+    'AmbisonicRotator.h',
+    'Ambisonics.h',
+    'AmbisonicShelfFilters.h',
+    'AmbisonicOptimFilters.h',
+    'AmbisonicSource.h',
+    'AmbisonicSpeaker.h',
+    'AmbisonicTypesDefinesCommons.h',
+    'AmbisonicZoomer.h',
+    'BFormat.h',
+    'Coordinates.h',
+    'Decorrelate.h',
+    'GainCalculator.h',
+    'GainInterp.h',
+    'hrtf/hrtf.h',
+    'hrtf/mit_hrtf.h',
+    'hrtf/sofa_hrtf.h',
+    'LoudspeakerLayouts.h',
+    'mit_hrtf_filter.h',
+    'mit_hrtf_lib.h',
+    'normal/mit_hrtf_normal_44100.h',
+    'normal/mit_hrtf_normal_48000.h',
+    'normal/mit_hrtf_normal_88200.h',
+    'normal/mit_hrtf_normal_96000.h',
+    'PointSourcePannerGainCalc.h',
+    'PolarExtent.h',
+    'RegionHandlers.h',
+    'Screen.h',
+    'ScreenCommon.h',
+    'SpeakersBinauralizer.h',
+    'Tools.h',
+    't_design_5200.h',
+    '../source/kiss_fft/kiss_fft.h',
+    '../source/kiss_fft/kiss_fftr.h',
+    'dsp/IIRFilter.h',
+    'dsp/LinkwitzRileyIIR.h',
+), config_h]
+
+spatialaudio_incdirs = include_directories('.')
+
+spatialaudio_incdirs_private = [
+    spatialaudio_incdirs,
+    include_directories(
+        '../source/kiss_fft',
+        'dsp',
+        'hrtf',
+        'normal',
+    ),
+]
