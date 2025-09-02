@@ -1,0 +1,90 @@
+name: Meson Build
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }} (${{ matrix.cpp_compiler }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations.
+      # Consider changing this to true when your workflow is stable.
+      fail-fast: false
+
+      # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-13, macos-latest]
+        build_type: [Release]
+        cpp_compiler: [g++, clang++, cl]
+        meson_version: ["1.2.0"]
+        include:
+          - os: windows-latest
+            c_compiler: cl
+            cpp_compiler: cl
+          - os: ubuntu-latest
+            c_compiler: gcc
+            cpp_compiler: g++
+          - os: ubuntu-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+          - os: macos-13
+            c_compiler: clang
+            cpp_compiler: clang++
+          - os: macos-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+        exclude:
+          - os: windows-latest
+            cpp_compiler: g++
+          - os: windows-latest
+            cpp_compiler: clang++
+          - os: ubuntu-latest
+            cpp_compiler: cl
+          - os: macos-13
+            cpp_compiler: cl
+          - os: macos-13
+            cpp_compiler: g++
+          - os: macos-latest
+            cpp_compiler: cl
+          - os: macos-latest
+            cpp_compiler: g++
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: python -m pip install meson==${{ matrix.meson_version }} ninja
+      - name: Configure Project
+        run: meson setup builddir/
+        env:
+          CC: ${{ matrix.c_compiler }}
+          CXX: ${{ matrix.cpp_compiler }}
+        if: ${{ matrix.cpp_compiler != 'cl' }}
+      - name: Configure Project (MSVC)
+        run: meson setup --vsenv builddir/
+        env:
+          CC: ${{ matrix.c_compiler }}
+          CXX: ${{ matrix.cpp_compiler }}
+        if: ${{ matrix.cpp_compiler == 'cl' }}
+      - name: Build Project
+        run: meson compile -C builddir/
+        env:
+          CC: ${{ matrix.c_compiler }}
+          CXX: ${{ matrix.cpp_compiler }}
+
+# Uncomment once tests are added:
+#      - name: Run Tests
+#        run: meson test -C builddir/ -v
+#      - name: Upload Test Log
+#        uses: actions/upload-artifact@v4
+#        if: failure()
+#        with:
+#          name: ${{ matrix.os }}_Meson_Testlog
+#          path: builddir/meson-logs/testlog.txt
