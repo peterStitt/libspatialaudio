@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicBase - Ambisonic Base                                         #*/
+/*#  AmbisonicBase - Ambisonic Base                                         #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#                                                                          #*/
 /*#  Filename:      AmbisonicBase.cpp                                        #*/
@@ -16,29 +16,29 @@
 #include "AmbisonicBase.h"
 #include <assert.h>
 
-CAmbisonicBase::CAmbisonicBase()
+AmbisonicBase::AmbisonicBase()
     : m_nOrder(0)
     , m_b3D(0)
     , m_nChannelCount(0)
 {
 }
 
-unsigned CAmbisonicBase::GetOrder()
+unsigned AmbisonicBase::GetOrder()
 {
     return m_nOrder;
 }
 
-bool CAmbisonicBase::GetHeight()
+bool AmbisonicBase::GetHeight()
 {
     return m_b3D;
 }
 
-unsigned CAmbisonicBase::GetChannelCount()
+unsigned AmbisonicBase::GetChannelCount()
 {
     return m_nChannelCount;
 }
 
-bool CAmbisonicBase::Configure(unsigned nOrder, bool b3D, unsigned /*nMisc*/)
+bool AmbisonicBase::Configure(unsigned nOrder, bool b3D, unsigned /*nMisc*/)
 {
     assert(nOrder <= 3); // Only supports up to 3rd order
     if (nOrder > 3)

@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  A renderer for ADM streams.                                             #*/
-/*#  CAdmRenderer - ADM Renderer                                             #*/
+/*#  Renderer - ADM Renderer                                             #*/
 /*#  Copyright © 2020 Peter Stitt                                            #*/
 /*#                                                                          #*/
 /*#  Filename:      AdmRenderer.cpp                                          #*/
@@ -16,15 +16,15 @@
 #include<type_traits>
 #include<iostream>
 
-namespace admrender {
+namespace spaudio {
 
-	CAdmRenderer::CAdmRenderer()
+	Renderer::Renderer()
 	{
 		m_RenderLayout = OutputLayout::Stereo;
 		m_nSamples = 0;
 	}
 
-	CAdmRenderer::~CAdmRenderer()
+	Renderer::~Renderer()
 	{
 		DeallocateBuffers(m_speakerOut, m_nChannelsToRender);
 		DeallocateBuffers(m_speakerOutDirect, m_nChannelsToRender);
@@ -33,7 +33,7 @@ namespace admrender {
 		DeallocateBuffers(m_binauralOut, 2);
 	}
 
-	bool CAdmRenderer::Configure(OutputLayout outputTarget, unsigned int hoaOrder, unsigned int nSampleRate, unsigned int nSamples, const StreamInformation& channelInfo, std::string HRTFPath, bool useLfeBinaural, Optional<Screen> reproductionScreen, const std::vector<PolarPosition>& layoutPositions)
+	bool Renderer::Configure(OutputLayout outputTarget, unsigned int hoaOrder, unsigned int nSampleRate, unsigned int nSamples, const StreamInformation& channelInfo, std::string HRTFPath, bool useLfeBinaural, Optional<Screen> reproductionScreen, const std::vector<PolarPosition>& layoutPositions)
 	{
 		// Set the output layout
 		m_RenderLayout = outputTarget;
@@ -55,56 +55,50 @@ namespace admrender {
 		switch (m_RenderLayout)
 		{
 		case OutputLayout::Stereo:
-			m_outputLayout = GetMatchingLayout("0+2+0");
+			m_outputLayout = Layout::getMatchingLayout("0+2+0");
 			break;
 		case OutputLayout::Quad:
-			m_outputLayout = GetMatchingLayout("0+4+0");
+			m_outputLayout = Layout::getMatchingLayout("0+4+0");
 			break;
-		case OutputLayout::ITU_0_5_0:
-			m_outputLayout = GetMatchingLayout("0+5+0");
+		case OutputLayout::FivePointOne:
+			m_outputLayout = Layout::getMatchingLayout("0+5+0");
 			break;
-		case OutputLayout::FivePointZero:
-			m_outputLayout = getLayoutWithoutLFE(GetMatchingLayout("0+5+0"));
+		case OutputLayout::SevenPointOne:
+			m_outputLayout = Layout::getMatchingLayout("0+7+0");
 			break;
-		case OutputLayout::ITU_0_7_0:
-			m_outputLayout = GetMatchingLayout("0+7+0");
+		case spaudio::OutputLayout::FivePointOnePointTwo:
+			m_outputLayout = Layout::getMatchingLayout("2+5+0");
 			break;
-		case OutputLayout::SevenPointZero:
-			m_outputLayout = getLayoutWithoutLFE(GetMatchingLayout("0+7+0"));
+		case spaudio::OutputLayout::FivePointOnePointFour:
+			m_outputLayout = Layout::getMatchingLayout("4+5+0");
 			break;
-		case admrender::OutputLayout::ITU_2_5_0:
-			m_outputLayout = GetMatchingLayout("2+5+0");
+		case spaudio::OutputLayout::FivePointOnePointFourPlusLow:
+			m_outputLayout = Layout::getMatchingLayout("4+5+1");
 			break;
-		case admrender::OutputLayout::ITU_4_5_0:
-			m_outputLayout = GetMatchingLayout("4+5+0");
+		case spaudio::OutputLayout::SevenPointOnePointThree:
+			m_outputLayout = Layout::getMatchingLayout("3+7+0");
 			break;
-		case admrender::OutputLayout::ITU_4_5_1:
-			m_outputLayout = GetMatchingLayout("4+5+1");
+		case spaudio::OutputLayout::ThirteenPointOne:
+			m_outputLayout = Layout::getMatchingLayout("4+9+0");
 			break;
-		case admrender::OutputLayout::ITU_3_7_0:
-			m_outputLayout = GetMatchingLayout("3+7+0");
+		case spaudio::OutputLayout::TwentyTwoPointTwo:
+			m_outputLayout = Layout::getMatchingLayout("9+10+3");
 			break;
-		case admrender::OutputLayout::ITU_4_9_0:
-			m_outputLayout = GetMatchingLayout("4+9+0");
+		case spaudio::OutputLayout::SevenPointOnePointFour:
+			m_outputLayout = Layout::getMatchingLayout("4+7+0");
 			break;
-		case admrender::OutputLayout::ITU_9_10_3:
-			m_outputLayout = GetMatchingLayout("9+10+3");
+		case spaudio::OutputLayout::BEAR_9_10_5:
+			m_outputLayout = Layout::getMatchingLayout("9+10+5");
 			break;
-		case admrender::OutputLayout::ITU_4_7_0:
-			m_outputLayout = GetMatchingLayout("4+7+0");
+		case spaudio::OutputLayout::SevenPointOnePointTwo:
+			m_outputLayout = Layout::getMatchingLayout("2+7+0");
 			break;
-		case admrender::OutputLayout::BEAR_9_10_5:
-			m_outputLayout = GetMatchingLayout("9+10+5");
-			break;
-		case admrender::OutputLayout::_2_7_0:
-			m_outputLayout = GetMatchingLayout("2+7+0");
-			break;
-		case admrender::OutputLayout::_3p1p2:
-			m_outputLayout = GetMatchingLayout("2+3+0");
+		case spaudio::OutputLayout::ThreePointOnePointTwo:
+			m_outputLayout = Layout::getMatchingLayout("2+3+0");
 			break;
 		case OutputLayout::Binaural:
 			// Render to the BEAR layout and before binauralising
-			m_outputLayout = getLayoutWithoutLFE(GetMatchingLayout("9+10+5"));
+			m_outputLayout = Layout::getLayoutWithoutLFE(Layout::getMatchingLayout("9+10+5"));
 			break;
 		default:
 			break;
@@ -150,8 +144,8 @@ namespace admrender {
 				break;
 			case TypeDefinition::Objects:
 				m_pannerTrackInd.push_back({ iCh,TypeDefinition::Objects });
-				m_gainInterpDirect.push_back(CGainInterp<double>(m_nChannelsToRender));
-				m_gainInterpDiffuse.push_back(CGainInterp<double>(m_nChannelsToRender));
+				m_gainInterpDirect.push_back(GainInterp<double>(m_nChannelsToRender));
+				m_gainInterpDiffuse.push_back(GainInterp<double>(m_nChannelsToRender));
 				m_objectMetadata.push_back(ObjectMetadata());
 				if (reproductionScreen.hasValue())
 					m_objectMetadata.back().referenceScreen = reproductionScreen.value();
@@ -167,9 +161,9 @@ namespace admrender {
 		}
 
 		// Set up the gain calculator
-		m_objectGainCalc = std::make_unique<CGainCalculator>(m_outputLayout);
+		m_objectGainCalc = std::make_unique<GainCalculator>(m_outputLayout);
 		//Set up the direct gain calculator if output is not binaural
-		m_directSpeakerGainCalc = std::make_unique<CAdmDirectSpeakersGainCalc>(m_outputLayout);
+		m_directSpeakerGainCalc = std::make_unique<AdmDirectSpeakersGainCalc>(m_outputLayout);
 		// Set up the decorrelator
 		bool bDecorConfig = m_decorrelate.Configure(m_outputLayout, nSamples);
 		if (!bDecorConfig)
@@ -186,7 +180,7 @@ namespace admrender {
 			for (size_t iLdspk = 0; iLdspk < m_outputLayout.channels.size(); ++iLdspk)
 			{
 				auto& pos = m_outputLayout.channels[iLdspk].polarPosition;
-				m_hoaEncoders.push_back(CAmbisonicEncoder());
+				m_hoaEncoders.push_back(AmbisonicEncoder());
 				m_hoaEncoders[iLdspk].Configure(hoaOrder, true, nSampleRate, 0);
 				m_hoaEncoders[iLdspk].SetPosition(PolarPoint{ DegreesToRadians((float)pos.azimuth), DegreesToRadians((float)pos.elevation), 1.f });
 			}
@@ -222,7 +216,7 @@ namespace admrender {
 	}
 
 
-	void CAdmRenderer::Reset()
+	void Renderer::Reset()
 	{
 		m_decorrelate.Reset();
 		m_hoaBinaural.Reset();
@@ -239,18 +233,18 @@ namespace admrender {
 		}
 	}
 
-	unsigned int CAdmRenderer::GetSpeakerCount()
+	unsigned int Renderer::GetSpeakerCount()
 	{
 		return m_RenderLayout == OutputLayout::Binaural ? 2 : (unsigned int)m_outputLayout.channels.size();
 	}
 
-	void CAdmRenderer::SetHeadOrientation(const RotationOrientation& newOrientation)
+	void Renderer::SetHeadOrientation(const RotationOrientation& newOrientation)
 	{
 		if (m_RenderLayout == OutputLayout::Binaural)
 			m_hoaRotate.SetOrientation(newOrientation);
 	}
 
-	void CAdmRenderer::AddObject(float* pIn, unsigned int nSamples, const ObjectMetadata& metadata, unsigned int nOffset)
+	void Renderer::AddObject(float* pIn, unsigned int nSamples, const ObjectMetadata& metadata, unsigned int nOffset)
 	{
 		// convert from cartesian to polar metadata (if required)
 		toPolar(metadata, m_objMetaDataTmp);
@@ -301,7 +295,7 @@ namespace admrender {
 		m_gainInterpDiffuse[iObj].ProcessAccumul(pIn, m_speakerOutDiffuse, nSamples, nOffset);
 	}
 
-	void CAdmRenderer::AddHoa(float** pHoaIn, unsigned int nSamples, const HoaMetadata& metadata, unsigned int nOffset)
+	void Renderer::AddHoa(float** pHoaIn, unsigned int nSamples, const HoaMetadata& metadata, unsigned int nOffset)
 	{
 		unsigned int nHoaCh = (unsigned int)metadata.orders.size();
 		for (unsigned int iHoaCh = 0; iHoaCh < nHoaCh; ++iHoaCh)
@@ -319,7 +313,7 @@ namespace admrender {
 		}
 	}
 
-	void CAdmRenderer::AddDirectSpeaker(float* pDirSpkIn, unsigned int nSamples, const DirectSpeakerMetadata& metadata, unsigned int nOffset)
+	void Renderer::AddDirectSpeaker(float* pDirSpkIn, unsigned int nSamples, const DirectSpeakerMetadata& metadata, unsigned int nOffset)
 	{
 		bool isSpeakerLFE = isLFE(metadata);
 		if (m_RenderLayout == OutputLayout::Binaural && isSpeakerLFE && !m_useLfeBinaural)
@@ -335,8 +329,7 @@ namespace admrender {
 
 			if (isSpeakerLFE && m_useLfeBinaural) // Set the direction of the LFE channel to az = 0deg, el = -30deg
 			{
-				// The BEAR layout does not contain any LFE channels so set the LFE to B+000
-				m_dirSpkBinMetaDataTmp.speakerLabel = "B+000";
+				// The BEAR layout does not contain any LFE channels so set the LFE to the same position as B+000
 				m_dirSpkBinMetaDataTmp.polarPosition.azimuth = 0.;
 				m_dirSpkBinMetaDataTmp.polarPosition.elevation = -30.;
 			}
@@ -356,7 +349,7 @@ namespace admrender {
 					m_speakerOut[iSpk][iSample + nOffset] += pDirSpkIn[iSample] * (float)m_directSpeakerGains[iSpk];
 	}
 
-	void CAdmRenderer::AddBinaural(float** pBinIn, unsigned int nSamples, unsigned int nOffset)
+	void Renderer::AddBinaural(float** pBinIn, unsigned int nSamples, unsigned int nOffset)
 	{
 		if (m_RenderLayout == OutputLayout::Binaural)
 		{
@@ -367,10 +360,10 @@ namespace admrender {
 		}
 	}
 
-	void CAdmRenderer::GetRenderedAudio(float** pRender, unsigned int nSamples)
+	void Renderer::GetRenderedAudio(float** pRender, unsigned int nSamples)
 	{
 		// Apply diffuseness filters and compensation delay
-		m_decorrelate.Process(m_speakerOutDirect, m_speakerOutDiffuse, nSamples);
+		//m_decorrelate.Process(m_speakerOutDirect, m_speakerOutDiffuse, nSamples);
 
 		if (m_RenderLayout == OutputLayout::Binaural)
 		{
@@ -420,47 +413,47 @@ namespace admrender {
 		ClearObjectDiffuseBuffer();
 	}
 
-	void CAdmRenderer::ClearHoaBuffer()
+	void Renderer::ClearHoaBuffer()
 	{
 		m_hoaAudioOut.Reset();
 	}
 
-	void CAdmRenderer::ClearOutputBuffer()
+	void Renderer::ClearOutputBuffer()
 	{
 		for (unsigned int iCh = 0; iCh < m_nChannelsToRender; ++iCh)
 			for (unsigned int iSamp = 0; iSamp < m_nSamples; ++iSamp)
 				m_speakerOut[iCh][iSamp] = 0.f;
 	}
 
-	void CAdmRenderer::ClearObjectDirectBuffer()
+	void Renderer::ClearObjectDirectBuffer()
 	{
 		for (unsigned int iCh = 0; iCh < m_nChannelsToRender; ++iCh)
 			for (unsigned int iSamp = 0; iSamp < m_nSamples; ++iSamp)
 				m_speakerOutDirect[iCh][iSamp] = 0.f;
 	}
 
-	void CAdmRenderer::ClearObjectDiffuseBuffer()
+	void Renderer::ClearObjectDiffuseBuffer()
 	{
 		for (unsigned int iCh = 0; iCh < m_nChannelsToRender; ++iCh)
 			for (unsigned int iSamp = 0; iSamp < m_nSamples; ++iSamp)
 				m_speakerOutDiffuse[iCh][iSamp] = 0.f;
 	}
 
-	void CAdmRenderer::ClearBinauralBuffer()
+	void Renderer::ClearBinauralBuffer()
 	{
 		for (unsigned int iCh = 0; iCh < 2; ++iCh)
 			for (unsigned int iSamp = 0; iSamp < m_nSamples; ++iSamp)
 				m_binauralOut[iCh][iSamp] = 0.f;
 	}
 
-	void CAdmRenderer::ClearVirtualSpeakerBuffer()
+	void Renderer::ClearVirtualSpeakerBuffer()
 	{
 		for (unsigned int iSpk = 0; iSpk < m_nChannelsToRender; ++iSpk)
 			for (unsigned int iSample = 0; iSample < m_nSamples; ++iSample)
 				m_virtualSpeakerOut[iSpk][iSample] = 0.f;
 	}
 
-	int CAdmRenderer::GetMatchingIndex(const std::vector<std::pair<unsigned int, TypeDefinition>>& vector, unsigned int nElement, TypeDefinition trackType)
+	int Renderer::GetMatchingIndex(const std::vector<std::pair<unsigned int, TypeDefinition>>& vector, unsigned int nElement, TypeDefinition trackType)
 	{
 		// Map from the track index to the corresponding panner index
 		int nInd = 0;
@@ -473,7 +466,7 @@ namespace admrender {
 		return -1;
 	}
 
-	void CAdmRenderer::AllocateBuffers(float**& buffers, unsigned nCh, unsigned nSamples)
+	void Renderer::AllocateBuffers(float**& buffers, unsigned nCh, unsigned nSamples)
 	{
 		DeallocateBuffers(buffers, nCh);
 		buffers = new float* [nCh];
@@ -484,7 +477,7 @@ namespace admrender {
 		}
 	}
 
-	void CAdmRenderer::DeallocateBuffers(float**& buffers, unsigned nCh)
+	void Renderer::DeallocateBuffers(float**& buffers, unsigned nCh)
 	{
 		if (buffers)
 		{

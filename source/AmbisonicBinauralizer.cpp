@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicBinauralizer - Ambisonic Binauralizer                         #*/
+/*#  AmbisonicBinauralizer - Ambisonic Binauralizer                         #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#  Copyright © 2017 Videolabs                                              #*/
 /*#                                                                          #*/
@@ -21,7 +21,7 @@
 #include "AmbisonicBinauralizer.h"
 
 
-CAmbisonicBinauralizer::CAmbisonicBinauralizer()
+AmbisonicBinauralizer::AmbisonicBinauralizer()
     : m_pFFT_cfg(nullptr, kiss_fftr_free)
     , m_pIFFT_cfg(nullptr, kiss_fftr_free)
 {
@@ -34,7 +34,7 @@ CAmbisonicBinauralizer::CAmbisonicBinauralizer()
     m_nOverlapLength = 0;
 }
 
-bool CAmbisonicBinauralizer::Configure(unsigned nOrder,
+bool AmbisonicBinauralizer::Configure(unsigned nOrder,
                                        bool b3D,
                                        unsigned nSampleRate,
                                        unsigned nBlockSize,
@@ -42,7 +42,7 @@ bool CAmbisonicBinauralizer::Configure(unsigned nOrder,
                                        std::string HRTFPath,
                                        bool lowCpuMode)
 {
-    bool success = CAmbisonicBase::Configure(nOrder, b3D, 0);
+    bool success = AmbisonicBase::Configure(nOrder, b3D, 0);
     if (!success)
         return false;
 
@@ -130,7 +130,7 @@ bool CAmbisonicBinauralizer::Configure(unsigned nOrder,
     float fMax = 0;
 
     // encode a source at azimuth 90deg and elevation 0
-    CAmbisonicEncoder myEncoder;
+    AmbisonicEncoder myEncoder;
     myEncoder.Configure(m_nOrder, true, nSampleRate, 0);
 
     PolarPoint position90;
@@ -154,7 +154,7 @@ bool CAmbisonicBinauralizer::Configure(unsigned nOrder,
     }
 
     // Optimisation filters to pre-process the FIR filters with basic/max-rE gains
-    CAmbisonicOptimFilters shelfFilters;
+    AmbisonicOptimFilters shelfFilters;
     bool bShelfConfig = shelfFilters.Configure(nOrder, b3D, m_nTaps, nSampleRate);
     if (!bShelfConfig)
         return false;
@@ -165,7 +165,7 @@ bool CAmbisonicBinauralizer::Configure(unsigned nOrder,
     fScaler *= 0.35f;
     for(niEar = 0; niEar < 2; niEar++)
     {
-        CBFormat firOptim;
+        BFormat firOptim;
         firOptim.Configure(nOrder, b3D, m_nTaps);
         for(niChannel = 0; niChannel < m_nChannelCount; niChannel++)
         {
@@ -209,23 +209,23 @@ bool CAmbisonicBinauralizer::Configure(unsigned nOrder,
     return true;
 }
 
-void CAmbisonicBinauralizer::Reset()
+void AmbisonicBinauralizer::Reset()
 {
     memset(m_pfOverlap[0].data(), 0, m_nOverlapLength * sizeof(float));
     memset(m_pfOverlap[1].data(), 0, m_nOverlapLength * sizeof(float));
 }
 
-void CAmbisonicBinauralizer::Refresh()
+void AmbisonicBinauralizer::Refresh()
 {
 }
 
-void CAmbisonicBinauralizer::Process(CBFormat* pBFSrc,
+void AmbisonicBinauralizer::Process(BFormat* pBFSrc,
     float** ppfDst)
 {
     Process(pBFSrc, ppfDst, m_nBlockSize);
 }
 
-void CAmbisonicBinauralizer::Process(CBFormat* pBFSrc,
+void AmbisonicBinauralizer::Process(BFormat* pBFSrc,
                                      float** ppfDst, unsigned int nSamples)
 {
     unsigned niEar = 0;
@@ -361,7 +361,7 @@ void CAmbisonicBinauralizer::Process(CBFormat* pBFSrc,
     }
 }
 
-void CAmbisonicBinauralizer::ArrangeSpeakers()
+void AmbisonicBinauralizer::ArrangeSpeakers()
 {
     Amblib_SpeakerSetUps nSpeakerSetUp;
     //How many speakers will be needed? Add one for right above the listener
@@ -386,7 +386,7 @@ void CAmbisonicBinauralizer::ArrangeSpeakers()
 }
 
 
-HRTF *CAmbisonicBinauralizer::getHRTF(unsigned nSampleRate, std::string HRTFPath)
+HRTF *AmbisonicBinauralizer::getHRTF(unsigned nSampleRate, std::string HRTFPath)
 {
     HRTF *p_hrtf;
 
@@ -419,7 +419,7 @@ HRTF *CAmbisonicBinauralizer::getHRTF(unsigned nSampleRate, std::string HRTFPath
 }
 
 
-void CAmbisonicBinauralizer::AllocateBuffers()
+void AmbisonicBinauralizer::AllocateBuffers()
 {
     //Allocate scratch buffers
     m_pfScratchBufferA.resize(m_nFFTSize);

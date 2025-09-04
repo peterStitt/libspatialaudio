@@ -14,7 +14,7 @@
 
 #include "AllocentricPannerGainCalc.h"
 
-CAllocentricPannerGainCalc::CAllocentricPannerGainCalc(const Layout& layout)
+AllocentricPannerGainCalc::AllocentricPannerGainCalc(const Layout& layout)
     : m_cartesianPositions(admrender::positionsForLayout(layout))
     , m_positionsX(m_cartesianPositions.size(), 0.)
     , m_positionsY(m_cartesianPositions.size(), 0.)
@@ -80,11 +80,11 @@ CAllocentricPannerGainCalc::CAllocentricPannerGainCalc(const Layout& layout)
     }
 }
 
-CAllocentricPannerGainCalc::~CAllocentricPannerGainCalc()
+AllocentricPannerGainCalc::~AllocentricPannerGainCalc()
 {
 }
 
-void CAllocentricPannerGainCalc::CalculateGains(CartesianPosition position, const std::vector<bool>& excluded, std::vector<double>& gains)
+void AllocentricPannerGainCalc::CalculateGains(CartesianPosition position, const std::vector<bool>& excluded, std::vector<double>& gains)
 {
     auto nLdspk = m_cartesianPositions.size();
     assert(gains.capacity() >= nLdspk);
@@ -129,7 +129,7 @@ void CAllocentricPannerGainCalc::CalculateGains(CartesianPosition position, cons
     }
 }
 
-void CAllocentricPannerGainCalc::CalculateIndividualGains(CartesianPosition position, const std::vector<bool>& excluded,
+void AllocentricPannerGainCalc::CalculateIndividualGains(CartesianPosition position, const std::vector<bool>& excluded,
     std::vector<double>& gx, std::vector<double>& gy, std::vector<double>& gz)
 {
     auto nLdspk = m_cartesianPositions.size();
@@ -181,12 +181,12 @@ void CAllocentricPannerGainCalc::CalculateIndividualGains(CartesianPosition posi
     }
 }
 
-unsigned int CAllocentricPannerGainCalc::getNumChannels()
+unsigned int AllocentricPannerGainCalc::getNumChannels()
 {
     return (unsigned int)m_cartesianPositions.size();
 }
 
-double CAllocentricPannerGainCalc::calculateGainForAxis (double valThis, const std::vector<double>& positionsAxis, const std::vector<bool>& excluded)
+double AllocentricPannerGainCalc::calculateGainForAxis (double valThis, const std::vector<double>& positionsAxis, const std::vector<bool>& excluded)
 {
     double valOther;
     bool hasValue = false;

@@ -17,11 +17,11 @@
 #include "AllocentricPannerGainCalc.h"
 
 /** Class to calculate the extent panning gains using the ADM cartesian/allocentric method on the specified loudspeaker layout. */
-class CAllocentricExtent
+class AllocentricExtent
 {
 public:
-    CAllocentricExtent(const Layout& layout);
-    ~CAllocentricExtent();
+    AllocentricExtent(const Layout& layout);
+    ~AllocentricExtent();
 
     /** Calculate the gains to be applied to a mono signal in order to place it in the target
      *  speaker layout based on Rec. ITU-R BS.2127-1 Sec. 7.3.11.
@@ -40,7 +40,7 @@ public:
 private:
     Layout m_layout;
     std::vector<CartesianPosition> m_cartesianPositions;
-    CAllocentricPannerGainCalc m_alloPanner;
+    AllocentricPannerGainCalc m_alloPanner;
 
     unsigned int m_nMaxGridPoints = 40;
 

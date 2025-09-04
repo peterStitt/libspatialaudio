@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  A renderer for ADM streams.                                             #*/
-/*#  CAdmRenderer - ADM Renderer                                             #*/
+/*#  Renderer - ADM Renderer                                             #*/
 /*#  Copyright © 2020 Peter Stitt                                            #*/
 /*#                                                                          #*/
 /*#  Filename:      AdmRenderer.h                                            #*/
@@ -26,29 +26,7 @@
 #include "Decorrelate.h"
 #include "GainCalculator.h"
 
-namespace admrender {
-
-	/** The different output layouts supported by CAdmRenderer */
-	enum class OutputLayout
-	{
-		Stereo = 1, // equivalent to ITU Sytem A (0+2+0)
-		Quad,
-		ITU_0_5_0, // ITU-R BS.2051-3 System B
-		ITU_2_5_0, // ITU-R BS.2051-3 System C
-		ITU_4_5_0, // ITU-R BS.2051-3 System D 
-		ITU_4_5_1, // ITU-R BS.2051-3 System E
-		ITU_3_7_0, // ITU-R BS.2051-3 System F
-		ITU_4_9_0, // ITU-R BS.2051-3 System G
-		ITU_9_10_3, // ITU-R BS.2051-3 System H
-		ITU_0_7_0, // ITU-R BS.2051-3 System I
-		ITU_4_7_0, // ITU-R BS.2051-3 System J
-		BEAR_9_10_5, // BEAR layout. 9+10+3 with 2 extra lower speakers
-		_2_7_0, // 7.1.2 layout specified in IAMF v1.0.0
-		_3p1p2, // 3.1.2 layout specified in IAMF v1.0.0
-		FivePointZero, // BS.2051-3 System B 0+5+0 without sub channel
-		SevenPointZero, // BS.2051-3 System I 0+7+0 without sub channel
-		Binaural
-	};
+namespace spaudio {
 
 	/** This is a renderer for ADM streams. It aims to provide a simple way to
 	 *	add spatial data to the stream audio using the methods available in
@@ -67,11 +45,11 @@ namespace admrender {
 	 *	Required to meet full compliance with Rec. ITU-R BS.2127-0:
 	 *	- Handle Matrix types (need samples to be able to test)
 	 */
-	class CAdmRenderer
+	class Renderer
 	{
 	public:
-		CAdmRenderer();
-		~CAdmRenderer();
+		Renderer();
+		~Renderer();
 
 		/** Configure the ADM Renderer.
 		 *
@@ -176,23 +154,23 @@ namespace admrender {
 		// The channel indices of the tracks that can use a point source panner
 		std::vector<std::pair<unsigned int, TypeDefinition>> m_pannerTrackInd;
 		// Gain interpolators
-		std::vector<CGainInterp<double>> m_gainInterpDirect;
-		std::vector<CGainInterp<double>> m_gainInterpDiffuse;
+		std::vector<GainInterp<double>> m_gainInterpDirect;
+		std::vector<GainInterp<double>> m_gainInterpDiffuse;
 		// The gain calculator for Object type channels
-		std::unique_ptr<CGainCalculator> m_objectGainCalc;
+		std::unique_ptr<GainCalculator> m_objectGainCalc;
 		// The gain calculator for the DirectSpeaker channels
-		std::unique_ptr<CAdmDirectSpeakersGainCalc> m_directSpeakerGainCalc;
+		std::unique_ptr<AdmDirectSpeakersGainCalc> m_directSpeakerGainCalc;
 
 		// Ambisonic Decoder
-		CAmbisonicAllRAD m_hoaDecoder;
+		AmbisonicAllRAD m_hoaDecoder;
 		// Ambisonic encoders to use convert from speaker feeds to HOA for binaural decoding
-		std::vector<CAmbisonicEncoder> m_hoaEncoders;
+		std::vector<AmbisonicEncoder> m_hoaEncoders;
 		// Ambisonic rotation for binaural with head-tracking
-		CAmbisonicRotator m_hoaRotate;
+		AmbisonicRotator m_hoaRotate;
 		// Ambisonic binaural decoder
-		CAmbisonicBinauralizer m_hoaBinaural;
+		AmbisonicBinauralizer m_hoaBinaural;
 		// Buffers to hold the HOA audio
-		CBFormat m_hoaAudioOut;
+		BFormat m_hoaAudioOut;
 		// Buffers holding the output signal
 		float** m_speakerOut = nullptr;
 		// Buffers to hold the direct object audio
@@ -210,7 +188,7 @@ namespace admrender {
 		void ClearVirtualSpeakerBuffer();
 
 		// Decorrelator filter processor
-		CDecorrelate m_decorrelate;
+		Decorrelator m_decorrelate;
 
 		// A buffer containing all zeros to use to clear the HOA data
 		std::unique_ptr<float[]> m_pZeros;

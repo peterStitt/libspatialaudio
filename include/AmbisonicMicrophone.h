@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicMicrophone - Ambisonic Microphone                             #*/
+/*#  AmbisonicMicrophone - Ambisonic Microphone                             #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#                                                                          #*/
 /*#  Filename:      AmbisonicMicrophone.h                                    #*/
@@ -21,14 +21,14 @@
 
 /// Ambisonic microphone
 
-/** This is a microphone class. It is similar to ::CAmbisonicSpeaker, with the
+/** This is a microphone class. It is similar to ::AmbisonicSpeaker, with the
     addition of having directivity control. */
 
-class CAmbisonicMicrophone : public CAmbisonicSource
+class AmbisonicMicrophone : public AmbisonicSource
 {
 public:
-    CAmbisonicMicrophone();
-    ~CAmbisonicMicrophone();
+    AmbisonicMicrophone();
+    ~AmbisonicMicrophone();
 
     /** Recalculate coefficients, and apply normalisation factors. */
     void Refresh();
@@ -38,7 +38,7 @@ public:
      * @param nSamples  Number of samples to process.
      * @param pfDst     Mono microphone signal.
      */
-    void Process(CBFormat* pBFSrc, unsigned nSamples, float* pfDst);
+    void Process(BFormat* pBFSrc, unsigned nSamples, float* pfDst);
 
     /** Set the microphone's directivity.
      * @param fDirectivity  Microphone directivity.

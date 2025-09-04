@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicEncoderDist - Ambisonic Encoder with distance                 #*/
+/*#  AmbisonicEncoderDist - Ambisonic Encoder with distance                 #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#                                                                          #*/
 /*#  Filename:      AmbisonicEncoderDist.cpp                                 #*/
@@ -15,7 +15,7 @@
 
 #include "AmbisonicEncoderDist.h"
 
-CAmbisonicEncoderDist::CAmbisonicEncoderDist()
+AmbisonicEncoderDist::AmbisonicEncoderDist()
 {
     m_nSampleRate = 0;
     m_fDelay = 0.f;
@@ -32,15 +32,15 @@ CAmbisonicEncoderDist::CAmbisonicEncoderDist()
     Configure(DEFAULT_ORDER, DEFAULT_HEIGHT, DEFAULT_SAMPLERATE);
 }
 
-CAmbisonicEncoderDist::~CAmbisonicEncoderDist()
+AmbisonicEncoderDist::~AmbisonicEncoderDist()
 {
     if(m_pfDelayBuffer)
         delete [] m_pfDelayBuffer;
 }
 
-bool CAmbisonicEncoderDist::Configure(unsigned nOrder, bool b3D, unsigned nSampleRate)
+bool AmbisonicEncoderDist::Configure(unsigned nOrder, bool b3D, unsigned nSampleRate)
 {
-    bool success = CAmbisonicEncoder::Configure(nOrder, b3D, nSampleRate, 0);
+    bool success = AmbisonicEncoder::Configure(nOrder, b3D, nSampleRate, 0);
     if(!success)
         return false;
     m_nSampleRate = nSampleRate;
@@ -53,7 +53,7 @@ bool CAmbisonicEncoderDist::Configure(unsigned nOrder, bool b3D, unsigned nSampl
     return true;
 }
 
-void CAmbisonicEncoderDist::Reset()
+void AmbisonicEncoderDist::Reset()
 {
     memset(m_pfDelayBuffer, 0, m_nDelayBufferLength * sizeof(float));
     m_fDelay = m_polPosition.fDistance / knSpeedOfSound * (float)m_nSampleRate + 0.5f;
@@ -64,9 +64,9 @@ void CAmbisonicEncoderDist::Reset()
     m_nOutB = (m_nOutA + 1) % m_nDelayBufferLength;
 }
 
-void CAmbisonicEncoderDist::Refresh()
+void AmbisonicEncoderDist::Refresh()
 {
-    CAmbisonicEncoder::Refresh();
+    AmbisonicEncoder::Refresh();
 
     m_fDelay = fabsf(m_polPosition.fDistance) / knSpeedOfSound * (float)m_nSampleRate; //TODO abs() sees float as int!
     m_nDelay = (int)m_fDelay;
@@ -87,7 +87,7 @@ void CAmbisonicEncoderDist::Refresh()
     }
 }
 
-void CAmbisonicEncoderDist::Process(float* pfSrc, unsigned nSamples, CBFormat* pfDst)
+void AmbisonicEncoderDist::Process(float* pfSrc, unsigned nSamples, BFormat* pfDst)
 {
     unsigned niChannel = 0;
     unsigned niSample = 0;
@@ -115,12 +115,12 @@ void CAmbisonicEncoderDist::Process(float* pfSrc, unsigned nSamples, CBFormat* p
     }
 }
 
-void CAmbisonicEncoderDist::SetRoomRadius(float fRoomRadius)
+void AmbisonicEncoderDist::SetRoomRadius(float fRoomRadius)
 {
     m_fRoomRadius = fRoomRadius;
 }
 
-float CAmbisonicEncoderDist::GetRoomRadius()
+float AmbisonicEncoderDist::GetRoomRadius()
 {
     return m_fRoomRadius;
 }

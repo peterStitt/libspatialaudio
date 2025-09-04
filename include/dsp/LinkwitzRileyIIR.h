@@ -18,11 +18,11 @@
 
 /** A simple 4th-order Linkwitz-Riley filter to low- and high-pass a signal. The outputs sum to have flat magnitude response.
 */
-class CLinkwitzRileyIIR
+class LinkwitzRileyIIR
 {
 public:
-    CLinkwitzRileyIIR();
-    ~CLinkwitzRileyIIR();
+    LinkwitzRileyIIR();
+    ~LinkwitzRileyIIR();
 
     /** Configure the filter with the sample rate and cross-over frequency.
     * @param nCh               The number of channels to be processed
@@ -45,6 +45,6 @@ public:
 
 private:
     // The two low- and high-pass Butterworth biquads that make up the 4th order Linkwitz-Riley filter
-    CIIRFilter m_lp[2];
-    CIIRFilter m_hp[2];
+    IIRFilter m_lp[2];
+    IIRFilter m_hp[2];
 };

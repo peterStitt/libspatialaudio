@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicOptimFilters - Ambisonic psychoactic optimising filters       #*/
+/*#  AmbisonicOptimFilters - Ambisonic psychoactic optimising filters       #*/
 /*#  Copyright © 2024 Videolabs                                              #*/
 /*#                                                                          #*/
 /*#  Filename:      AmbisonicOptimFilters.h                                  #*/
@@ -23,11 +23,11 @@
 /** This class takes an ambisonic signal and applies shelf filtering that psychoacoustically
  *  optimise the high frequency band.
  */
-class CAmbisonicOptimFilters : public CAmbisonicBase
+class AmbisonicOptimFilters : public AmbisonicBase
 {
 public:
-    CAmbisonicOptimFilters();
-    ~CAmbisonicOptimFilters();
+    AmbisonicOptimFilters();
+    ~AmbisonicOptimFilters();
 
     /** Configure the object for the specified inputs
      * @param nOrder        The ambisonic order of the signal to be processed
@@ -60,17 +60,17 @@ public:
      * @param pBFSrcDst     The B-format stream to process
      * @param nSamples      The number of samples to process
      */
-    void Process(CBFormat* pBFSrcDst, unsigned int nSamples);
+    void Process(BFormat* pBFSrcDst, unsigned int nSamples);
 
 protected:
     // Filter the signal into low- and high-frequency bands
-    CLinkwitzRileyIIR m_bandFilterIIR;
+    LinkwitzRileyIIR m_bandFilterIIR;
 
     // The gains applied to each order in the high-frequency band
     std::vector<float> m_gHighFreq;
 
     // A temp buffer holding the low-passed signal
-    CBFormat m_lowPassOut;
+    BFormat m_lowPassOut;
 
     // The maximum number of samples the class can process at once
     unsigned int m_nMaxBlockSize = 0;

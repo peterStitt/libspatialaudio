@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicAllRAD - Ambisonic AllRAD decoder                             #*/
+/*#  AmbisonicAllRAD - Ambisonic AllRAD decoder                             #*/
 /*#  Copyright © 2024 Videolabs                                              #*/
 /*#                                                                          #*/
 /*#  Filename:      AmbisonicAllRAD.h                                        #*/
@@ -26,11 +26,11 @@
 
 /** This is an AllRAD decoder for ITU BS.2051-3 layouts (and some extra ones). */
 
-class CAmbisonicAllRAD : public CAmbisonicBase
+class AmbisonicAllRAD : public AmbisonicBase
 {
 public:
-    CAmbisonicAllRAD();
-    ~CAmbisonicAllRAD();
+    AmbisonicAllRAD();
+    ~AmbisonicAllRAD();
 
     /** Re-create the object for the given configuration. Previous data is
      *  lost. Set the ambisonic order, the maximum block size and the sample rate.
@@ -56,7 +56,7 @@ public:
      * @param nSamples  The number of samples to be decoded.
      * @param ppfDst    Decoded output of size nSpeakers x nSamples.
      */
-    void Process(const CBFormat* pBFSrc, unsigned nSamples, float** ppfDst);
+    void Process(const BFormat* pBFSrc, unsigned nSamples, float** ppfDst);
 
     /** Returns the number of speakers in the current speaker setup.
      * @return  Number of speakers.
@@ -67,15 +67,15 @@ public:
     bool GetUseOptimFilters();
 
 private:
-    CAmbisonicOptimFilters m_shelfFilters;
+    AmbisonicOptimFilters m_shelfFilters;
     // A temp version of the input signal
-    CBFormat m_pBFSrcTmp;
+    BFormat m_pBFSrcTmp;
 
     // Loudspeaker layout
     Layout m_layout;
 
     // IIR low-pass for the LFE
-    CIIRFilter m_lowPassIIR;
+    IIRFilter m_lowPassIIR;
 
     std::vector<std::vector<float>> m_decMat;
 

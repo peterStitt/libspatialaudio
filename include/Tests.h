@@ -66,8 +66,8 @@ static inline bool testDirectSpeakers()
 	layout.reproductionScreen = Screen();
 	double screenWidth = 20.;
 	layout.reproductionScreen->widthAzimuth = screenWidth;
-	admrender::CAdmDirectSpeakersGainCalc gainCalc(layout);
-	CPointSourcePannerGainCalc psp(layout);
+	admrender::AdmDirectSpeakersGainCalc gainCalc(layout);
+	PointSourcePannerGainCalc psp(layout);
 	size_t nCh = layout.channels.size();
 	size_t nChNoLfe = getLayoutWithoutLFE(layout).channels.size();
 
@@ -203,7 +203,7 @@ static inline bool testPointSourcePanner()
 			continue;
 
 		auto layoutNoLFE = getLayoutWithoutLFE(layout);
-		CPointSourcePannerGainCalc psp(layout);
+		PointSourcePannerGainCalc psp(layout);
 
 		auto nCh = layout.channels.size();
 		auto nChNoLfe = layoutNoLFE.channels.size();
@@ -258,8 +258,8 @@ static inline bool testGainCalculator()
 	layout.reproductionScreen = Screen();
 	double screenWidth = 20.;
 	layout.reproductionScreen->widthAzimuth = screenWidth;
-	admrender::CGainCalculator gainCalc(layout);
-	CPointSourcePannerGainCalc psp(layout);
+	admrender::GainCalculator gainCalc(layout);
+	PointSourcePannerGainCalc psp(layout);
 	auto nCh = layout.channels.size();
 
 	std::vector<double> directGains(nCh), diffuseGains(nCh);
@@ -298,7 +298,7 @@ static inline bool testGainCalculator()
 	layoutScreenScaling.reproductionScreen = Screen();
 	layoutScreenScaling.reproductionScreen->widthAzimuth = 60.;
 	layoutScreenScaling.reproductionScreen->centrePolarPosition = { 30.,0.,1. };
-	admrender::CGainCalculator gainCalcScrnScale(layoutScreenScaling);
+	admrender::GainCalculator gainCalcScrnScale(layoutScreenScaling);
 	gainCalcScrnScale.CalculateGains(metadata, directGains, diffuseGains);
 	assert(compareGainVectors(directGains, getDirectGain("M+030", layout)));
 
@@ -414,7 +414,7 @@ static inline bool testGainCalculator()
 */
 void testLinkwitzRileyFilter()
 {
-	CLinkwitzRileyIIR lrIIR;
+	LinkwitzRileyIIR lrIIR;
 
 	unsigned int sampleRate = 48000;
 	const unsigned int nSamples = 256;
@@ -479,9 +479,9 @@ void testLinkwitzRileyFilter()
 */
 void testOptimFilters()
 {
-	CAmbisonicOptimFilters optFilters;
+	AmbisonicOptimFilters optFilters;
 
-	CBFormat inputSignal;
+	BFormat inputSignal;
 	unsigned nSamples = 128;
 	unsigned order = 3;
 	bool b3D = true;
@@ -513,11 +513,11 @@ void testBinauralDecoder()
 	unsigned sampleRate = 48000;
 	unsigned tailLength = 0;
 
-	CAmbisonicBinauralizer ambiBin;
+	AmbisonicBinauralizer ambiBin;
 	bool success = ambiBin.Configure(order, b3D, sampleRate, nSamples, tailLength);
 	assert(success);
 
-	CBFormat inputSignal;
+	BFormat inputSignal;
 	inputSignal.Configure(order, b3D, nSamples);
 	inputSignal.Reset();
 	std::vector<float> impulse(nSamples, 0.f);
@@ -550,10 +550,10 @@ void testRotation()
 	unsigned sampleRate = 48000;
 	float fadeTime = 0.5f * 1000.f * (float)nSamples / (float)sampleRate;
 
-	CAmbisonicRotator ambiRot;
+	AmbisonicRotator ambiRot;
 	ambiRot.Configure(order, b3D, nSamples, sampleRate, fadeTime);
 
-	CBFormat inputSignal;
+	BFormat inputSignal;
 	inputSignal.Configure(order, b3D, nSamples);
 	inputSignal.Reset();
 	std::vector<float> ones(nSamples, 1.f);
@@ -562,12 +562,12 @@ void testRotation()
 	srcPos.fAzimuth = 0.25f * 3.14159f;
 	srcPos.fElevation = 0.25f * 3.14159f;
 	srcPos.fDistance = 1.f;
-	CAmbisonicEncoder ambiEnc;
+	AmbisonicEncoder ambiEnc;
 	ambiEnc.Configure(order, b3D, sampleRate, 0);
 	ambiEnc.SetPosition(srcPos);
 	ambiEnc.Refresh();
 	ambiEnc.Process(ones.data(), nSamples, &inputSignal);
-	CBFormat originalSig;
+	BFormat originalSig;
 	originalSig.Configure(order, b3D, nSamples);
 	originalSig = inputSignal;
 
@@ -608,13 +608,13 @@ void testHoaEncoding()
 	bool b3D = true;
 	unsigned sampleRate = 48000;
 
-	CAmbisonicEncoder ambiEnc;
+	AmbisonicEncoder ambiEnc;
 	bool success = ambiEnc.Configure(order, b3D, sampleRate, (float)nSamples / (float)sampleRate * 1000.f);
 	assert(success);
 	ambiEnc.SetPosition({ 0.f,0.f,1.f });
 	ambiEnc.Reset();
 
-	CBFormat outputSignal;
+	BFormat outputSignal;
 	outputSignal.Configure(order, b3D, nSamples);
 	outputSignal.Reset();
 	std::vector<float> ones(nSamples, 1.f);
@@ -648,17 +648,17 @@ void testDecoderPresets()
 	unsigned sampleRate = 48000;
 	auto layout = Amblib_SpeakerSetUps::kAmblib_71;
 
-	CAmbisonicEncoder ambiEnc;
+	AmbisonicEncoder ambiEnc;
 	bool success = ambiEnc.Configure(order, b3D, sampleRate, 0.f);
 	assert(success);
 
-	CAmbisonicDecoder ambiDec;
+	AmbisonicDecoder ambiDec;
 	success = ambiDec.Configure(order, b3D, nSamples, sampleRate, layout);
 	assert(success);
 
 	unsigned nLdspk = ambiDec.GetSpeakerCount();
 
-	CBFormat inputSignal;
+	BFormat inputSignal;
 	inputSignal.Configure(order, b3D, nSamples);
 	inputSignal.Reset();
 	std::vector<float> impulse(nSamples, 0.f);
@@ -716,15 +716,15 @@ void testAdmHoaDecodingRouting()
 			metadata.degrees.push_back(iDegree);
 		}
 
-	admrender::CAdmRenderer admRenderer;
+	admrender::Renderer admRenderer;
 	bool admSuccess = admRenderer.Configure(outputLayout, order, sampleRate, nSamples, channelInfo);
 	assert(admSuccess);
 
-	CAmbisonicEncoder ambiEnc;
+	AmbisonicEncoder ambiEnc;
 	bool success = ambiEnc.Configure(order, true, sampleRate, 0.f);
 	assert(success);
 
-	CBFormat inputSignal;
+	BFormat inputSignal;
 	inputSignal.Configure(order, true, nSamples);
 	inputSignal.Reset();
 	std::vector<float> impulse(nSamples, 0.f);
@@ -776,17 +776,17 @@ void test2dHoaDecoding()
 	unsigned sampleRate = 48000;
 	auto layout = Amblib_SpeakerSetUps::kAmblib_HexagonWithCentre;
 
-	CAmbisonicEncoder ambiEnc;
+	AmbisonicEncoder ambiEnc;
 	bool success = ambiEnc.Configure(order, b3D, sampleRate, 0.f);
 	assert(success);
 
-	CAmbisonicDecoder ambiDec;
+	AmbisonicDecoder ambiDec;
 	success = ambiDec.Configure(order, b3D, nSamples, sampleRate, layout);
 	assert(success);
 
 	unsigned nLdspk = ambiDec.GetSpeakerCount();
 
-	CBFormat inputSignal;
+	BFormat inputSignal;
 	inputSignal.Configure(order, b3D, nSamples);
 	inputSignal.Reset();
 	std::vector<float> impulse(nSamples, 0.f);
@@ -825,17 +825,17 @@ void testAllRAD()
 	unsigned sampleRate = 48000;
 	auto layout = Amblib_SpeakerSetUps::kAmblib_71;
 
-	CAmbisonicEncoder ambiEnc;
+	AmbisonicEncoder ambiEnc;
 	bool success = ambiEnc.Configure(order, b3D, sampleRate, 0.f);
 	assert(success);
 
-	CAmbisonicAllRAD ambiDec;
+	AmbisonicAllRAD ambiDec;
 	success = ambiDec.Configure(order, nSamples, sampleRate, "0+5+0");
 	assert(success);
 
 	unsigned nLdspk = ambiDec.GetSpeakerCount();
 
-	CBFormat inputSignal;
+	BFormat inputSignal;
 	inputSignal.Configure(order, b3D, nSamples);
 	inputSignal.Reset();
 	std::vector<float> impulse(nSamples, 0.f);
@@ -878,7 +878,7 @@ void testAdmRenderer()
 	streamInfo.nChannels = 1;
 	streamInfo.typeDefinition = { admrender::TypeDefinition::Objects };
 
-	admrender::CAdmRenderer admRender;
+	admrender::Renderer admRender;
 	admRender.Configure(layout, order, sampleRate, nSamples, streamInfo);
 	auto nLdspk = admRender.GetSpeakerCount();
 
@@ -925,7 +925,7 @@ void testAdmRendererBinaural()
 	streamInfo.nChannels = 1;
 	streamInfo.typeDefinition = { admrender::TypeDefinition::Objects };
 
-	admrender::CAdmRenderer admRender;
+	admrender::Renderer admRender;
 	admRender.Configure(layout, order, sampleRate, nSamples, streamInfo, "", true);
 	auto nLdspk = 2;
 
@@ -969,7 +969,7 @@ void testAdmRendererDirectSpeakerBinaural()
 	streamInfo.nChannels = 2;
 	streamInfo.typeDefinition = std::vector<admrender::TypeDefinition>(streamInfo.nChannels, admrender::TypeDefinition::DirectSpeakers);
 
-	admrender::CAdmRenderer admRender;
+	admrender::Renderer admRender;
 	admRender.Configure(layout, order, sampleRate, nSamples, streamInfo, "", true);
 	auto nLdspk = 2;
 
@@ -1014,7 +1014,7 @@ void testAlloPSP()
 {
 	Layout layout = getLayoutWithoutLFE(GetMatchingLayout("4+5+0"));
 	assert(layout.channels.size() > 0);
-	CAllocentricPannerGainCalc alloPSP(layout);
+	AllocentricPannerGainCalc alloPSP(layout);
 
 	CartesianPosition position = { 0.,1.,0. };
 
@@ -1029,7 +1029,7 @@ void testAlloExtent()
 {
 	Layout layout = getLayoutWithoutLFE(GetMatchingLayout("9+10+3"));
 	assert(layout.channels.size() > 0);
-	CAllocentricExtent alloExtent(layout);
+	AllocentricExtent alloExtent(layout);
 
 	CartesianPosition position = { 0.,1.,0. };
 
@@ -1094,7 +1094,7 @@ void testAdmRenderCustomPositions()
 	admrender::StreamInformation streamInfo;
 	admrender::Optional<Screen> screen;
 
-	admrender::CAdmRenderer admRenderer;
+	admrender::Renderer admRenderer;
 	std::vector<PolarPosition> customPositions;
 	admrender::OutputLayout outputTarget = admrender::OutputLayout::ITU_0_5_0;
 	auto layout = GetMatchingLayout("0+5+0");

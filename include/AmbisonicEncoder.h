@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicEncoder - Ambisonic Encoder                                   #*/
+/*#  AmbisonicEncoder - Ambisonic Encoder                                   #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#                                                                          #*/
 /*#  Filename:      AmbisonicEncoder.h                                       #*/
@@ -26,13 +26,13 @@
 
 /** This is a basic encoder that only takes the source's azimuth an elevation
     into account. If distance cues are going to be used, then use
-    CAmbisonicEncoderDist instead. */
+    AmbisonicEncoderDist instead. */
 
-class CAmbisonicEncoder : public CAmbisonicSource
+class AmbisonicEncoder : public AmbisonicSource
 {
 public:
-    CAmbisonicEncoder();
-    ~CAmbisonicEncoder();
+    AmbisonicEncoder();
+    ~AmbisonicEncoder();
 
     /** Re-create the object for the given configuration. Previous data is
      *  lost. Returns true if successful.
@@ -60,7 +60,7 @@ public:
      * @param pBFDst    The BFormat encoded output.
      * @param nOffset   Optional offset position when writing to the output.
      */
-    void Process(float* pfSrc, unsigned nSamples, CBFormat* pBFDst, unsigned int nOffset = 0);
+    void Process(float* pfSrc, unsigned nSamples, BFormat* pBFDst, unsigned int nOffset = 0);
 
     /** Encode mono stream to B-Format and *adds* it to the pBFDst buffer.
      *  Allows an optional offset for the position in samples at which the output is to be written.
@@ -70,7 +70,7 @@ public:
      * @param nOffset   Optional offset position when writing to the output.
      * @param fGain     Optional gain to apply to the output.
      */
-    void ProcessAccumul(float* pfSrc, unsigned nSamples, CBFormat* pBFDst, unsigned int nOffset = 0, float fGain = 1.f);
+    void ProcessAccumul(float* pfSrc, unsigned nSamples, BFormat* pBFDst, unsigned int nOffset = 0, float fGain = 1.f);
 
 private:
     // The current HOA coefficients
@@ -81,7 +81,7 @@ private:
     unsigned int m_fadingSamples = 0;
     unsigned int m_fadingCounter = 0;
 
-    CGainInterp<float> m_coeffInterp;
+    GainInterp<float> m_coeffInterp;
 };
 
 #endif // _AMBISONIC_ENCODER_H

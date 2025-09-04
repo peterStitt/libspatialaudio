@@ -14,22 +14,22 @@
 #include "LinkwitzRileyIIR.h"
 #include <cmath>
 
-CLinkwitzRileyIIR::CLinkwitzRileyIIR()
+LinkwitzRileyIIR::LinkwitzRileyIIR()
 {
 }
 
-CLinkwitzRileyIIR::~CLinkwitzRileyIIR()
+LinkwitzRileyIIR::~LinkwitzRileyIIR()
 {
 }
 
-bool CLinkwitzRileyIIR::Configure(unsigned int nCh, unsigned int sampleRate, float crossoverFreq)
+bool LinkwitzRileyIIR::Configure(unsigned int nCh, unsigned int sampleRate, float crossoverFreq)
 {
     for (int i = 0; i < 2; ++i)
     {
-        bool success = m_lp[i].Configure(nCh, sampleRate, crossoverFreq, std::sqrt(0.5f), CIIRFilter::FilterType::LowPass);
+        bool success = m_lp[i].Configure(nCh, sampleRate, crossoverFreq, std::sqrt(0.5f), IIRFilter::FilterType::LowPass);
         if (!success)
             return false;
-        success = m_hp[i].Configure(nCh, sampleRate, crossoverFreq, std::sqrt(0.5f), CIIRFilter::FilterType::HighPass);
+        success = m_hp[i].Configure(nCh, sampleRate, crossoverFreq, std::sqrt(0.5f), IIRFilter::FilterType::HighPass);
         if (!success)
             return false;
     }
@@ -39,7 +39,7 @@ bool CLinkwitzRileyIIR::Configure(unsigned int nCh, unsigned int sampleRate, flo
     return true;
 }
 
-void CLinkwitzRileyIIR::Reset()
+void LinkwitzRileyIIR::Reset()
 {
     for (int i = 0; i < 2; ++i)
     {
@@ -48,7 +48,7 @@ void CLinkwitzRileyIIR::Reset()
     }
 }
 
-void CLinkwitzRileyIIR::Process(float** pIn, float** pOutLP, float** pOutHP, unsigned int nSamples)
+void LinkwitzRileyIIR::Process(float** pIn, float** pOutLP, float** pOutHP, unsigned int nSamples)
 {
     m_lp[0].Process(pIn, pOutLP, nSamples);
     m_lp[1].Process(pOutLP, pOutLP, nSamples);

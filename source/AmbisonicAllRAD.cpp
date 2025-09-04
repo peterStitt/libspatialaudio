@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicAllRAD - Ambisonic AllRAD decoder                             #*/
+/*#  AmbisonicAllRAD - Ambisonic AllRAD decoder                             #*/
 /*#  Copyright © 2024 Videolabs                                              #*/
 /*#                                                                          #*/
 /*#  Filename:      AmbisonicAllRAD.cpp                                      #*/
@@ -19,17 +19,17 @@
 #include "t_design_5200.h"
 #include <assert.h>
 
-CAmbisonicAllRAD::CAmbisonicAllRAD()
+AmbisonicAllRAD::AmbisonicAllRAD()
 {
 }
 
-CAmbisonicAllRAD::~CAmbisonicAllRAD()
+AmbisonicAllRAD::~AmbisonicAllRAD()
 {
 }
 
-bool ::CAmbisonicAllRAD::Configure(unsigned nOrder, unsigned nBlockSize, unsigned sampleRate, const std::string& layoutName, bool useLFE, bool useOptimFilts)
+bool ::AmbisonicAllRAD::Configure(unsigned nOrder, unsigned nBlockSize, unsigned sampleRate, const std::string& layoutName, bool useLFE, bool useOptimFilts)
 {
-    bool success = CAmbisonicBase::Configure(nOrder, true, 0);
+    bool success = AmbisonicBase::Configure(nOrder, true, 0);
     if(!success)
         return false;
 
@@ -54,7 +54,7 @@ bool ::CAmbisonicAllRAD::Configure(unsigned nOrder, unsigned nBlockSize, unsigne
         if (c.isLFE)
             nLFE++;
     // Low-pass of 120 Hz as specified in Rec. ITU-R BS.2127-1 Sec. 6.3
-    m_lowPassIIR.Configure(nLFE, sampleRate, 120.f, std::sqrt(0.5f), CIIRFilter::FilterType::LowPass);
+    m_lowPassIIR.Configure(nLFE, sampleRate, 120.f, std::sqrt(0.5f), IIRFilter::FilterType::LowPass);
 
     m_pBFSrcTmp.Configure(nOrder, m_b3D, nBlockSize);
 
@@ -64,19 +64,19 @@ bool ::CAmbisonicAllRAD::Configure(unsigned nOrder, unsigned nBlockSize, unsigne
     return true;
 }
 
-void CAmbisonicAllRAD::Reset()
+void AmbisonicAllRAD::Reset()
 {
     m_shelfFilters.Reset();
     m_pBFSrcTmp.Reset();
 }
 
-void CAmbisonicAllRAD::Refresh()
+void AmbisonicAllRAD::Refresh()
 {
     m_shelfFilters.Refresh();
     m_pBFSrcTmp.Refresh();
 }
 
-void CAmbisonicAllRAD::Process(const CBFormat* pBFSrc, unsigned nSamples, float** ppfDst)
+void AmbisonicAllRAD::Process(const BFormat* pBFSrc, unsigned nSamples, float** ppfDst)
 {
         // Process a copy of the input to avoid overwriting it
         m_pBFSrcTmp = *pBFSrc;
@@ -114,27 +114,27 @@ void CAmbisonicAllRAD::Process(const CBFormat* pBFSrc, unsigned nSamples, float*
         }
 }
 
-unsigned CAmbisonicAllRAD::GetSpeakerCount()
+unsigned AmbisonicAllRAD::GetSpeakerCount()
 {
     return (unsigned)m_layout.channels.size();
 }
 
-bool CAmbisonicAllRAD::GetUseOptimFilters()
+bool AmbisonicAllRAD::GetUseOptimFilters()
 {
     return m_useOptimFilters;
 }
 
-void CAmbisonicAllRAD::ConfigureAllRADMatrix()
+void AmbisonicAllRAD::ConfigureAllRADMatrix()
 {
     // Set up the point source panner
-    CPointSourcePannerGainCalc psp(m_layout);
+    PointSourcePannerGainCalc psp(m_layout);
 
     unsigned int nLdspk = psp.getNumChannels();
     unsigned int nGrid = tDesign5200::nTdesignPoints;
     float recipNumGrid = 1.f / (float)nGrid;
 
     // Set up the virtual source grid spherical harmonics Y with N3D normalisation
-    CAmbisonicSource ambiSrc;
+    AmbisonicSource ambiSrc;
     ambiSrc.Configure(m_nOrder, m_b3D, 0);
     std::vector<std::vector<float>> Y((m_nOrder + 1) * (m_nOrder + 1), std::vector<float>(nGrid, 0.f));
     std::vector<std::vector<float>> YT(nGrid, std::vector<float>((m_nOrder + 1) * (m_nOrder + 1), 0.f));

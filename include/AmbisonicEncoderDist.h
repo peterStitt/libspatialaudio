@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicEncoderDist - Ambisonic Encoder with distance                 #*/
+/*#  AmbisonicEncoderDist - Ambisonic Encoder with distance                 #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#                                                                          #*/
 /*#  Filename:      AmbisonicEncoderDist.h                                   #*/
@@ -26,13 +26,13 @@ const unsigned knMaxDistance = 150;
 /** This is similar to a normal the ambisonic encoder, but takes the source's
     distance into account, delaying the signal, adjusting its gain, and
     implementing "W-Panning"(interior effect). If distance is not an issue,
-    then use CAmbisonicEncoder which is more efficient. */
+    then use AmbisonicEncoder which is more efficient. */
 
-class CAmbisonicEncoderDist : public CAmbisonicEncoder
+class AmbisonicEncoderDist : public AmbisonicEncoder
 {
 public:
-    CAmbisonicEncoderDist();
-    ~CAmbisonicEncoderDist();
+    AmbisonicEncoderDist();
+    ~AmbisonicEncoderDist();
 
     /** Re-create the object for the given configuration. Previous data is
      *  lost. Returns true if successful.
@@ -54,7 +54,7 @@ public:
      * @param nSamples  Number of samples to encode.
      * @param pBFDst    Output B-Format signal.
      */
-    void Process(float* pfSrc, unsigned nSamples, CBFormat* pBFDst);
+    void Process(float* pfSrc, unsigned nSamples, BFormat* pBFDst);
 
     /** Set the radius of the intended playback speaker setup which is used for
      *  the interior effect (W-Panning).

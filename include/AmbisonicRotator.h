@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicRotator - Ambisonic sound field rotation                      #*/
+/*#  AmbisonicRotator - Ambisonic sound field rotation                      #*/
 /*#  Copyright © 2024 Videolabs                                              #*/
 /*#                                                                          #*/
 /*#  Filename:      AmbisonicRotator.h                                       #*/
@@ -29,7 +29,7 @@ struct RotationOrientation
 /** This class is used to rotate the sound field by the angles specified in RotationOrientation.
  *  It includes rotation matrix coefficient smoothing to minimise artefacts when applying real-time rotations.
  */
-class CAmbisonicRotator : public CAmbisonicBase
+class AmbisonicRotator : public AmbisonicBase
 {
 public:
 
@@ -43,8 +43,8 @@ public:
         RollPitchYaw
     };
 
-    CAmbisonicRotator();
-    ~CAmbisonicRotator();
+    AmbisonicRotator();
+    ~AmbisonicRotator();
 
     /** Configure the object with the specified settings.
      *
@@ -89,12 +89,12 @@ public:
      * @param pBFSrcDst     The B-format stream to be rotated. This is replaced by the rotated signal.
      * @param nSamples      The number of samples to be processed. This must be less than nBlockSize set in Configure().
      */
-    void Process(CBFormat* pBFSrcDst, unsigned nSamples);
+    void Process(BFormat* pBFSrcDst, unsigned nSamples);
 
 private:
     RotationOrder m_rotOrder = RotationOrder::YawPitchRoll;
     RotationOrientation m_orientation;
-    CBFormat m_tempBuffer;
+    BFormat m_tempBuffer;
     std::vector<std::vector<float>> m_targetMatrix;
     std::vector<std::vector<float>> m_targetMatrixTmp;
     std::vector<std::vector<float>> m_currentMatrix;

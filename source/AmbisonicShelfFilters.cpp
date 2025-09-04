@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicShelfFilters - Ambisonic psychoactic optimising filters       #*/
+/*#  AmbisonicShelfFilters - Ambisonic psychoactic optimising filters       #*/
 /*#  Copyright © 2020 Videolabs                                              #*/
 /*#                                                                          #*/
 /*#  Filename:      AmbisonicShelfFilters.cpp                                #*/
@@ -16,7 +16,7 @@
 #include "AmbisonicShelfFilters.h"
 #include <iostream>
 
-CAmbisonicShelfFilters::CAmbisonicShelfFilters()
+AmbisonicShelfFilters::AmbisonicShelfFilters()
 {
     m_pfScratchBufferA = nullptr;
     m_pFFT_psych_cfg = nullptr;
@@ -26,7 +26,7 @@ CAmbisonicShelfFilters::CAmbisonicShelfFilters()
     m_pfOverlap = nullptr;
 }
 
-CAmbisonicShelfFilters::~CAmbisonicShelfFilters()
+AmbisonicShelfFilters::~AmbisonicShelfFilters()
 {
     if(m_pfScratchBufferA)
         delete [] m_pfScratchBufferA;
@@ -51,9 +51,9 @@ CAmbisonicShelfFilters::~CAmbisonicShelfFilters()
     }
 }
 
-bool CAmbisonicShelfFilters::Configure(unsigned nOrder, bool b3D, unsigned nBlockSize, unsigned nMisc)
+bool AmbisonicShelfFilters::Configure(unsigned nOrder, bool b3D, unsigned nBlockSize, unsigned nMisc)
 {
-    bool success = CAmbisonicBase::Configure(nOrder, b3D, nMisc);
+    bool success = AmbisonicBase::Configure(nOrder, b3D, nMisc);
     if(!success)
         return false;
 
@@ -128,22 +128,22 @@ bool CAmbisonicShelfFilters::Configure(unsigned nOrder, bool b3D, unsigned nBloc
     return true;
 }
 
-void CAmbisonicShelfFilters::Reset()
+void AmbisonicShelfFilters::Reset()
 {
     for(unsigned i=0; i<m_nChannelCount; i++)
         memset(m_pfOverlap[i], 0, m_nOverlapLength * sizeof(float));
 }
 
-void CAmbisonicShelfFilters::Refresh()
+void AmbisonicShelfFilters::Refresh()
 {
 }
 
-void CAmbisonicShelfFilters::Process(CBFormat* pBFSrcDst)
+void AmbisonicShelfFilters::Process(BFormat* pBFSrcDst)
 {
     Process(pBFSrcDst, m_nBlockSize);
 }
 
-void CAmbisonicShelfFilters::Process(CBFormat* pBFSrcDst, unsigned int nSamples)
+void AmbisonicShelfFilters::Process(BFormat* pBFSrcDst, unsigned int nSamples)
 {
     kiss_fft_cpx cpTemp;
 
