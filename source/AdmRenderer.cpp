@@ -33,7 +33,7 @@ namespace admrender {
 		DeallocateBuffers(m_binauralOut, 2);
 	}
 
-	bool CAdmRenderer::Configure(OutputLayout outputTarget, unsigned int hoaOrder, unsigned int nSampleRate, unsigned int nSamples, const StreamInformation& channelInfo, std::string HRTFPath, Optional<Screen> reproductionScreen, const std::vector<PolarPosition>& layoutPositions)
+	bool CAdmRenderer::Configure(OutputLayout outputTarget, unsigned int hoaOrder, unsigned int nSampleRate, unsigned int nSamples, const StreamInformation& channelInfo, std::string HRTFPath, bool useLfeBinaural, Optional<Screen> reproductionScreen, const std::vector<PolarPosition>& layoutPositions)
 	{
 		// Set the output layout
 		m_RenderLayout = outputTarget;
@@ -185,6 +185,7 @@ namespace admrender {
 
 		if (m_RenderLayout == OutputLayout::Binaural)
 		{
+			m_useLfeBinaural = useLfeBinaural;
 			for (size_t iLdspk = 0; iLdspk < m_outputLayout.channels.size(); ++iLdspk)
 			{
 				auto& pos = m_outputLayout.channels[iLdspk].polarPosition;
@@ -323,7 +324,8 @@ namespace admrender {
 
 	void CAdmRenderer::AddDirectSpeaker(float* pDirSpkIn, unsigned int nSamples, const DirectSpeakerMetadata& metadata, unsigned int nOffset)
 	{
-		if (m_RenderLayout == OutputLayout::Binaural && isLFE(metadata))
+		bool isSpeakerLFE = isLFE(metadata);
+		if (m_RenderLayout == OutputLayout::Binaural && isSpeakerLFE && !m_useLfeBinaural)
 			return; // Do not add LFE when rendering to binaural, according to EBU Tech 3396 Sec. 3.7.1
 
 		if (m_RenderLayout == OutputLayout::Binaural) // Modify metadata based on EBU Tech 3396 Sec. 3.7.1
@@ -334,8 +336,16 @@ namespace admrender {
 			m_dirSpkBinMetaDataTmp.screenEdgeLock = metadata.screenEdgeLock;
 			m_dirSpkBinMetaDataTmp.trackInd = metadata.trackInd;
 
+			if (isSpeakerLFE && m_useLfeBinaural) // Set the direction of the LFE channel to az = 0deg, el = -30deg
+			{
+				// The BEAR layout does not contain any LFE channels so set the LFE to B+000
+				m_dirSpkBinMetaDataTmp.speakerLabel = "B+000";
+				m_dirSpkBinMetaDataTmp.polarPosition.azimuth = 0.;
+				m_dirSpkBinMetaDataTmp.polarPosition.elevation = -30.;
+			}
+
 			// Get the gain vector to be applied to the DirectSpeaker channel
-			m_directSpeakerGainCalc->calculateGains(metadata, m_directSpeakerGains);
+			m_directSpeakerGainCalc->calculateGains(m_dirSpkBinMetaDataTmp, m_directSpeakerGains);
 		}
 		else
 		{

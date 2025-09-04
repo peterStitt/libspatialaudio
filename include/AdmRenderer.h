@@ -76,12 +76,13 @@ namespace admrender {
 		 * @param nSamples				The maximum number of samples in an audio frame to be added to the stream.
 		 * @param channelInfo			Information about the expected stream formats.
 		 * @param HRTFPath				Path to an HRTF to be used when the output layout is binaural.
+		 * @param useLfeBinaural		Flag if the LFE should be rendered or discarded when the output layout is binaural.
 		 * @param reproductionScreen	Screen details used for screen scaling/locking.
 		 * @param layoutPositions		(Optional) Real polar positions for each of the loudspeaker in the layout.
 		 * @return						Returns true if the class is correctly configured and ready to use.
 		 */
 		bool Configure(OutputLayout outputTarget, unsigned int hoaOrder, unsigned int nSampleRate, unsigned int nSamples,const StreamInformation& channelInfo,
-			std::string HRTFPath = "", Optional<Screen> reproductionScreen = Optional<Screen>(), const std::vector<PolarPosition>& layoutPositions = std::vector<PolarPosition>());
+			std::string HRTFPath = "", bool useLfeBinaural = true, Optional<Screen> reproductionScreen = Optional<Screen>(), const std::vector<PolarPosition>& layoutPositions = std::vector<PolarPosition>());
 
 		/** Add an audio Object to be rendered.
 		 *
@@ -148,6 +149,8 @@ namespace admrender {
 		unsigned int m_nAmbiChannels = 16;
 		// Maximum number of samples expected in a frame
 		unsigned int m_nSamples;
+		// Flag if LFE channels are to be rendered in binaural. The BEAR spec discards it (see EBU Tech 3396 Sec. 3.7.1)
+		bool m_useLfeBinaural = true;
 
 		StreamInformation m_channelInformation;
 
