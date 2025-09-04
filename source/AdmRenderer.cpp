@@ -55,20 +55,17 @@ namespace admrender {
 		switch (m_RenderLayout)
 		{
 		case OutputLayout::Stereo:
-		case OutputLayout::ITU_0_2_0:
 			m_outputLayout = GetMatchingLayout("0+2+0");
 			break;
 		case OutputLayout::Quad:
 			m_outputLayout = GetMatchingLayout("0+4+0");
 			break;
-		case OutputLayout::FivePointOne:
 		case OutputLayout::ITU_0_5_0:
 			m_outputLayout = GetMatchingLayout("0+5+0");
 			break;
 		case OutputLayout::FivePointZero:
 			m_outputLayout = getLayoutWithoutLFE(GetMatchingLayout("0+5+0"));
 			break;
-		case OutputLayout::SevenPointOne:
 		case OutputLayout::ITU_0_7_0:
 			m_outputLayout = GetMatchingLayout("0+7+0");
 			break;
