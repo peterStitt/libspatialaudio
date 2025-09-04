@@ -926,7 +926,7 @@ void testAdmRendererBinaural()
 	streamInfo.typeDefinition = { admrender::TypeDefinition::Objects };
 
 	admrender::CAdmRenderer admRender;
-	admRender.Configure(layout, order, sampleRate, nSamples, streamInfo);
+	admRender.Configure(layout, order, sampleRate, nSamples, streamInfo, "", true);
 	auto nLdspk = 2;
 
 	std::vector<float> impulse(nSamples, 0.f);
@@ -970,7 +970,7 @@ void testAdmRendererDirectSpeakerBinaural()
 	streamInfo.typeDefinition = std::vector<admrender::TypeDefinition>(streamInfo.nChannels, admrender::TypeDefinition::DirectSpeakers);
 
 	admrender::CAdmRenderer admRender;
-	admRender.Configure(layout, order, sampleRate, nSamples, streamInfo);
+	admRender.Configure(layout, order, sampleRate, nSamples, streamInfo, "", true);
 	auto nLdspk = 2;
 
 	std::vector<float> impulse(nSamples, 0.f);
@@ -983,7 +983,7 @@ void testAdmRendererDirectSpeakerBinaural()
 	admrender::DirectSpeakerMetadata speakerMetadata;
 	speakerMetadata.trackInd = 0;
 	speakerMetadata.polarPosition = admrender::DirectSpeakerPolarPosition{ -90., 0.f, 1.f };
-	speakerMetadata.speakerLabel = "M-090";
+	speakerMetadata.speakerLabel = "LFE";
 
 	admRender.AddDirectSpeaker(impulse.data(), nSamples, speakerMetadata);
 
@@ -994,7 +994,7 @@ void testAdmRendererDirectSpeakerBinaural()
 	speakerMetadata.polarPosition = admrender::DirectSpeakerPolarPosition{ 90., 0.f, 1.f };
 	speakerMetadata.speakerLabel = "M+090";
 
-	admRender.AddDirectSpeaker(impulse.data(), nSamples, speakerMetadata);
+	//admRender.AddDirectSpeaker(impulse.data(), nSamples, speakerMetadata);
 
 	admRender.GetRenderedAudio(ldspkOut, nSamples);
 
@@ -1102,10 +1102,10 @@ void testAdmRenderCustomPositions()
 	for (size_t i = 0; i < layout.channels.size(); ++i)
 		customPositions[i] = layout.channels[i].polarPosition;
 
-	auto success = admRenderer.Configure(outputTarget, hoaOrder, sampleRate, nSamples, streamInfo, "", screen, customPositions);
+	auto success = admRenderer.Configure(outputTarget, hoaOrder, sampleRate, nSamples, streamInfo, "", true, screen, customPositions);
 	assert(success);
 
 	customPositions[0].azimuth *= -1.;
-	auto failure = !admRenderer.Configure(outputTarget, hoaOrder, sampleRate, nSamples, streamInfo, "", screen, customPositions);
+	auto failure = !admRenderer.Configure(outputTarget, hoaOrder, sampleRate, nSamples, streamInfo, "", true, screen, customPositions);
 	assert(failure);
 }
