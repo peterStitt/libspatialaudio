@@ -20,11 +20,11 @@ namespace admrender {
 
 	//===================================================================================================================================
 	AdmDirectSpeakersGainCalc::AdmDirectSpeakersGainCalc(Layout layoutWithLFE)
-		: m_pointSourcePannerGainCalc(getLayoutWithoutLFE(layoutWithLFE)), m_screenEdgeLock(layoutWithLFE.reproductionScreen, layoutWithLFE)
+		: m_pointSourcePannerGainCalc(Layout::getLayoutWithoutLFE(layoutWithLFE)), m_screenEdgeLock(layoutWithLFE.reproductionScreen, layoutWithLFE)
 	{
 		m_layout = layoutWithLFE;
 		m_nCh = (unsigned int)m_layout.channels.size();
-		m_gainsPSP.resize(getLayoutWithoutLFE(layoutWithLFE).channels.size(), 0.);
+		m_gainsPSP.resize(Layout::getLayoutWithoutLFE(layoutWithLFE).channels.size(), 0.);
 	}
 
 	AdmDirectSpeakersGainCalc::~AdmDirectSpeakersGainCalc()

@@ -55,56 +55,50 @@ namespace admrender {
 		switch (m_RenderLayout)
 		{
 		case OutputLayout::Stereo:
-			m_outputLayout = GetMatchingLayout("0+2+0");
+			m_outputLayout = Layout::getMatchingLayout("0+2+0");
 			break;
 		case OutputLayout::Quad:
-			m_outputLayout = GetMatchingLayout("0+4+0");
+			m_outputLayout = Layout::getMatchingLayout("0+4+0");
 			break;
-		case OutputLayout::ITU_0_5_0:
-			m_outputLayout = GetMatchingLayout("0+5+0");
+		case OutputLayout::FivePointOne:
+			m_outputLayout = Layout::getMatchingLayout("0+5+0");
 			break;
-		case OutputLayout::FivePointZero:
-			m_outputLayout = getLayoutWithoutLFE(GetMatchingLayout("0+5+0"));
+		case OutputLayout::SevenPointOne:
+			m_outputLayout = Layout::getMatchingLayout("0+7+0");
 			break;
-		case OutputLayout::ITU_0_7_0:
-			m_outputLayout = GetMatchingLayout("0+7+0");
+		case OutputLayout::FivePointOnePointTwo:
+			m_outputLayout = Layout::getMatchingLayout("2+5+0");
 			break;
-		case OutputLayout::SevenPointZero:
-			m_outputLayout = getLayoutWithoutLFE(GetMatchingLayout("0+7+0"));
+		case OutputLayout::FivePointOnePointFour:
+			m_outputLayout = Layout::getMatchingLayout("4+5+0");
 			break;
-		case admrender::OutputLayout::ITU_2_5_0:
-			m_outputLayout = GetMatchingLayout("2+5+0");
+		case OutputLayout::FivePointOnePointFourPlusLow:
+			m_outputLayout = Layout::getMatchingLayout("4+5+1");
 			break;
-		case admrender::OutputLayout::ITU_4_5_0:
-			m_outputLayout = GetMatchingLayout("4+5+0");
+		case OutputLayout::SevenPointOnePointThree:
+			m_outputLayout = Layout::getMatchingLayout("3+7+0");
 			break;
-		case admrender::OutputLayout::ITU_4_5_1:
-			m_outputLayout = GetMatchingLayout("4+5+1");
+		case OutputLayout::ThirteenPointOne:
+			m_outputLayout = Layout::getMatchingLayout("4+9+0");
 			break;
-		case admrender::OutputLayout::ITU_3_7_0:
-			m_outputLayout = GetMatchingLayout("3+7+0");
+		case OutputLayout::TwentyTwoPointTwo:
+			m_outputLayout = Layout::getMatchingLayout("9+10+3");
 			break;
-		case admrender::OutputLayout::ITU_4_9_0:
-			m_outputLayout = GetMatchingLayout("4+9+0");
+		case OutputLayout::SevenPointOnePointFour:
+			m_outputLayout = Layout::getMatchingLayout("4+7+0");
 			break;
-		case admrender::OutputLayout::ITU_9_10_3:
-			m_outputLayout = GetMatchingLayout("9+10+3");
+		case OutputLayout::BEAR_9_10_5:
+			m_outputLayout = Layout::getMatchingLayout("9+10+5");
 			break;
-		case admrender::OutputLayout::ITU_4_7_0:
-			m_outputLayout = GetMatchingLayout("4+7+0");
+		case OutputLayout::SevenPointOnePointTwo:
+			m_outputLayout = Layout::getMatchingLayout("2+7+0");
 			break;
-		case admrender::OutputLayout::BEAR_9_10_5:
-			m_outputLayout = GetMatchingLayout("9+10+5");
-			break;
-		case admrender::OutputLayout::_2_7_0:
-			m_outputLayout = GetMatchingLayout("2+7+0");
-			break;
-		case admrender::OutputLayout::_3p1p2:
-			m_outputLayout = GetMatchingLayout("2+3+0");
+		case OutputLayout::ThreePointOnePointTwo:
+			m_outputLayout = Layout::getMatchingLayout("2+3+0");
 			break;
 		case OutputLayout::Binaural:
 			// Render to the BEAR layout and before binauralising
-			m_outputLayout = getLayoutWithoutLFE(GetMatchingLayout("9+10+5"));
+			m_outputLayout = Layout::getLayoutWithoutLFE(Layout::getMatchingLayout("9+10+5"));
 			break;
 		default:
 			break;

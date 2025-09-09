@@ -147,7 +147,7 @@ namespace admrender {
 	//===================================================================================================================================
 	ZoneExclusionHandler::ZoneExclusionHandler(const Layout& layout)
 	{
-		m_layout = getLayoutWithoutLFE(layout);
+		m_layout = Layout::getLayoutWithoutLFE(layout);
 		m_nCh = (unsigned int)m_layout.channels.size();
 
 		// Get the cartesian coordinates of all nominal positions
@@ -387,18 +387,18 @@ namespace admrender {
 	GainCalculator::GainCalculator(Layout outputLayout)
 		: m_outputLayout(outputLayout)
 		, m_nCh((unsigned int)m_outputLayout.channels.size())
-		, m_nChNoLFE((unsigned int)getLayoutWithoutLFE(outputLayout).channels.size())
+		, m_nChNoLFE((unsigned int)Layout::getLayoutWithoutLFE(outputLayout).channels.size())
 		, m_cartPositions(positionsForLayout(outputLayout))
-		, m_pspGainCalculator(getLayoutWithoutLFE(outputLayout))
+		, m_pspGainCalculator(Layout::getLayoutWithoutLFE(outputLayout))
 		, m_extentPanner(m_pspGainCalculator)
 		, m_ambiExtentPanner(outputLayout.hoaOrder)
-		, m_alloGainCalculator(getLayoutWithoutLFE(outputLayout))
-		, m_alloExtentPanner(getLayoutWithoutLFE(outputLayout))
-		, m_screenScale(outputLayout.reproductionScreen, getLayoutWithoutLFE(outputLayout))
-		, m_screenEdgeLock(outputLayout.reproductionScreen, getLayoutWithoutLFE(outputLayout))
-		, m_polarChannelLockHandler(getLayoutWithoutLFE(outputLayout))
-		, m_alloChannelLockHandler(getLayoutWithoutLFE(outputLayout))
-		, m_zoneExclusionHandler(getLayoutWithoutLFE(outputLayout))
+		, m_alloGainCalculator(Layout::getLayoutWithoutLFE(outputLayout))
+		, m_alloExtentPanner(Layout::getLayoutWithoutLFE(outputLayout))
+		, m_screenScale(outputLayout.reproductionScreen, Layout::getLayoutWithoutLFE(outputLayout))
+		, m_screenEdgeLock(outputLayout.reproductionScreen, Layout::getLayoutWithoutLFE(outputLayout))
+		, m_polarChannelLockHandler(Layout::getLayoutWithoutLFE(outputLayout))
+		, m_alloChannelLockHandler(Layout::getLayoutWithoutLFE(outputLayout))
+		, m_zoneExclusionHandler(Layout::getLayoutWithoutLFE(outputLayout))
 		, m_gains(m_nChNoLFE, 0.)
 	{
 		// There can be up to 3 diverged positions/gains

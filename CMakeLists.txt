@@ -110,6 +110,7 @@ list(APPEND sources
     source/Screen.cpp
     source/dsp/IIRFilter.cpp
     source/dsp/LinkwitzRileyIIR.cpp
+    source/LoudspeakerLayouts.cpp
 )
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
