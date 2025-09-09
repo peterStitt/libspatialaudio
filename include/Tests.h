@@ -61,7 +61,7 @@ static inline bool testDirectSpeakers()
 	admrender::DirectSpeakerMetadata metadata;
 	metadata.audioPackFormatID.push_back("AP_00010004");
 
-	Layout layout = GetMatchingLayout(admrender::ituPackNames.find("AP_00010004")->second);
+	Layout layout = Layout::getMatchingLayout(admrender::ituPackNames.find("AP_00010004")->second);
 	// Need to set the reproduction screen in the layout for screen edge locking to work
 	layout.reproductionScreen = Screen();
 	double screenWidth = 20.;
@@ -69,7 +69,7 @@ static inline bool testDirectSpeakers()
 	admrender::AdmDirectSpeakersGainCalc gainCalc(layout);
 	PointSourcePannerGainCalc psp(layout);
 	size_t nCh = layout.channels.size();
-	size_t nChNoLfe = getLayoutWithoutLFE(layout).channels.size();
+	size_t nChNoLfe = Layout::getLayoutWithoutLFE(layout).channels.size();
 
 	std::vector<std::string> speakerNamePrefixes = { "", "urn:itu:bs:2051:0:speaker:", "urn:itu:bs:2051:1:speaker:" };
 
@@ -197,12 +197,12 @@ static inline bool testDirectSpeakers()
 static inline bool testPointSourcePanner()
 {
 	// Loop through all layouts
-	for (auto& layout : speakerLayouts)
+	for (auto& layout : Layout::getSpeakerLayouts())
 	{
 		if (layout.name == "1OA" || layout.name == "2OA" || layout.name == "3OA")
 			continue;
 
-		auto layoutNoLFE = getLayoutWithoutLFE(layout);
+		auto layoutNoLFE = Layout::getLayoutWithoutLFE(layout);
 		PointSourcePannerGainCalc psp(layout);
 
 		auto nCh = layout.channels.size();
@@ -253,7 +253,7 @@ static inline bool testGainCalculator()
 	admrender::ObjectMetadata metadata;
 	metadata.referenceScreen = Screen();
 
-	Layout layout = GetMatchingLayout(admrender::ituPackNames.find("AP_00010004")->second);
+	Layout layout = Layout::getMatchingLayout(admrender::ituPackNames.find("AP_00010004")->second);
 	// Need to set the reproduction screen in the layout for screen scaling and screen edge locking to work
 	layout.reproductionScreen = Screen();
 	double screenWidth = 20.;
@@ -693,8 +693,8 @@ void testDecoderPresets()
 */
 void testAdmHoaDecodingRouting()
 {
-	auto outputLayout = admrender::OutputLayout::FivePointZero;
-	unsigned nLdspk = 5;
+	auto outputLayout = admrender::OutputLayout::FivePointOne;
+	unsigned nLdspk = 6;
 	unsigned order = 1;
 	unsigned sampleRate = 48000;
 	unsigned nSamples = 1;
@@ -873,14 +873,14 @@ void testAdmRenderer()
 	unsigned nSamples = 1;
 	unsigned order = 1;
 	unsigned sampleRate = 48000;
-	auto layout = admrender::OutputLayout::ITU_4_9_0;
+	auto layout = admrender::OutputLayout::ThirteenPointOne;
 	admrender::StreamInformation streamInfo;
 	streamInfo.nChannels = 1;
 	streamInfo.typeDefinition = { admrender::TypeDefinition::Objects };
 
-	admrender::Renderer admRender;
-	admRender.Configure(layout, order, sampleRate, nSamples, streamInfo);
-	auto nLdspk = admRender.GetSpeakerCount();
+	admrender::Renderer renderer;
+	renderer.Configure(layout, order, sampleRate, nSamples, streamInfo);
+	auto nLdspk = renderer.GetSpeakerCount();
 
 	std::vector<float> impulse(nSamples, 0.f);
 	impulse[0] = 1.f;
@@ -897,8 +897,8 @@ void testAdmRenderer()
 	for (float az = 0.f; az < 360.f; az += 1.f)
 	{
 		objMetadata.position = PolarPosition{az, 0.f, 1.f};
-		admRender.AddObject(impulse.data(), nSamples, objMetadata);
-		admRender.GetRenderedAudio(ldspkOut, nSamples);
+		renderer.AddObject(impulse.data(), nSamples, objMetadata);
+		renderer.GetRenderedAudio(ldspkOut, nSamples);
 
 		for (unsigned iSamp = 0; iSamp < nSamples; ++iSamp)
 		{
@@ -925,8 +925,8 @@ void testAdmRendererBinaural()
 	streamInfo.nChannels = 1;
 	streamInfo.typeDefinition = { admrender::TypeDefinition::Objects };
 
-	admrender::Renderer admRender;
-	admRender.Configure(layout, order, sampleRate, nSamples, streamInfo, "", true);
+	admrender::Renderer renderer;
+	renderer.Configure(layout, order, sampleRate, nSamples, streamInfo, "", true);
 	auto nLdspk = 2;
 
 	std::vector<float> impulse(nSamples, 0.f);
@@ -942,8 +942,8 @@ void testAdmRendererBinaural()
 	objMetadata.position = PolarPosition{90., 0.f, 1.f};
 	objMetadata.jumpPosition.flag = true;
 
-	admRender.AddObject(impulse.data(), nSamples, objMetadata);
-	admRender.GetRenderedAudio(ldspkOut, nSamples);
+	renderer.AddObject(impulse.data(), nSamples, objMetadata);
+	renderer.GetRenderedAudio(ldspkOut, nSamples);
 
 	for (unsigned iSamp = 0; iSamp < nSamples; ++iSamp)
 	{
@@ -969,8 +969,8 @@ void testAdmRendererDirectSpeakerBinaural()
 	streamInfo.nChannels = 2;
 	streamInfo.typeDefinition = std::vector<admrender::TypeDefinition>(streamInfo.nChannels, admrender::TypeDefinition::DirectSpeakers);
 
-	admrender::Renderer admRender;
-	admRender.Configure(layout, order, sampleRate, nSamples, streamInfo, "", true);
+	admrender::Renderer renderer;
+	renderer.Configure(layout, order, sampleRate, nSamples, streamInfo, "", true);
 	auto nLdspk = 2;
 
 	std::vector<float> impulse(nSamples, 0.f);
@@ -985,7 +985,7 @@ void testAdmRendererDirectSpeakerBinaural()
 	speakerMetadata.polarPosition = admrender::DirectSpeakerPolarPosition{ -90., 0.f, 1.f };
 	speakerMetadata.speakerLabel = "LFE";
 
-	admRender.AddDirectSpeaker(impulse.data(), nSamples, speakerMetadata);
+	renderer.AddDirectSpeaker(impulse.data(), nSamples, speakerMetadata);
 
 	impulse[0] = 0.f;
 	impulse[64] = 1.f;
@@ -994,9 +994,9 @@ void testAdmRendererDirectSpeakerBinaural()
 	speakerMetadata.polarPosition = admrender::DirectSpeakerPolarPosition{ 90., 0.f, 1.f };
 	speakerMetadata.speakerLabel = "M+090";
 
-	//admRender.AddDirectSpeaker(impulse.data(), nSamples, speakerMetadata);
+	//renderer.AddDirectSpeaker(impulse.data(), nSamples, speakerMetadata);
 
-	admRender.GetRenderedAudio(ldspkOut, nSamples);
+	renderer.GetRenderedAudio(ldspkOut, nSamples);
 
 	for (unsigned iSamp = 0; iSamp < nSamples; ++iSamp)
 	{
@@ -1012,7 +1012,7 @@ void testAdmRendererDirectSpeakerBinaural()
 
 void testAlloPSP()
 {
-	Layout layout = getLayoutWithoutLFE(GetMatchingLayout("4+5+0"));
+	Layout layout = Layout::getLayoutWithoutLFE(Layout::getMatchingLayout("4+5+0"));
 	assert(layout.channels.size() > 0);
 	AllocentricPannerGainCalc alloPSP(layout);
 
@@ -1027,7 +1027,7 @@ void testAlloPSP()
 
 void testAlloExtent()
 {
-	Layout layout = getLayoutWithoutLFE(GetMatchingLayout("9+10+3"));
+	Layout layout = Layout::getLayoutWithoutLFE(Layout::getMatchingLayout("9+10+3"));
 	assert(layout.channels.size() > 0);
 	AllocentricExtent alloExtent(layout);
 
@@ -1071,7 +1071,7 @@ void testInsideAngleRange()
 
 void testLayoutRangeCheck()
 {
-	for (auto& layout : speakerLayouts)
+	for (auto& layout : Layout::getSpeakerLayouts())
 	{
 		if (layout.name != "1OA" && layout.name != "2OA" && layout.name != "3OA")
 		{
@@ -1080,7 +1080,7 @@ void testLayoutRangeCheck()
 		}
 	}
 
-	Layout layout = GetMatchingLayout("9+10+3");
+	Layout layout = Layout::getMatchingLayout("9+10+3");
 	layout.channels[0].polarPosition.azimuth += 90.;
 	bool isValid = checkLayoutAngles(layout);
 	assert(!isValid);
@@ -1096,8 +1096,8 @@ void testAdmRenderCustomPositions()
 
 	admrender::Renderer admRenderer;
 	std::vector<PolarPosition> customPositions;
-	admrender::OutputLayout outputTarget = admrender::OutputLayout::ITU_0_5_0;
-	auto layout = GetMatchingLayout("0+5+0");
+	admrender::OutputLayout outputTarget = admrender::OutputLayout::FivePointOne;
+	auto layout = Layout::getMatchingLayout("0+5+0");
 	customPositions.resize(layout.channels.size());
 	for (size_t i = 0; i < layout.channels.size(); ++i)
 		customPositions[i] = layout.channels[i].polarPosition;

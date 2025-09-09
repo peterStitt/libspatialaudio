@@ -36,12 +36,12 @@ bool ::AmbisonicAllRAD::Configure(unsigned nOrder, unsigned nBlockSize, unsigned
     m_nBlockSize = nBlockSize;
     m_sampleRate = sampleRate;
 
-    m_layout = GetMatchingLayout(layoutName);
+    m_layout = Layout::getMatchingLayout(layoutName);
     if (m_layout.channels.size() == 0)
         return false; // No valid layout
 
     if (!useLFE)
-        m_layout = getLayoutWithoutLFE(m_layout);
+        m_layout = Layout::getLayoutWithoutLFE(m_layout);
 
     // Set up the ambisonic shelf filters
     m_useOptimFilters = useOptimFilts;

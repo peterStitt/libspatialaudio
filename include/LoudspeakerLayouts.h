@@ -24,116 +24,146 @@
 #include "ScreenCommon.h"
 #include "AdmConversions.h"
 
-// Information about a speaker channel (as opposed to an audio channel, which could be Object, HOA, etc.)
-struct Channel
-{
-	std::string name;
-	// Real loudspeaker position
-	PolarPosition polarPosition;
-	// Nominal loudspeaker position from ITU-R BS.2051-2
-	PolarPosition polarPositionNominal;
-	bool isLFE = false;
-};
+namespace admrender {
 
-// Class used to store the layout information
-class Layout
-{
-public:
-	std::string name;
-	std::vector<Channel> channels;
-	bool hasLFE = false;
-
-	bool isHoa = false;
-	unsigned int hoaOrder = 0;
-
-	admrender::Optional<Screen> reproductionScreen = admrender::Optional<Screen>();
-
-	/** If the channel name matches one of the channels in the Layout then return
-	 *  its index. If not, return -1.
-	 * @param channelName	String containing the name of the channel.
-	 * @return				The index of the channel in the layout. If it is not present, returns -1.
-	 */
-	int getMatchingChannelIndex(const std::string& channelName)
+	/** The different output layouts supported by Renderer */
+	enum class OutputLayout
 	{
-		unsigned int nChannels = (unsigned int)channels.size();
-		for (unsigned int iCh = 0; iCh < nChannels; ++iCh)
-		{
-			if (channelName.compare(channels[iCh].name) == 0)
-				return iCh;
-		}
-		return -1; // if no matching channel names are found
-	}
+		Stereo = 0, // 2.0 - ITU-R BS.2051-3 System A (0+2+0)
+		Quad, // Channel order: FrontLeft, FrontRight, BackLeftMid, BackRightMid
+		FivePointOne, // 5.1 - ITU-R BS.2051-3 System B (0+5+0)
+		FivePointOnePointTwo, // 5.1.2 - ITU-R BS.2051-3 System C (2+5+0)
+		FivePointOnePointFour, // 5.1.4 - ITU-R BS.2051-3 System D (4+5+0)
+		FivePointOnePointFourPlusLow, // ITU-R BS.2051-3 System E (4+5+1)
+		SevenPointOnePointThree, // 7.1.3 - ITU-R BS.2051-3 System F (3+7+0)
+		ThirteenPointOne, // 13.1 (or 7.1.4+screens) - ITU-R BS.2051-3 System G (4+9+0)
+		TwentyTwoPointTwo, // 22.2 - ITU-R BS.2051-3 System H (9+10+3)
+		SevenPointOne, // 7.1 - ITU-R BS.2051-3 System I (0+7+0)
+		SevenPointOnePointFour, // 7.1.4 - ITU-R BS.2051-3 System J (4+7+0)
+		BEAR_9_10_5, // BEAR layout. 9+10+3 with 2 extra lower speakers
+		SevenPointOnePointTwo, // 7.1.2 layout specified in IAMF v1.0.0
+		ThreePointOnePointTwo, // 3.1.2 layout specified in IAMF v1.0.0
+		Binaural
+	};
 
-	/** Returns a list of the channel names in order. */
-	std::vector<std::string> channelNames() const
+	/** The different channel types from Table 1A in Rec. ITU-R  BS.2094-2 */
+	enum class ChannelTypes
 	{
-		std::vector<std::string> channelNames;
-		for (unsigned int iCh = 0; iCh < channels.size(); ++iCh)
-			channelNames.push_back(channels[iCh].name);
+		Custom = -1, // A channel not defined in Rec. ITU-R  BS.2094-2
+		FrontLeft = 0, // M+030
+		FrontRight, // M-030
+		FrontCentre, // M+000
+		LFE,
+		SurroundLeft, // M+110
+		SurroundRight, // M-110
+		FrontLeftOfCentre, // M+022
+		FrontRightOfCentre, // M-022
+		BackCentre, // M+180
+		SideLeft, // M+090
+		SideRight, // M-090
+		TopCentre, // T+000
+		TopFrontLeft, // U+030
+		TopFrontCentre, // U+000
+		TopFrontRight, // U-030
+		TopSurroundLeft, // U+110
+		TopBackCentre, // U+180
+		TopSurroundRight, // U-110
+		TopSideLeft, // U+090
+		TopSideRight, // U-090
+		BottomFrontCentre, // B+000
+		BottonFrontLeftMid, // B+045
+		BottomFrontRightMid, // B-045
+		FrontLeftWide, // M+060
+		FrontRightWide, // M-060
+		BackLeftMid, // M+135
+		BackRightMid, // M-135
+		TopBackLeftMid, // U+135
+		TopBackRightMid, // U-135
+		LFE1,
+		LFE2,
+		TopFrontLeftMid, // U+045
+		TopFrontRightMid, // U-045
+		FrontLeftScreen, // M+SC
+		FrontRightScreen, // M-SC
+		FrontLeftMid, // M+045
+		FrontRightMid, // M-045
+		UpperTopBackCentre, // UH+180
+		BackLeft, // M+150
+		BackRight, // M-150
+		BottomFrontLeft, // B+030
+		BottomFrontRight, // B-030
+		BottomBackLeft, // B+135 (Not in Rec. ITU-R  BS.2094-2. Used for BEAR layout)
+		BottomBackRight, // B-135 (Not in Rec. ITU-R  BS.2094-2. Used for BEAR layout)
+		ACN0, ACN1, ACN2, ACN3, ACN4, ACN5, ACN6, ACN7, ACN8,
+		ACN9, ACN10, ACN11, ACN12,ACN13, ACN14, ACN15, ACN16
+	};
 
-		return channelNames;
-	}
+	namespace bs2094 {
+		/** List of labels for audio channels from Rec. ITU-R BS.2094-2 Table 1A. Includes */
+		static const std::vector<std::string> channelLabels = {
+			"M+030", "M-030", "M+000", "LFE", "M+110", "M-110",
+			"M+022", "M-022", "M+180", "M+090", "M-090", "T+000",
+			"U+030", "U+000", "U-030", "U+110", "U+180", "U-110",
+			"U+090", "U-090", "B+000", "B+045", "B-045", "M+060", "M-060",
+			"M+135", "M-135", "U+135", "U-135", "LFE1", "LFE2",
+			"U+045", "U-045", "M+SC", "M-SC", "M+045", "M-045",
+			"UH+180", "M+150", "M-150", "B+030", "B-030",
+			"B+135", // Not in Rec. ITU-R BS.2094-1. Used in BEAR 9+10+3 plus 2 layout.
+			"B-135", // Not in Rec. ITU-R BS.2094-1. Used in BEAR 9+10+3 plus 2 layout.
+			"ACN0", "ACN1", "ACN2", "ACN3", "ACN4", "ACN5", "ACN6", "ACN7", "ACN8",
+			"ACN9", "ACN10", "ACN11", "ACN12","ACN13", "ACN14", "ACN15", "ACN16",
+			"" /* empty to indicate no appropriate channel name */
+		};
 
-	/** Returns true if the layout contains the specified channel.
-	 * @param channelName Name of the channel to check for.
-	 * @return Returns true if channelName is present in the layout
-	 */
-	inline bool containsChannel(const std::string& channelName) const
-	{
-		for (unsigned int iCh = 0; iCh < channels.size(); ++iCh)
-			if (channels[iCh].name == channelName)
-				return true;
-		return false;
-	}
-
-private:
-};
-
-/** List of labels for audio channels from Rec. ITU-R BS.2094-1 Table 1. */
-static const std::vector<std::string> channelLabels = { "M+030",
-	"M-030",
-	"M+000",
-	"LFE",
-	"M+110",
-	"M-110",
-	"M+022",
-	"M-022",
-	"M+180",
-	"M+090",
-	"M-090",
-	"T+000",
-	"U+030",
-	"U+000",
-	"U-030",
-	"U+110",
-	"U+180",
-	"U-110",
-	"U+090",
-	"U-090",
-	"B+000",
-	"B+045",
-	"B-045",
-	"M+060",
-	"M-060",
-	"M+135_Diff",
-	"M-135_Diff",
-	"M+135",
-	"M-135",
-	"U+135",
-	"U-135",
-	"LFE1",
-	"LFE2",
-	"U+045",
-	"U-045",
-	"M+SC",
-	"M-SC",
-	"M+045",
-	"M-045",
-	"UH+180",
-	"B+135", // Not in Rec. ITU-R BS.2094-1. Used in BEAR 9+10+3 plus 2 layout.
-	"B-135", // Not in Rec. ITU-R BS.2094-1. Used in BEAR 9+10+3 plus 2 layout.
-	"" /* empty to indicate no appropriate channel name */
-};
+		/** Directions of audio channels from Rec. ITU-R BS.2094-2 Table 1A. */
+		static const std::vector<PolarPosition> positions = {
+			PolarPosition{30.,0.,1.}, // FrontLeft - M+030
+			PolarPosition{-30.,0.,1.}, // FrontRight - M-030
+			PolarPosition{0.,0.,1.}, // FrontCentre - M+000
+			PolarPosition{0.,-30.,1.}, // LFE - LFE
+			PolarPosition{110.,0.,1.}, // SurroundLeft - M+110
+			PolarPosition{-110.,0.,1.}, // SurroundRight - M-110
+			PolarPosition{22.5,0.,1.}, // FrontLeftOfCentre - M+022
+			PolarPosition{-22.5,0.,1.}, // FrontRightOfCentre - M-022
+			PolarPosition{180.,0.,1.}, // BackCentre - M+180
+			PolarPosition{90.,0.,1.}, // SideLeft - M+090
+			PolarPosition{-90.,0.,1.}, // SideRight - M-090
+			PolarPosition{0.,90.,1.}, // TopCentre - T+000
+			PolarPosition{30.,30.,1.}, // TopFrontLeft - U+030
+			PolarPosition{0.,30.,1.}, // TopFrontCentre - U+000
+			PolarPosition{-30.,30.,1.}, // TopFrontRight - U-030
+			PolarPosition{110.,30.,1.}, // TopSurroundLeft - U+110
+			PolarPosition{180.,30.,1.}, // TopBackCentre - U+180
+			PolarPosition{-110.,30.,1.}, // TopSurroundRight - U-110
+			PolarPosition{90.,30.,1.}, // TopSideLeft - U+090
+			PolarPosition{-90.,30.,1.}, // TopSideRight - U-090
+			PolarPosition{0.,-30.,1.}, // BottomFrontCentre - B+000
+			PolarPosition{45.,-30.,1.}, // BottonFrontLeftMid - B+045
+			PolarPosition{-45.,-30.,1.}, // BottomFrontRightMid - B-045
+			PolarPosition{60.,0.,1.}, // FrontLeftWide - M+060
+			PolarPosition{-60.,0.,1.}, // FrontRightWide - M-060
+			PolarPosition{135.,0.,1.}, // BackLeftMid - M+135
+			PolarPosition{-135.,0.,1.}, // BackRightMid - M-135
+			PolarPosition{135.,30.,1.}, // TopBackLeftMid - U+135
+			PolarPosition{-135.,30.,1.}, // TopBackRightMid - U-135
+			PolarPosition{45.,-30.,1.}, // LFE1 - LFE1
+			PolarPosition{-45.,-30.,1.}, // LFE2 - LFE2
+			PolarPosition{45.,30.,1.}, // TopFrontLeftMid - U+045
+			PolarPosition{-45.,30.,1.}, // TopFrontRightMid - U-045
+			PolarPosition{25.,0.,1.}, // FrontLeftScreen - M+SC
+			PolarPosition{-25.,0.,1.}, // FrontRightScreen - M-SC
+			PolarPosition{45.,0.,1.}, // FrontLeftMid - M+045
+			PolarPosition{-45.,0.,1.}, // FrontRightMid - M-045
+			PolarPosition{180.,45.,1.}, // UpperTopBackCentre - UH+180
+			PolarPosition{150.,0.,1.}, // BackLeft - M+150
+			PolarPosition{-150.,0.,1.}, // BackRight - M-150
+			PolarPosition{30.,-30.,1.}, // BottomFrontLeft - B+030
+			PolarPosition{-30.,-30.,1.}, // BottomFrontRight - B-030
+			PolarPosition{135.,-30.,1.}, // BottomBackLeft - B+135
+			PolarPosition{-135.,-30.,1.} // BottomBackRight - B-135
+		};
+	} // namespace bs2094
+}
 
 /** If the the speaker label is in the format "urn:itu:bs:2051:[0-9]:speaker:X+YYY then
  *  return the X+YYY portion. Otherwise, returns the original input.
@@ -142,6 +172,7 @@ static const std::vector<std::string> channelLabels = { "M+030",
  */
 static inline const std::string& GetNominalSpeakerLabel(const std::string& label)
 {
+	auto& channelLabels = admrender::bs2094::channelLabels;
 	for (size_t i = 0; i < channelLabels.size(); ++i)
 		if (stringContains(label, channelLabels[i]) && channelLabels[i] != "LFE")
 			return channelLabels[i];
@@ -156,22 +187,88 @@ static inline const std::string& GetNominalSpeakerLabel(const std::string& label
 	return channelLabels.back();
 }
 
-/** Returns a version of the input layout without any LFE channels.
- * @param layout	Input layout.
- * @return			Copy of the input layout with any LFE channels removed.
- */
-static inline Layout getLayoutWithoutLFE(Layout layout)
+// Information about a speaker channel (as opposed to an audio channel, which could be Object, HOA, etc.)
+class Channel
 {
-	Layout layoutNoLFE = layout;
-	unsigned int nCh = (unsigned int)layout.channels.size();
-	layoutNoLFE.channels.resize(0);
-	for (unsigned int iCh = 0; iCh < nCh; ++iCh)
-		if (!layout.channels[iCh].isLFE)
-			layoutNoLFE.channels.push_back(layout.channels[iCh]);
-	layoutNoLFE.hasLFE = false;
+public:
+	/** Default constructor. Creates a FrontCentre channel */
+	Channel();
 
-	return layoutNoLFE;
-}
+	/** Constructor for a custom channel type */
+	Channel(std::string& channelName, PolarPosition position, PolarPosition positionNominal, bool channelLfe);
+
+	/** Constructor to initialise from a specific channel type */
+	Channel(admrender::ChannelTypes channelType);
+
+	/** Constructor to initialise from a one of the channel names in bs2094::channelLabels.
+	 * If an unknown string is passed then the channel will be set to a Custom type and its position
+	 * to 0deg azimuth and 0deg elevation (i.e. directly to the front).
+	 */
+	Channel(const std::string& channelName);
+	~Channel();
+
+	std::string name;
+	admrender::ChannelTypes channelType;
+	// Real loudspeaker position
+	PolarPosition polarPosition;
+	// Nominal loudspeaker position from ITU-R BS.2051-2
+	PolarPosition polarPositionNominal;
+	bool isLFE = false;
+
+private:
+	bool isChannelLFE();
+};
+
+// Class used to store the layout information
+class Layout
+{
+public:
+	Layout();
+	Layout(std::string layoutName, std::vector<Channel> layoutChannels, bool layoutHasLfe, bool layoutIsHoa = false, unsigned int layoutOrder = 0);
+	Layout(admrender::OutputLayout layoutType);
+	Layout(std::string& layoutName);
+
+	std::string name;
+	std::vector<Channel> channels;
+	bool hasLFE = false;
+
+	bool isHoa = false;
+	unsigned int hoaOrder = 0;
+
+	admrender::Optional<Screen> reproductionScreen = admrender::Optional<Screen>();
+
+	/** If the channel name matches one of the channels in the Layout then return
+	 *  its index. If not, return -1.
+	 * @param channelName	String containing the name of the channel.
+	 * @return				The index of the channel in the layout. If it is not present, returns -1.
+	 */
+	int getMatchingChannelIndex(const std::string& channelName);
+
+	/** Returns a list of the channel names in order. */
+	std::vector<std::string> channelNames() const;
+
+	/** Returns true if the layout contains the specified channel.
+	 * @param channelName Name of the channel to check for.
+	 * @return Returns true if channelName is present in the layout
+	 */
+	bool containsChannel(const std::string& channelName) const;
+
+	/** Returns a version of the input layout without any LFE channels.
+	 * @param layout	Input layout.
+	 * @return			Copy of the input layout with any LFE channels removed.
+	 */
+	static Layout getLayoutWithoutLFE(Layout layout);
+
+	static const std::vector<Layout>& getSpeakerLayouts();
+
+	/** Get the speakerLayout that matches the given name. If no match then returns empty.
+	 * @param layoutName	String containing the name of the desired speaker layout.
+	 * @return				The speaker layout matching the name. Returns an empty layout if none is found.
+	 */
+	static Layout getMatchingLayout(std::string layoutName);
+
+private:
+};
 
 /** Check if the input DirectSpeakerMetadata is for an LFE channel.
 * @param metadata	Metadata to check.
@@ -192,464 +289,201 @@ static inline bool isLFE(const admrender::DirectSpeakerMetadata& metadata)
 	return false;
 }
 
-/** Directions of audio channels from Rec. ITU-R BS.2094-1 Table 1. */
-const std::map<std::string, PolarPosition> bs2094Positions = {
-	{"M+030", PolarPosition{30.,0.,1.}},
-	{"M-030", PolarPosition{-30.,0.,1.}},
-	{"M+000", PolarPosition{0.,0.,1.}},
-	{"LFE", PolarPosition{0.,-30.,1.}},
-	{"M+110", PolarPosition{110.,0.,1.}},
-	{"M-110", PolarPosition{-110.,0.,1.}},
-	{"M+022", PolarPosition{22.5,0.,1.}},
-	{"M-022", PolarPosition{-22.5,0.,1.}},
-	{"M+180", PolarPosition{180.,0.,1.}},
-	{"M+090", PolarPosition{90.,0.,1.}},
-	{"M-090", PolarPosition{-90.,0.,1.}},
-	{"T+000", PolarPosition{0.,90.,1.}},
-	{"U+030", PolarPosition{30.,30.,1.}},
-	{"U+000", PolarPosition{0.,30.,1.}},
-	{"U-030", PolarPosition{-30.,30.,1.}},
-	{"U+110", PolarPosition{110.,30.,1.}},
-	{"U+180", PolarPosition{180.,30.,1.}},
-	{"U-110", PolarPosition{-110.,30.,1.}},
-	{"U+090", PolarPosition{90.,30.,1.}},
-	{"U-090", PolarPosition{-90.,30.,1.}},
-	{"B+000", PolarPosition{0.,-30.,1.}},
-	{"B+045", PolarPosition{45.,-30.,1.}},
-	{"B-045", PolarPosition{-45.,-30.,1.}},
-	{"B+060", PolarPosition{60.,-30.,1.}},
-	{"B-060", PolarPosition{-60.,-30.,1.}},
-	{"M+135_Diff", PolarPosition{135.,0.,1.}},
-	{"M-135_Diff", PolarPosition{-135.,0.,1.}},
-	{"M+135", PolarPosition{135.,0.,1.}},
-	{"M-135", PolarPosition{-135.,0.,1.}},
-	{"U+135", PolarPosition{135.,30.,1.}},
-	{"U-135", PolarPosition{-135.,30.,1.}},
-	{"LFE1", PolarPosition{45.,-30.,1.}},
-	{"LFE2", PolarPosition{-45.,-30.,1.}},
-	{"U+045", PolarPosition{45.,0.,1.}},
-	{"U-045", PolarPosition{-45.,0.,1.}},
-	{"M+SC", PolarPosition{25.,0.,1.}},
-	{"M-SC", PolarPosition{-25.,0.,1.}},
-	{"M+045", PolarPosition{45.,0.,1.}},
-	{"M-045", PolarPosition{-45.,0.,1.}},
-	{"UH+180", PolarPosition{180.,45.,1.}}
-};
-
-/** Predefined speaker layouts. */
-const std::vector<Layout> speakerLayouts = {
-// Stereo - BS.2051-3 System A 0+2+0
-Layout{
-"0+2+0",std::vector<Channel>{ Channel{"M+030",PolarPosition{30.,0.,1.},PolarPosition{30.,0.,1.},false},
-Channel{"M-030",PolarPosition{-30.,0.,1.},PolarPosition{-30.,0.,1.},false}}, false} ,
-// Quad - note: Not defined in ITU-R BS.2051-3
-Layout{
-"0+4+0",std::vector<Channel>{ Channel{"M+045",PolarPosition{45.,0.,1.},PolarPosition{45.,0.,1.},false},
-Channel{"M-045",PolarPosition{-45.,0.,1.},PolarPosition{-45.,0.,1.},false},
-Channel{"M+135",PolarPosition{135.,0.,1.},PolarPosition{135.,0.,1.},false},
-Channel{"M-135",PolarPosition{-135.,0.,1.},PolarPosition{-135.,0.,1.},false}}, false},
-// 5.1 - BS.2051-3 System B 0+5+0
-Layout{
-"0+5+0",std::vector<Channel>{ Channel{"M+030",PolarPosition{30.,0.,1.},PolarPosition{30.,0.,1.},false},
-Channel{"M-030",PolarPosition{-30.,0.,1.},PolarPosition{-30.,0.,1.},false},
-Channel{"M+000",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"LFE1",PolarPosition{45.,-30.,1.},PolarPosition{45.,-30.,1.},true},
-Channel{"M+110",PolarPosition{110.,0.,1.},PolarPosition{110.,0.,1.},false},
-Channel{"M-110",PolarPosition{-110.,0.,1.},PolarPosition{-110.,0.,1.},false}}, true},
-// 5.1.2 - BS.2051-3 System C 2+5+0
-Layout{
-"2+5+0",std::vector<Channel>{ Channel{"M+030",PolarPosition{30.,0.,1.},PolarPosition{30.,0.,1.},false},
-Channel{"M-030",PolarPosition{-30.,0.,1.},PolarPosition{-30.,0.,1.},false},
-Channel{"M+000",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"LFE1",PolarPosition{45.,-30.,1.},PolarPosition{45.,-30.,1.},true},
-Channel{"M+110",PolarPosition{110.,0.,1.},PolarPosition{110.,0.,1.},false},
-Channel{"M-110",PolarPosition{-110.,0.,1.},PolarPosition{-110.,0.,1.},false},
-Channel{"U+030",PolarPosition{30.,30.,1.},PolarPosition{30.,30.,1.},false},
-Channel{"U-030",PolarPosition{-30.,30.,1.},PolarPosition{-30.,30.,1.},false}}, true},
-// 5.1.4 - BS.2051-3 System D 4+5+0
-Layout{
-"4+5+0",std::vector<Channel>{ Channel{"M+030",PolarPosition{30.,0.,1.},PolarPosition{30.,0.,1.},false},
-Channel{"M-030",PolarPosition{-30.,0.,1.},PolarPosition{-30.,0.,1.},false},
-Channel{"M+000",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"LFE1",PolarPosition{45.,-30.,1.},PolarPosition{45.,-30.,1.},true},
-Channel{"M+110",PolarPosition{110.,0.,1.},PolarPosition{110.,0.,1.},false},
-Channel{"M-110",PolarPosition{-110.,0.,1.},PolarPosition{-110.,0.,1.},false},
-Channel{"U+030",PolarPosition{30.,30.,1.},PolarPosition{30.,30.,1.},false},
-Channel{"U-030",PolarPosition{-30.,30.,1.},PolarPosition{-30.,30.,1.},false},
-Channel{"U+110",PolarPosition{110.,30.,1.},PolarPosition{110.,30.,1.},false},
-Channel{"U-110",PolarPosition{-110.,30.,1.},PolarPosition{-110.,30.,1.},false}}, true},
-// BS.2051-3 System E 4+5+1
-Layout{
-"4+5+1",std::vector<Channel>{ Channel{"M+030",PolarPosition{30.,0.,1.},PolarPosition{30.,0.,1.},false},
-Channel{"M-030",PolarPosition{-30.,0.,1.},PolarPosition{-30.,0.,1.},false},
-Channel{"M+000",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"LFE1",PolarPosition{45.,-30.,1.},PolarPosition{45.,-30.,1.},true},
-Channel{"M+110",PolarPosition{110.,0.,1.},PolarPosition{110.,0.,1.},false},
-Channel{"M-110",PolarPosition{-110.,0.,1.},PolarPosition{-110.,0.,1.},false},
-Channel{"U+030",PolarPosition{30.,30.,1.},PolarPosition{30.,30.,1.},false},
-Channel{"U-030",PolarPosition{-30.,30.,1.},PolarPosition{-30.,30.,1.},false},
-Channel{"U+110",PolarPosition{110.,30.,1.},PolarPosition{110.,30.,1.},false},
-Channel{"U-110",PolarPosition{-110.,30.,1.},PolarPosition{-110.,30.,1.},false},
-Channel{"B+000",PolarPosition{0.,-30.,1.},PolarPosition{0.,-30.,1.},false}}, true},
-// BS.2051-3 System F 3+7+0
-Layout{
-"3+7+0",std::vector<Channel>{ Channel{"M+000",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"M+030",PolarPosition{30.,0.,1.},PolarPosition{30.,0.,1.},false},
-Channel{"M-030",PolarPosition{-30.,0.,1.},PolarPosition{-30.,0.,1.},false},
-Channel{"U+045",PolarPosition{45.,30.,1.},PolarPosition{45.,30.,1.},false},
-Channel{"U-045",PolarPosition{-45.,30.,1.},PolarPosition{-45.,30.,1.},false},
-Channel{"M+090",PolarPosition{90.,0.,1.},PolarPosition{90.,0.,1.},false},
-Channel{"M-090",PolarPosition{-90.,0.,1.},PolarPosition{-90.,0.,1.},false},
-Channel{"M+135",PolarPosition{135.,0.,1.},PolarPosition{135.,0.,1.},false},
-Channel{"M-135",PolarPosition{-135.,0.,1.},PolarPosition{-135.,0.,1.},false},
-Channel{"UH+180",PolarPosition{180.,45,1.},PolarPosition{180.,45.,1.},false},
-Channel{"LFE1",PolarPosition{45.,-30.,1.},PolarPosition{45.,-30.,1.},true},
-Channel{"LFE2",PolarPosition{-45.,-30.,1.},PolarPosition{-45.,-30.,1.},true}}, true},
-// BS.2051-3 System G 4+9+0
-Layout{
-"4+9+0",std::vector<Channel>{ Channel{"M+030",PolarPosition{30.,0.,1.},PolarPosition{30.,0.,1.},false},
-Channel{"M-030",PolarPosition{-30.,0.,1.},PolarPosition{-30.,0.,1.},false},
-Channel{"M+000",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"LFE1",PolarPosition{45.,-30.,1.},PolarPosition{45.,-30.,1.},true},
-Channel{"M+090",PolarPosition{90.,0.,1.},PolarPosition{90.,0.,1.},false},
-Channel{"M-090",PolarPosition{-90.,0.,1.},PolarPosition{-90.,0.,1.},false},
-Channel{"M+135",PolarPosition{135.,0.,1.},PolarPosition{135.,0.,1.},false},
-Channel{"M-135",PolarPosition{-135.,0.,1.},PolarPosition{-135.,0.,1.},false},
-Channel{"U+045",PolarPosition{45.,30.,1.},PolarPosition{45.,30.,1.},false},
-Channel{"U-045",PolarPosition{-45.,30.,1.},PolarPosition{-45.,30.,1.},false},
-Channel{"U+135",PolarPosition{135.,30.,1.},PolarPosition{135.,30.,1.},false},
-Channel{"U-135",PolarPosition{-135.,30.,1.},PolarPosition{-135.,30.,1.},false},
-Channel{"M+SC",PolarPosition{15.,0.,1.},PolarPosition{15.,0.,1.},false}, // BS.2051-3 does not define the azimuth for M+SC but Rec. ITU-R BS.2127-1 defines it as 15 degrees.
-Channel{"M-SC",PolarPosition{-15.,0.,1.},PolarPosition{-15.,0.,1.},false}} // BS.2051-3 does not define the azimuth for M-SC but Rec. ITU-R BS.2127-1 defines it as 15 degrees.
-, true},
-// BS.2051-3 System H 9+10+3
-Layout{
-"9+10+3",std::vector<Channel>{ Channel{"M+060",PolarPosition{60.,0.,1.},PolarPosition{60.,0.,1.},false},
-Channel{"M-060",PolarPosition{-60.,0.,1.},PolarPosition{-60.,0.,1.},false},
-Channel{"M+000",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"LFE1",PolarPosition{45.,-30.,1.},PolarPosition{45.,-30.,1.},true},
-Channel{"M+135",PolarPosition{135.,0.,1.},PolarPosition{135.,0.,1.},false},
-Channel{"M-135",PolarPosition{-135.,0.,1.},PolarPosition{-135.,0.,1.},false},
-Channel{"M+030",PolarPosition{30.,0.,1.},PolarPosition{30.,0.,1.},false},
-Channel{"M-030",PolarPosition{-30.,0.,1.},PolarPosition{-30.,0.,1.},false},
-Channel{"M+180",PolarPosition{180.,0.,1.},PolarPosition{180.,0.,1.},false},
-Channel{"LFE2",PolarPosition{-45.,-30.,1.},PolarPosition{-45.,-30.,1.},true},
-Channel{"M+090",PolarPosition{90.,0.,1.},PolarPosition{90.,0.,1.},false},
-Channel{"M-090",PolarPosition{-90.,0.,1.},PolarPosition{-90.,0.,1.},false},
-Channel{"U+045",PolarPosition{45.,30.,1.},PolarPosition{45.,30.,1.},false},
-Channel{"U-045",PolarPosition{-45.,30.,1.},PolarPosition{-45.,30.,1.},false},
-Channel{"U+000",PolarPosition{0.,30.,1.},PolarPosition{0.,30.,1.},false},
-Channel{"T+000",PolarPosition{0.,90.,1.},PolarPosition{0.,90.,1.},false},
-Channel{"U+135",PolarPosition{135.,30.,1.},PolarPosition{135.,30.,1.},false},
-Channel{"U-135",PolarPosition{-135.,30.,1.},PolarPosition{-135.,30.,1.},false},
-Channel{"U+090",PolarPosition{90.,30.,1.},PolarPosition{90.,30.,1.},false},
-Channel{"U-090",PolarPosition{-90.,30.,1.},PolarPosition{-90.,30.,1.},false},
-Channel{"U+180",PolarPosition{180.,30.,1.},PolarPosition{180.,30.,1.},false},
-Channel{"B+000",PolarPosition{0.,-30.,1.},PolarPosition{0.,-30.,1.},false},
-Channel{"B+045",PolarPosition{45.,-30.,1.},PolarPosition{45.,-30.,1.},false},
-Channel{"B-045",PolarPosition{-45.,-30.,1.},PolarPosition{-45.,-30.,1.},false}}, true},
-// 7.1 - BS.2051-3 System I 0+7+0
-Layout{
-"0+7+0",std::vector<Channel>{ Channel{"M+030",PolarPosition{30.,0.,1.},PolarPosition{30.,0.,1.},false},
-Channel{"M-030",PolarPosition{-30.,0.,1.},PolarPosition{-30.,0.,1.},false},
-Channel{"M+000",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"LFE1",PolarPosition{45.,-30.,1.},PolarPosition{45.,-30.,1.},true},
-Channel{"M+090",PolarPosition{90.,0.,1.},PolarPosition{90.,0.,1.},false},
-Channel{"M-090",PolarPosition{-90.,0.,1.},PolarPosition{-90.,0.,1.},false},
-Channel{"M+135",PolarPosition{135.,0.,1.},PolarPosition{135.,0.,1.},false},
-Channel{"M-135",PolarPosition{-135.,0.,1.},PolarPosition{-135.,0.,1.},false}}, true},
-// 7.1.4 - BS.2051-3 System J 4+7+0
-Layout{
-"4+7+0",std::vector<Channel>{ Channel{"M+030",PolarPosition{30.,0.,1.},PolarPosition{30.,0.,1.},false},
-Channel{"M-030",PolarPosition{-30.,0.,1.},PolarPosition{-30.,0.,1.},false},
-Channel{"M+000",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"LFE1",PolarPosition{45.,-30.,1.},PolarPosition{45.,-30.,1.},true},
-Channel{"M+090",PolarPosition{90.,0.,1.},PolarPosition{90.,0.,1.},false},
-Channel{"M-090",PolarPosition{-90.,0.,1.},PolarPosition{-90.,0.,1.},false},
-Channel{"M+135",PolarPosition{135.,0.,1.},PolarPosition{135.,0.,1.},false},
-Channel{"M-135",PolarPosition{-135.,0.,1.},PolarPosition{-135.,0.,1.},false},
-Channel{"U+045",PolarPosition{45.,30.,1.},PolarPosition{45.,30.,1.},false},
-Channel{"U-045",PolarPosition{-45.,30.,1.},PolarPosition{-45.,30.,1.},false},
-Channel{"U+135",PolarPosition{135.,30.,1.},PolarPosition{135.,30.,1.},false},
-Channel{"U-135",PolarPosition{-135.,30.,1.},PolarPosition{-135.,30.,1.},false}}, true},
-// 7.1.2 - IAMF v1.0.0-errata
-Layout{
-"2+7+0",std::vector<Channel>{ Channel{"M+030",PolarPosition{30.,0.,1.},PolarPosition{30.,0.,1.},false},
-Channel{"M-030",PolarPosition{-30.,0.,1.},PolarPosition{-30.,0.,1.},false},
-Channel{"M+000",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"LFE1",PolarPosition{45.,-30.,1.},PolarPosition{45.,-30.,1.},true},
-Channel{"M+090",PolarPosition{90.,0.,1.},PolarPosition{90.,0.,1.},false},
-Channel{"M-090",PolarPosition{-90.,0.,1.},PolarPosition{-90.,0.,1.},false},
-Channel{"M+135",PolarPosition{135.,0.,1.},PolarPosition{135.,0.,1.},false},
-Channel{"M-135",PolarPosition{-135.,0.,1.},PolarPosition{-135.,0.,1.},false},
-Channel{"U+045",PolarPosition{45.,30.,1.},PolarPosition{45.,30.,1.},false},
-Channel{"U-045",PolarPosition{-45.,30.,1.},PolarPosition{-45.,30.,1.},false}}, true },
-// 3.1.2 - IAMF v1.0.0-errata
-Layout{
-"2+3+0",std::vector<Channel>{ Channel{"M+030",PolarPosition{30.,0.,1.},PolarPosition{30.,0.,1.},false},
-Channel{"M-030",PolarPosition{-30.,0.,1.},PolarPosition{-30.,0.,1.},false},
-Channel{"M+000",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"LFE1",PolarPosition{45.,-30.,1.},PolarPosition{45.,-30.,1.},true},
-Channel{"U+045",PolarPosition{45.,30.,1.},PolarPosition{45.,30.,1.},false},
-Channel{"U-045",PolarPosition{-45.,30.,1.},PolarPosition{-45.,30.,1.},false}}, true },
-// EBU Tech 3369 (BEAR) 9+10+5 - 9+10+3 with LFE1 & LFE2 removed and B+135 & B-135 added
-Layout{
-"9+10+5",std::vector<Channel>{ Channel{"M+060",PolarPosition{60.,0.,1.},PolarPosition{60.,0.,1.},false},
-Channel{"M-060",PolarPosition{-60.,0.,1.},PolarPosition{-60.,0.,1.},false},
-Channel{"M+000",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"M+135",PolarPosition{135.,0.,1.},PolarPosition{135.,0.,1.},false},
-Channel{"M-135",PolarPosition{-135.,0.,1.},PolarPosition{-135.,0.,1.},false},
-Channel{"M+030",PolarPosition{30.,0.,1.},PolarPosition{30.,0.,1.},false},
-Channel{"M-030",PolarPosition{-30.,0.,1.},PolarPosition{-30.,0.,1.},false},
-Channel{"M+180",PolarPosition{180.,0.,1.},PolarPosition{180.,0.,1.},false},
-Channel{"M+090",PolarPosition{90.,0.,1.},PolarPosition{90.,0.,1.},false},
-Channel{"M-090",PolarPosition{-90.,0.,1.},PolarPosition{-90.,0.,1.},false},
-Channel{"U+045",PolarPosition{45.,30.,1.},PolarPosition{45.,30.,1.},false},
-Channel{"U-045",PolarPosition{-45.,30.,1.},PolarPosition{-45.,30.,1.},false},
-Channel{"U+000",PolarPosition{0.,30.,1.},PolarPosition{0.,30.,1.},false},
-Channel{"T+000",PolarPosition{0.,90.,1.},PolarPosition{0.,90.,1.},false},
-Channel{"U+135",PolarPosition{135.,30.,1.},PolarPosition{135.,30.,1.},false},
-Channel{"U-135",PolarPosition{-135.,30.,1.},PolarPosition{-135.,30.,1.},false},
-Channel{"U+090",PolarPosition{90.,30.,1.},PolarPosition{90.,30.,1.},false},
-Channel{"U-090",PolarPosition{-90.,30.,1.},PolarPosition{-90.,30.,1.},false},
-Channel{"U+180",PolarPosition{180.,30.,1.},PolarPosition{180.,30.,1.},false},
-Channel{"B+000",PolarPosition{0.,-30.,1.},PolarPosition{0.,-30.,1.},false},
-Channel{"B+045",PolarPosition{45.,-30.,1.},PolarPosition{45.,-30.,1.},false},
-Channel{"B-045",PolarPosition{-45.,-30.,1.},PolarPosition{-45.,-30.,1.},false},
-Channel{"B+135",PolarPosition{135.,-30.,1.},PolarPosition{135.,-30.,1.},false},
-Channel{"B-135",PolarPosition{-135.,-30.,1.},PolarPosition{-135.,-30.,1.},false}}, true },
-// First order Ambisonics (AmbiX). Directions are meaningless so all set to front
-Layout{
-"1OA",std::vector<Channel>{ Channel{"ACN0",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN1",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN2",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN3",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false}}, false, true, 1},
-// Second order Ambisonics (AmbiX). Directions are meaningless so all set to front
-Layout{
-"2OA",std::vector<Channel>{ Channel{"ACN0",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN1",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN2",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN3",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN4",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN5",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN6",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN7",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN8",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false}}, false, true, 2},
-// Third order Ambisonics (AmbiX). Directions are meaningless so all set to front
-Layout{
-"3OA",std::vector<Channel>{ Channel{"ACN0",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN1",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN2",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN3",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN4",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN5",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN6",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN7",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN8",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN9",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN10",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN11",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN12",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN13",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN14",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false},
-Channel{"ACN15",PolarPosition{0.,0.,1.},PolarPosition{0.,0.,1.},false}}, false, true, 3},
-};
-
-/** Angular ranges for each loudspeaker for all loudspeaker layouts.
-Where possible, ranges are taken from Rec. ITU-R BS.2051-3. If the layout is not
-in Rec. ITU-R BS.2051-3 then the nearest equivalent is used.
-*/
-struct ChannelRanges
-{
-	std::pair<double, double> azRange;
-	std::pair<double, double> elRange;
-};
-const std::map<std::string, std::map<std::string, ChannelRanges>> speakerRanges = {
-	// Stereo - BS.2051-3 System A 0+2+0
-	{"0+2+0",{ {"M+030",{{30., 30.}, {0.,0.}}},
-	{"M-030",{{-30., -30.}, {0.,0.}} }}},
-	// Quad
-	{"0+4+0",{ {"M+045",{{45., 45.}, {0.,0.}}},
-	{"M-045",{{-45., -45.}, {0.,0.}}},
-	{"M+135",{{135., 135.}, {0.,0.}}},
-	{"M-135",{{-135., -135.}, {0.,0.}}}
-	}},
-	// 5.1 - BS.2051-3 System B 0+5+0
-	{"0+5+0",{ {"M+030",{{30., 30.}, {0.,0.}}},
-	{"M-030",{{-30., -30.}, {0.,0.}}},
-	{"M+000",{{0., 0.}, {0.,0.}}},
-	{"LFE1",{{-180., 180.}, {-90.,90.}}},
-	{"M+110",{{100., 120.}, {0.,15.}}},
-	{"M-110",{{-120., -100.}, {0.,15.}}}
-	}},
-	// 5.1.2 - BS.2051-3 System C 2+5+0
-	{"2+5+0",{ {"M+030",{{30., 30.}, {0.,0.}}},
-	{"M-030",{{-30., -30.}, {0.,0.}}},
-	{"M+000",{{0., 0.}, {0.,0.}}},
-	{"LFE1",{{-180., 180.}, {-90.,90.}}},
-	{"M+110",{{100., 120.}, {0.,15.}}},
-	{"M-110",{{-120., -100.}, {0.,15.}}},
-	{"U+030",{{30., 45.}, {30.,55.}}},
-	{"U-030",{{-45., -30.}, {30.,55.}}}
-	}},
-	// 5.1.4 - BS.2051-3 System D 4+5+0
-	{"4+5+0",{ {"M+030",{{30., 30.}, {0.,0.}}},
-	{"M-030",{{-30., -30.}, {0.,0.}}},
-	{"M+000",{{0., 0.}, {0.,0.}}},
-	{"LFE1",{{-180., 180.}, {-90.,90.}}},
-	{"M+110",{{100., 120.}, {0.,15.}}},
-	{"M-110",{{-120., -100.}, {0.,15.}}},
-	{"U+030",{{30., 45.}, {30.,55.}}},
-	{"U-030",{{-45., -30.}, {30.,55.}}},
-	{"U+110",{{110., 135.}, {30.,55.}}},
-	{"U-110",{{-135., -110.}, {30.,55.}}}
-	}},
-	// BS.2051-3 System E 4+5+1
-	{"4+5+1",{ {"M+030",{{30., 30.}, {0.,0.}}},
-	{"M-030",{{-30., -30.}, {0.,0.}}},
-	{"M+000",{{0., 0.}, {0.,0.}}},
-	{"LFE1",{{-180., 180.}, {-90.,90.}}},
-	{"M+110",{{100., 120.}, {0.,15.}}},
-	{"M-110",{{-120., -100.}, {0.,15.}}},
-	{"U+030",{{30., 45.}, {30.,55.}}},
-	{"U-030",{{-45., -30.}, {30.,55.}}},
-	{"U+110",{{110., 135.}, {30.,55.}}},
-	{"U-110",{{-135., -110.}, {30.,55.}}},
-	{"B+000",{{0., 0.}, {-30., -15.}}}
-	}},
-	// BS.2051-3 System F 3+7+0
-	{"3+7+0",{ {"M+000",{{0.,0.}, {0.,0.}}},
-	{"M+030",{{30., 30.}, {0.,0.}}},
-	{"M-030",{{-30., -30.}, {0.,0.}}},
-	{"U+045",{{30., 45.}, {30.,45.}}},
-	{"U-045",{{-45., -30.}, {30.,45.}}},
-	{"M+090",{{60., 150.}, {0.,0.}}},
-	{"M-090",{{-150., -60.}, {0.,0.}}},
-	{"M+135",{{60., 150.}, {0.,0.}}},
-	{"M-135",{{-150., -60.}, {0.,0.}}},
-	{"UH+180",{{180., 180}, {45.,90.}}},
-	{"LFE1",{{-180., 180.}, {-90.,90.}}},
-	{"LFE2",{{-180., 180.}, {-90.,90.}}}
-	}},
-	// BS.2051-3 System G 4+9+0 - Note: doesn't include the screen speakers because these are defined as in Rec. ITU-R BS.2127-1 Sec. 7.3.9
-	{"4+9+0",{ {"M+030",{{30., 45.}, {0.,0.}}},
-	{"M-030",{{-45., -30.}, {0.,0.}}},
-	{"M+000",{{0., 0.}, {0.,0.}}},
-	{"LFE1",{{-180., 180.}, {-90.,90.}}},
-	{"M+090",{{85., 110.}, {0.,0.}}},
-	{"M-090",{{-110., -85.}, {0.,0.}}},
-	{"M+135",{{120., 150.}, {0.,0.}}},
-	{"M-135",{{-150., -120.}, {0.,0.}}},
-	{"U+045",{{30., 45.}, {30.,55.}}},
-	{"U-045",{{-45., -30.}, {30.,55.}}},
-	{"U+135",{{100., 150.}, {30.,55.}}},
-	{"U-135",{{-150., -100.}, {30.,55.}}},
-	{"M+SC",{{5., 25.}, {0.,0.}} },
-	{"M-SC",{{-25., -5.}, {0.,0.}}}
-	}},
-	// BS.2051-3 System H 9+10+3
-	{"9+10+3",{ {"M+060",{{45., 60.}, {0.,5.}}},
-	{"M-060",{{-60., -45.}, {0.,5.}}},
-	{"M+000",{{0., 0.}, {0.,5.}}},
-	{"LFE1",{{30., 90.}, {-30.,-15.}}},
-	{"M+135",{{110., 135.}, {0.,15.}}},
-	{"M-135",{{-135., -110.}, {0.,15.}}},
-	{"M+030",{{22.5, 30.}, {0.,5.}}},
-	{"M-030",{{-30., -22.5}, {0.,5.}}},
-	{"M+180",{{180., 180.}, {0.,15.}}},
-	{"LFE2",{{-90., -30.}, {-30.,-15.}}},
-	{"M+090",{{90., 90.}, {0.,15.}}},
-	{"M-090",{{-90., -90.}, {0.,15.}}},
-	{"U+045",{{45., 60.}, {30.,45.}}},
-	{"U-045",{{-60., -45.}, {30.,45.}}},
-	{"U+000",{{0., 0.}, {30.,45.}}},
-	{"T+000",{{-180., 180.}, {90.,90.}}},
-	{"U+135",{{110., 135.}, {30.,45.}}},
-	{"U-135",{{-135., -110.}, {30.,45.}}},
-	{"U+090",{{90., 90.}, {30.,45.}}},
-	{"U-090",{{-90., -90.}, {30.,45.}}},
-	{"U+180",{{180., 180.}, {30.,45.}}},
-	{"B+000",{{0., 0.}, {-30.,-15.}}},
-	{"B+045",{{45., 60.}, {-30.,-15.}}},
-	{"B-045",{{-60., -45.}, {-30.,-15.}}}
-	}},
-	// 7.1 - BS.2051-3 System I 0+7+0
-	{ "0+7+0",{ {"M+030",{{30., 45.}, {0.,0.}}},
-	{"M-030",{{-45., -30.}, {0.,0.}}},
-	{"M+000",{{0., 0.}, {0.,0.}}},
-	{"LFE1",{{-180., 180.}, {-90.,90.}}},
-	{"M+090",{{85., 110.}, {0.,0.}}},
-	{"M-090",{{-110., -85.}, {0.,0.}}},
-	{"M+135",{{120., 150.}, {0.,0.}}},
-	{"M-135",{{-150., -120.}, {0.,0.}}}
-	}},
-	// 7.1.4 - BS.2051-3 System J 4+7+0
-	{ "4+7+0",{ {"M+030",{{30., 45.}, {0.,0.}}},
-	{"M-030",{{-45., -30.}, {0.,0.}}},
-	{"M+000",{{0., 0.}, {0.,0.}}},
-	{"LFE1",{{-180., 180.}, {-90.,90.}}},
-	{"M+090",{{85., 110.}, {0.,0.}}},
-	{"M-090",{{-110., -85.}, {0.,0.}}},
-	{"M+135",{{120., 150.}, {0.,0.}}},
-	{"M-135",{{-150., -120.}, {0.,0.}}},
-	{"U+045",{{30., 45.}, {30.,55.}}},
-	{"U-045",{{-45., -30.}, {30.,55.}}},
-	{"U+135",{{100., 150.}, {30.,55.}}},
-	{"U-135",{{-150., -100.}, {30.,55.}}}
-	}},
-	// 7.1.2 - IAMF v1.0
-	{ "2+7+0",{ {"M+030",{{30., 45.}, {0.,0.}}},
-	{"M-030",{{-45., -30.}, {0.,0.}}},
-	{"M+000",{{0., 0.}, {0.,0.}}},
-	{"LFE1",{{-180., 180.}, {-90.,90.}}},
-	{"M+090",{{85., 110.}, {0.,0.}}},
-	{"M-090",{{-110., -85.}, {0.,0.}}},
-	{"M+135",{{120., 150.}, {0.,0.}}},
-	{"M-135",{{-150., -120.}, {0.,0.}}},
-	{"U+045",{{30., 45.}, {30.,55.}}},
-	{"U-045",{{-45., -30.}, {30.,55.}}}
-	}},
-	// 3.1.2 - IAMF v1.0
-	{ "2+3+0",{ {"M+030",{{30., 45.}, {0.,0.}}},
-	{"M-030",{{-45., -30.}, {0.,0.}}},
-	{"M+000",{{0., 0.}, {0.,0.}}},
-	{"LFE1",{{-180., 180.}, {-90.,90.}}},
-	{"U+045",{{30., 45.}, {30.,55.}}},
-	{"U-045",{{-45., -30.}, {30.,55.}}},
-	}},
-	// BEAR: 9+10+3 plus 2 bottom layer speakers
-	{ "9+10+5",{ {"M+060",{{45., 60.}, {0.,5.}}},
-	{"M-060",{{-60., -45.}, {0.,5.}}},
-	{"M+000",{{0., 0.}, {0.,5.}}},
-	{"M+135",{{110., 135.}, {0.,15.}}},
-	{"M-135",{{-135., -110.}, {0.,15.}}},
-	{"M+030",{{22.5, 30.}, {0.,5.}}},
-	{"M-030",{{-22.5,-30.}, {0.,5.}}},
-	{"M+180",{{180., 180.}, {0.,15.}}},
-	{"M+090",{{90., 90.}, {0.,15.}}},
-	{"M-090",{{-90., -90.}, {0.,15.}}},
-	{"U+045",{{45., 60.}, {30.,45.}}},
-	{"U-045",{{-60., -45.}, {30.,45.}}},
-	{"U+000",{{0., 0.}, {30.,45.}}},
-	{"T+000",{{-180., 180.}, {90.,90.}}},
-	{"U+135",{{110., 135.}, {30.,45.}}},
-	{"U-135",{{-135., -110.}, {30.,45.}}},
-	{"U+090",{{90., 90.}, {30.,45.}}},
-	{"U-090",{{-90., -90.}, {30.,45.}}},
-	{"U+180",{{180., 180.}, {30.,45.}}},
-	{"B+000",{{0., 0.}, {-30.,-15.}}},
-	{"B+045",{{45., 60.}, {-30.,-15.}}},
-	{"B-045",{{-60., -45.}, {-30.,-15.}}},
-	{"B+135",{{110., 135.}, {-30.,-15.}}},
-	{"B-135",{{-135., -110.}, {-30.,-15.}}} }}
-};
-
 /** Check the loudspeaker positions are within the valid ranges. See Rec. ITU-R BS.2127-1 Sec. 3.1.
  * @param layout Loudspeaker layout to check.
  * @return Returns true if all loudspeakers are in the valid range.
  */
 static inline bool checkLayoutAngles(const Layout& layout)
 {
+	/** Angular ranges for each loudspeaker for all loudspeaker layouts.
+	Where possible, ranges are taken from Rec. ITU-R BS.2051-3. If the layout is not
+	in Rec. ITU-R BS.2051-3 then the nearest equivalent is used.
+	*/
+	struct ChannelRanges
+	{
+		std::pair<double, double> azRange;
+		std::pair<double, double> elRange;
+	};
+	static const std::map<std::string, std::map<std::string, ChannelRanges>> speakerRanges = {
+		// Stereo - BS.2051-3 System A 0+2+0
+		{"0+2+0",{ {"M+030",{{30., 30.}, {0.,0.}}},
+		{"M-030",{{-30., -30.}, {0.,0.}} }}},
+		// Quad
+		{"0+4+0",{ {"M+045",{{45., 45.}, {0.,0.}}},
+		{"M-045",{{-45., -45.}, {0.,0.}}},
+		{"M+135",{{135., 135.}, {0.,0.}}},
+		{"M-135",{{-135., -135.}, {0.,0.}}}
+		}},
+		// 5.1 - BS.2051-3 System B 0+5+0
+		{"0+5+0",{ {"M+030",{{30., 30.}, {0.,0.}}},
+		{"M-030",{{-30., -30.}, {0.,0.}}},
+		{"M+000",{{0., 0.}, {0.,0.}}},
+		{"LFE1",{{-180., 180.}, {-90.,90.}}},
+		{"M+110",{{100., 120.}, {0.,15.}}},
+		{"M-110",{{-120., -100.}, {0.,15.}}}
+		}},
+		// 5.1.2 - BS.2051-3 System C 2+5+0
+		{"2+5+0",{ {"M+030",{{30., 30.}, {0.,0.}}},
+		{"M-030",{{-30., -30.}, {0.,0.}}},
+		{"M+000",{{0., 0.}, {0.,0.}}},
+		{"LFE1",{{-180., 180.}, {-90.,90.}}},
+		{"M+110",{{100., 120.}, {0.,15.}}},
+		{"M-110",{{-120., -100.}, {0.,15.}}},
+		{"U+030",{{30., 45.}, {30.,55.}}},
+		{"U-030",{{-45., -30.}, {30.,55.}}}
+		}},
+		// 5.1.4 - BS.2051-3 System D 4+5+0
+		{"4+5+0",{ {"M+030",{{30., 30.}, {0.,0.}}},
+		{"M-030",{{-30., -30.}, {0.,0.}}},
+		{"M+000",{{0., 0.}, {0.,0.}}},
+		{"LFE1",{{-180., 180.}, {-90.,90.}}},
+		{"M+110",{{100., 120.}, {0.,15.}}},
+		{"M-110",{{-120., -100.}, {0.,15.}}},
+		{"U+030",{{30., 45.}, {30.,55.}}},
+		{"U-030",{{-45., -30.}, {30.,55.}}},
+		{"U+110",{{110., 135.}, {30.,55.}}},
+		{"U-110",{{-135., -110.}, {30.,55.}}}
+		}},
+		// BS.2051-3 System E 4+5+1
+		{"4+5+1",{ {"M+030",{{30., 30.}, {0.,0.}}},
+		{"M-030",{{-30., -30.}, {0.,0.}}},
+		{"M+000",{{0., 0.}, {0.,0.}}},
+		{"LFE1",{{-180., 180.}, {-90.,90.}}},
+		{"M+110",{{100., 120.}, {0.,15.}}},
+		{"M-110",{{-120., -100.}, {0.,15.}}},
+		{"U+030",{{30., 45.}, {30.,55.}}},
+		{"U-030",{{-45., -30.}, {30.,55.}}},
+		{"U+110",{{110., 135.}, {30.,55.}}},
+		{"U-110",{{-135., -110.}, {30.,55.}}},
+		{"B+000",{{0., 0.}, {-30., -15.}}}
+		}},
+		// BS.2051-3 System F 3+7+0
+		{"3+7+0",{ {"M+000",{{0.,0.}, {0.,0.}}},
+		{"M+030",{{30., 30.}, {0.,0.}}},
+		{"M-030",{{-30., -30.}, {0.,0.}}},
+		{"U+045",{{30., 45.}, {30.,45.}}},
+		{"U-045",{{-45., -30.}, {30.,45.}}},
+		{"M+090",{{60., 150.}, {0.,0.}}},
+		{"M-090",{{-150., -60.}, {0.,0.}}},
+		{"M+135",{{60., 150.}, {0.,0.}}},
+		{"M-135",{{-150., -60.}, {0.,0.}}},
+		{"UH+180",{{180., 180}, {45.,90.}}},
+		{"LFE1",{{-180., 180.}, {-90.,90.}}},
+		{"LFE2",{{-180., 180.}, {-90.,90.}}}
+		}},
+		// BS.2051-3 System G 4+9+0 - Note: doesn't include the screen speakers because these are defined as in Rec. ITU-R BS.2127-1 Sec. 7.3.9
+		{"4+9+0",{ {"M+030",{{30., 45.}, {0.,0.}}},
+		{"M-030",{{-45., -30.}, {0.,0.}}},
+		{"M+000",{{0., 0.}, {0.,0.}}},
+		{"LFE1",{{-180., 180.}, {-90.,90.}}},
+		{"M+090",{{85., 110.}, {0.,0.}}},
+		{"M-090",{{-110., -85.}, {0.,0.}}},
+		{"M+135",{{120., 150.}, {0.,0.}}},
+		{"M-135",{{-150., -120.}, {0.,0.}}},
+		{"U+045",{{30., 45.}, {30.,55.}}},
+		{"U-045",{{-45., -30.}, {30.,55.}}},
+		{"U+135",{{100., 150.}, {30.,55.}}},
+		{"U-135",{{-150., -100.}, {30.,55.}}},
+		{"M+SC",{{5., 25.}, {0.,0.}} },
+		{"M-SC",{{-25., -5.}, {0.,0.}}}
+		}},
+		// BS.2051-3 System H 9+10+3
+		{"9+10+3",{ {"M+060",{{45., 60.}, {0.,5.}}},
+		{"M-060",{{-60., -45.}, {0.,5.}}},
+		{"M+000",{{0., 0.}, {0.,5.}}},
+		{"LFE1",{{30., 90.}, {-30.,-15.}}},
+		{"M+135",{{110., 135.}, {0.,15.}}},
+		{"M-135",{{-135., -110.}, {0.,15.}}},
+		{"M+030",{{22.5, 30.}, {0.,5.}}},
+		{"M-030",{{-30., -22.5}, {0.,5.}}},
+		{"M+180",{{180., 180.}, {0.,15.}}},
+		{"LFE2",{{-90., -30.}, {-30.,-15.}}},
+		{"M+090",{{90., 90.}, {0.,15.}}},
+		{"M-090",{{-90., -90.}, {0.,15.}}},
+		{"U+045",{{45., 60.}, {30.,45.}}},
+		{"U-045",{{-60., -45.}, {30.,45.}}},
+		{"U+000",{{0., 0.}, {30.,45.}}},
+		{"T+000",{{-180., 180.}, {90.,90.}}},
+		{"U+135",{{110., 135.}, {30.,45.}}},
+		{"U-135",{{-135., -110.}, {30.,45.}}},
+		{"U+090",{{90., 90.}, {30.,45.}}},
+		{"U-090",{{-90., -90.}, {30.,45.}}},
+		{"U+180",{{180., 180.}, {30.,45.}}},
+		{"B+000",{{0., 0.}, {-30.,-15.}}},
+		{"B+045",{{45., 60.}, {-30.,-15.}}},
+		{"B-045",{{-60., -45.}, {-30.,-15.}}}
+		}},
+		// 7.1 - BS.2051-3 System I 0+7+0
+		{ "0+7+0",{ {"M+030",{{30., 45.}, {0.,0.}}},
+		{"M-030",{{-45., -30.}, {0.,0.}}},
+		{"M+000",{{0., 0.}, {0.,0.}}},
+		{"LFE1",{{-180., 180.}, {-90.,90.}}},
+		{"M+090",{{85., 110.}, {0.,0.}}},
+		{"M-090",{{-110., -85.}, {0.,0.}}},
+		{"M+135",{{120., 150.}, {0.,0.}}},
+		{"M-135",{{-150., -120.}, {0.,0.}}}
+		}},
+		// 7.1.4 - BS.2051-3 System J 4+7+0
+		{ "4+7+0",{ {"M+030",{{30., 45.}, {0.,0.}}},
+		{"M-030",{{-45., -30.}, {0.,0.}}},
+		{"M+000",{{0., 0.}, {0.,0.}}},
+		{"LFE1",{{-180., 180.}, {-90.,90.}}},
+		{"M+090",{{85., 110.}, {0.,0.}}},
+		{"M-090",{{-110., -85.}, {0.,0.}}},
+		{"M+135",{{120., 150.}, {0.,0.}}},
+		{"M-135",{{-150., -120.}, {0.,0.}}},
+		{"U+045",{{30., 45.}, {30.,55.}}},
+		{"U-045",{{-45., -30.}, {30.,55.}}},
+		{"U+135",{{100., 150.}, {30.,55.}}},
+		{"U-135",{{-150., -100.}, {30.,55.}}}
+		}},
+		// 7.1.2 - IAMF v1.0
+		{ "2+7+0",{ {"M+030",{{30., 45.}, {0.,0.}}},
+		{"M-030",{{-45., -30.}, {0.,0.}}},
+		{"M+000",{{0., 0.}, {0.,0.}}},
+		{"LFE1",{{-180., 180.}, {-90.,90.}}},
+		{"M+090",{{85., 110.}, {0.,0.}}},
+		{"M-090",{{-110., -85.}, {0.,0.}}},
+		{"M+135",{{120., 150.}, {0.,0.}}},
+		{"M-135",{{-150., -120.}, {0.,0.}}},
+		{"U+045",{{30., 45.}, {30.,55.}}},
+		{"U-045",{{-45., -30.}, {30.,55.}}}
+		}},
+		// 3.1.2 - IAMF v1.0
+		{ "2+3+0",{ {"M+030",{{30., 45.}, {0.,0.}}},
+		{"M-030",{{-45., -30.}, {0.,0.}}},
+		{"M+000",{{0., 0.}, {0.,0.}}},
+		{"LFE1",{{-180., 180.}, {-90.,90.}}},
+		{"U+045",{{30., 45.}, {30.,55.}}},
+		{"U-045",{{-45., -30.}, {30.,55.}}},
+		}},
+		// BEAR: 9+10+3 plus 2 bottom layer speakers
+		{ "9+10+5",{ {"M+060",{{45., 60.}, {0.,5.}}},
+		{"M-060",{{-60., -45.}, {0.,5.}}},
+		{"M+000",{{0., 0.}, {0.,5.}}},
+		{"M+135",{{110., 135.}, {0.,15.}}},
+		{"M-135",{{-135., -110.}, {0.,15.}}},
+		{"M+030",{{22.5, 30.}, {0.,5.}}},
+		{"M-030",{{-22.5,-30.}, {0.,5.}}},
+		{"M+180",{{180., 180.}, {0.,15.}}},
+		{"M+090",{{90., 90.}, {0.,15.}}},
+		{"M-090",{{-90., -90.}, {0.,15.}}},
+		{"U+045",{{45., 60.}, {30.,45.}}},
+		{"U-045",{{-60., -45.}, {30.,45.}}},
+		{"U+000",{{0., 0.}, {30.,45.}}},
+		{"T+000",{{-180., 180.}, {90.,90.}}},
+		{"U+135",{{110., 135.}, {30.,45.}}},
+		{"U-135",{{-135., -110.}, {30.,45.}}},
+		{"U+090",{{90., 90.}, {30.,45.}}},
+		{"U-090",{{-90., -90.}, {30.,45.}}},
+		{"U+180",{{180., 180.}, {30.,45.}}},
+		{"B+000",{{0., 0.}, {-30.,-15.}}},
+		{"B+045",{{45., 60.}, {-30.,-15.}}},
+		{"B-045",{{-60., -45.}, {-30.,-15.}}},
+		{"B+135",{{110., 135.}, {-30.,-15.}}},
+		{"B-135",{{-135., -110.}, {-30.,-15.}}} }}
+	};
+
 	auto it = speakerRanges.find(layout.name);
 	double tol = 1e-6;
 	if (it != speakerRanges.end())
@@ -691,21 +525,6 @@ static inline bool checkLayoutAngles(const Layout& layout)
 		return true;
 	}
 	return false;
-}
-
-/** Get the speakerLayout that matches the given name. If no match then returns empty.
- * @param layoutName	String containing the name of the desired speaker layout.
- * @return				The speaker layout matching the name. Returns an empty layout if none is found.
- */
-static inline Layout GetMatchingLayout(std::string layoutName)
-{
-	unsigned int nLayouts = (unsigned int)speakerLayouts.size();
-	for (unsigned int iLayout = 0; iLayout < nLayouts; ++iLayout)
-	{
-		if (layoutName.compare(speakerLayouts[iLayout].name) == 0)
-			return speakerLayouts[iLayout];
-	}
-	return {}; // if no matching channel names are found
 }
 
 /*

@@ -28,28 +28,6 @@
 
 namespace admrender {
 
-	/** The different output layouts supported by Renderer */
-	enum class OutputLayout
-	{
-		Stereo = 1, // equivalent to ITU Sytem A (0+2+0)
-		Quad,
-		ITU_0_5_0, // ITU-R BS.2051-3 System B
-		ITU_2_5_0, // ITU-R BS.2051-3 System C
-		ITU_4_5_0, // ITU-R BS.2051-3 System D 
-		ITU_4_5_1, // ITU-R BS.2051-3 System E
-		ITU_3_7_0, // ITU-R BS.2051-3 System F
-		ITU_4_9_0, // ITU-R BS.2051-3 System G
-		ITU_9_10_3, // ITU-R BS.2051-3 System H
-		ITU_0_7_0, // ITU-R BS.2051-3 System I
-		ITU_4_7_0, // ITU-R BS.2051-3 System J
-		BEAR_9_10_5, // BEAR layout. 9+10+3 with 2 extra lower speakers
-		_2_7_0, // 7.1.2 layout specified in IAMF v1.0.0
-		_3p1p2, // 3.1.2 layout specified in IAMF v1.0.0
-		FivePointZero, // BS.2051-3 System B 0+5+0 without sub channel
-		SevenPointZero, // BS.2051-3 System I 0+7+0 without sub channel
-		Binaural
-	};
-
 	/** This is a renderer for ADM streams. It aims to provide a simple way to
 	 *	add spatial data to the stream audio using the methods available in
 	 *	libspatialaudio.

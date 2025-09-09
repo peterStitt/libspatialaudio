@@ -20,7 +20,7 @@
 PointSourcePannerGainCalc::PointSourcePannerGainCalc(const Layout& layout)
 {
 	// Store the output layout
-	m_outputLayout = getLayoutWithoutLFE(layout);
+	m_outputLayout = Layout::getLayoutWithoutLFE(layout);
 	// Internal layout that is used for processing then (if requried) downmixing to the output
 	m_internalLayout = m_outputLayout;
 	std::string layoutName = m_internalLayout.name;
@@ -39,7 +39,7 @@ PointSourcePannerGainCalc::PointSourcePannerGainCalc(const Layout& layout)
 	{
 		hull = HULL_0_5_0;
 		m_downmixOutput = DownmixOutput::Downmix_0_2_0;
-		m_internalLayout = getLayoutWithoutLFE(GetMatchingLayout("0+5+0"));
+		m_internalLayout = Layout::getLayoutWithoutLFE(Layout::getMatchingLayout("0+5+0"));
 	}
 	else if (layoutName == "0+4+0")
 		hull = HULL_0_4_0;
@@ -86,7 +86,7 @@ PointSourcePannerGainCalc::PointSourcePannerGainCalc(const Layout& layout)
 	{
 		hull = HULL_4_7_0;
 		m_downmixOutput = DownmixOutput::Downmix_2_3_0;
-		m_internalLayout = getLayoutWithoutLFE(GetMatchingLayout("4+7+0"));
+		m_internalLayout = Layout::getLayoutWithoutLFE(Layout::getMatchingLayout("4+7+0"));
 	}
 	else
 		assert(false);
@@ -393,7 +393,7 @@ Layout PointSourcePannerGainCalc::CalculateExtraSpeakersLayout(const Layout& lay
 			position.elevation = meanLowerEl;
 			positionNominal.azimuth = layout.channels[midLayerSet[iMid]].polarPositionNominal.azimuth;
 			positionNominal.elevation = -30.;
-			extraSpeakers.channels.push_back({ name,position,positionNominal,false });
+			extraSpeakers.channels.push_back(Channel{ name,position,positionNominal,false });
 		}
 	}
 	for (unsigned iMid = 0; iMid < (unsigned)midLayerSet.size(); ++iMid)
@@ -414,13 +414,15 @@ Layout PointSourcePannerGainCalc::CalculateExtraSpeakersLayout(const Layout& lay
 	}
 
 	// Add top and bottom virtual speakers
+	std::string topString = "TOP";
+	std::string bottomString = "BOTTOM";
 	position.azimuth = 0.;
 	position.elevation = -90.;
-	extraSpeakers.channels.push_back({ "BOTTOM",position,position,false });
+	extraSpeakers.channels.push_back({ bottomString,position,position,false });
 	if (!layout.containsChannel("T+000") && !layout.containsChannel("UH+180"))
 	{
 		position.elevation = 90.;
-		extraSpeakers.channels.push_back({ "TOP",position,position,false });
+		extraSpeakers.channels.push_back({ topString,position,position,false });
 	}
 
 	return extraSpeakers;

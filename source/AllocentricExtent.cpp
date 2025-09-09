@@ -16,7 +16,7 @@
 #include <algorithm>
 
 AllocentricExtent::AllocentricExtent(const Layout& layout)
-    : m_layout(getLayoutWithoutLFE(layout))
+    : m_layout(Layout::getLayoutWithoutLFE(layout))
     , m_cartesianPositions(admrender::positionsForLayout(layout))
     , m_alloPanner(m_layout)
     , m_xs(m_nMaxGridPoints)
