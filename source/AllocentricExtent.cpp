@@ -15,7 +15,7 @@
 #include "AllocentricExtent.h"
 #include <algorithm>
 
-CAllocentricExtent::CAllocentricExtent(const Layout& layout)
+AllocentricExtent::AllocentricExtent(const Layout& layout)
     : m_layout(getLayoutWithoutLFE(layout))
     , m_cartesianPositions(admrender::positionsForLayout(layout))
     , m_alloPanner(m_layout)
@@ -64,11 +64,11 @@ CAllocentricExtent::CAllocentricExtent(const Layout& layout)
             m_zs[i] = (double)i / ((double)Nz - 1.);
 }
 
-CAllocentricExtent::~CAllocentricExtent()
+AllocentricExtent::~AllocentricExtent()
 {
 }
 
-void CAllocentricExtent::handle(CartesianPosition position, double sizeX, double sizeY, double sizeZ, const std::vector<bool>& excluded, std::vector<double>& gains)
+void AllocentricExtent::handle(CartesianPosition position, double sizeX, double sizeY, double sizeZ, const std::vector<bool>& excluded, std::vector<double>& gains)
 {
     auto nLdspk = m_alloPanner.getNumChannels();
     assert(gains.capacity() >= nLdspk);
@@ -201,12 +201,12 @@ void CAllocentricExtent::handle(CartesianPosition position, double sizeX, double
     normaliseGains(gains);
 }
 
-unsigned int CAllocentricExtent::getNumChannels()
+unsigned int AllocentricExtent::getNumChannels()
 {
     return m_alloPanner.getNumChannels();
 }
 
-double CAllocentricExtent::calculateSEff(const std::vector<CartesianPosition>& cartesianPositions, const std::vector<bool>& excluded, double sx, double sy, double sz)
+double AllocentricExtent::calculateSEff(const std::vector<CartesianPosition>& cartesianPositions, const std::vector<bool>& excluded, double sx, double sy, double sz)
 {
     // Find the first non-exlcuded speaker
     unsigned int iFirstLdspk = 0;
@@ -241,7 +241,7 @@ double CAllocentricExtent::calculateSEff(const std::vector<CartesianPosition>& c
     return (6. * s_sorted[2] + 2. * s_sorted[1] + s_sorted[0]) / 9.;
 }
 
-std::tuple<double, double, double> CAllocentricExtent::calculateWeights(double xs, double ys, double zs, double xo, double yo, double zo, double sx, double sy, double sz)
+std::tuple<double, double, double> AllocentricExtent::calculateWeights(double xs, double ys, double zs, double xo, double yo, double zo, double sx, double sy, double sz)
 {
     auto wx = std::pow(10., -std::min(std::pow(0.75 * (xs - xo) / (sx), 4.), 6.5));
     auto wy = std::pow(10., -std::min(std::pow(0.75 * (ys - yo) / (sy), 4.), 6.5));
@@ -250,7 +250,7 @@ std::tuple<double, double, double> CAllocentricExtent::calculateWeights(double x
     return { wx, wy, wz };
 }
 
-void CAllocentricExtent::normaliseGains(std::vector<double>& gains)
+void AllocentricExtent::normaliseGains(std::vector<double>& gains)
 {
     double tol = 1e-5;
     auto gainsNorm = norm(gains);
@@ -262,7 +262,7 @@ void CAllocentricExtent::normaliseGains(std::vector<double>& gains)
             g = 0.;
 }
 
-int CAllocentricExtent::countDimensions(const Layout& layout, const std::vector<bool>& excluded)
+int AllocentricExtent::countDimensions(const Layout& layout, const std::vector<bool>& excluded)
 {
     auto nLdspk = layout.channels.size();
     // Count non-excluded loudspeakers
@@ -318,7 +318,7 @@ int CAllocentricExtent::countDimensions(const Layout& layout, const std::vector<
     return 3;
 }
 
-double CAllocentricExtent::calculateMu(int dim, double xo, double yo, double zo, double sx, double sy, double sz)
+double AllocentricExtent::calculateMu(int dim, double xo, double yo, double zo, double sx, double sy, double sz)
 {
     double dBound;
     if (dim == 1)
@@ -338,7 +338,7 @@ double CAllocentricExtent::calculateMu(int dim, double xo, double yo, double zo,
     }
 }
 
-double CAllocentricExtent::h(double x, double s, double dBound)
+double AllocentricExtent::h(double x, double s, double dBound)
 {
     if (dBound >= s && dBound >= 0.4)
         return std::pow(std::max(2. * s, 0.4) / (0.32 * s), 1. / 3.);

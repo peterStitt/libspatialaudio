@@ -17,11 +17,11 @@
 
 /** A simple biquad IIR filter that creates either low- or high-pass Butterworth filters
 */
-class CIIRFilter
+class IIRFilter
 {
 public:
-    CIIRFilter();
-    ~CIIRFilter();
+    IIRFilter();
+    ~IIRFilter();
 
     enum class FilterType
     {

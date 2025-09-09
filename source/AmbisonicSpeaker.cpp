@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicSpeaker - Ambisonic Speaker                                   #*/
+/*#  AmbisonicSpeaker - Ambisonic Speaker                                   #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#  Copyright © 2017 Videolabs                                              #*/
 /*#                                                                          #*/
@@ -17,27 +17,27 @@
 #include "AmbisonicSpeaker.h"
 
 
-CAmbisonicSpeaker::CAmbisonicSpeaker()
+AmbisonicSpeaker::AmbisonicSpeaker()
 { }
 
-CAmbisonicSpeaker::~CAmbisonicSpeaker()
+AmbisonicSpeaker::~AmbisonicSpeaker()
 { }
 
-bool CAmbisonicSpeaker::Configure(unsigned nOrder, bool b3D, unsigned nMisc)
+bool AmbisonicSpeaker::Configure(unsigned nOrder, bool b3D, unsigned nMisc)
 {
-    bool success = CAmbisonicSource::Configure(nOrder, b3D, nMisc);
+    bool success = AmbisonicSource::Configure(nOrder, b3D, nMisc);
     if(!success)
         return false;
     
     return true;
 }
 
-void CAmbisonicSpeaker::Refresh()
+void AmbisonicSpeaker::Refresh()
 {
-    CAmbisonicSource::Refresh();
+    AmbisonicSource::Refresh();
 }
 
-void CAmbisonicSpeaker::Process(CBFormat* pBFSrc, unsigned nSamples, float* pfDst)
+void AmbisonicSpeaker::Process(BFormat* pBFSrc, unsigned nSamples, float* pfDst)
 {
     unsigned niChannel = 0;
     unsigned niSample = 0;

@@ -22,11 +22,11 @@
 #include <set>
 
 /** Class to calculate the panning gains for a point source on the specified loudspeaker layout. */
-class CPointSourcePannerGainCalc
+class PointSourcePannerGainCalc
 {
 public:
-	CPointSourcePannerGainCalc(const Layout& layout);
-	~CPointSourcePannerGainCalc();
+	PointSourcePannerGainCalc(const Layout& layout);
+	~PointSourcePannerGainCalc();
 
 	/** Calculate the gains to be applied to a mono signal in order to place it in the target
 	 *  speaker layout

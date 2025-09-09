@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CBFormat - Ambisonic BFormat                                            #*/
+/*#  BFormat - Ambisonic BFormat                                            #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#                                                                          #*/
 /*#  Filename:      BFormat.h                                                #*/
@@ -26,10 +26,10 @@
     allocated for the number of channels needed for the given Ambisonic
     configuration (order and 2D/3D) and the number of samples. */
 
-class CBFormat : public CAmbisonicBase
+class BFormat : public AmbisonicBase
 {
 public:
-    CBFormat();
+    BFormat();
 
     /** Returns the number of samples.
      * @return      Number of samples in the internal buffers
@@ -81,27 +81,27 @@ public:
         of the same configuration.
      * @param bf    B-format signal to copy.
      */
-    void operator = (const CBFormat &bf);
+    void operator = (const BFormat &bf);
 
     /** Returns true if the configuration of the two objects match.
      * @param bf    B-format signal for configuration comparison.
      * @return      Returns true if configuration of both objects match.
      */
-    bool operator == (const CBFormat &bf);
+    bool operator == (const BFormat &bf);
 
     /** Returns true if the configuration of the two objects don't match.
      * @param bf    B-format signal for configuration comparison.
      * @return      Returns true if configuration of both objects do not match.
      */
-    bool operator != (const CBFormat &bf);
-    CBFormat& operator += (const CBFormat &bf);
-    CBFormat& operator -= (const CBFormat &bf);
-    CBFormat& operator *= (const CBFormat &bf);
-    CBFormat& operator /= (const CBFormat &bf);
-    CBFormat& operator += (const float &fValue);
-    CBFormat& operator -= (const float &fValue);
-    CBFormat& operator *= (const float &fValue);
-    CBFormat& operator /= (const float &fValue);
+    bool operator != (const BFormat &bf);
+    BFormat& operator += (const BFormat &bf);
+    BFormat& operator -= (const BFormat &bf);
+    BFormat& operator *= (const BFormat &bf);
+    BFormat& operator /= (const BFormat &bf);
+    BFormat& operator += (const float &fValue);
+    BFormat& operator -= (const float &fValue);
+    BFormat& operator *= (const float &fValue);
+    BFormat& operator /= (const float &fValue);
 
 protected:
     unsigned m_nSamples;
@@ -111,18 +111,18 @@ protected:
 
     //friend classes cannot be pure abstract type,
     //so must list each friend class manually
-    friend class CAmbisonicEncoder;
-    friend class CAmbisonicEncoderDist;
-    friend class CAmbisonicDecoder;
-    friend class CAmbisonicSpeaker;
-    friend class CAmbisonicMicrophone;
-    friend class CAmbisonicProcessor;
-    friend class CAmbisonicRotator;
-    friend class CAmbisonicBinauralizer;
-    friend class CAmbisonicZoomer;
-    friend class CAmbisonicShelfFilters;
-    friend class CAmbisonicOptimFilters;
-    friend class CAmbisonicAllRAD;
+    friend class AmbisonicEncoder;
+    friend class AmbisonicEncoderDist;
+    friend class AmbisonicDecoder;
+    friend class AmbisonicSpeaker;
+    friend class AmbisonicMicrophone;
+    friend class AmbisonicProcessor;
+    friend class AmbisonicRotator;
+    friend class AmbisonicBinauralizer;
+    friend class AmbisonicZoomer;
+    friend class AmbisonicShelfFilters;
+    friend class AmbisonicOptimFilters;
+    friend class AmbisonicAllRAD;
 };
 
 #endif //_BFORMAT_H

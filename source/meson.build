@@ -24,7 +24,7 @@ spatialaudio_sources = files(
     'AmbisonicZoomer.cpp',
     'Decorrelate.cpp',
     'AdmDirectSpeakerGainCalc.cpp',
-    'AdmRenderer.cpp',
+    'Renderer.cpp',
     'AllocentricPannerGainCalc.cpp',
     'AllocentricExtent.cpp',
     'Decorrelate.cpp',

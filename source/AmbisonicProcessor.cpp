@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicProcessor - Ambisonic Processor                               #*/
+/*#  AmbisonicProcessor - Ambisonic Processor                               #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#  Copyright © 2017 Videolabs                                              #*/
 /*#                                                                          #*/
@@ -17,21 +17,21 @@
 #include "AmbisonicProcessor.h"
 #include <iostream>
 
-CAmbisonicProcessor::CAmbisonicProcessor()
+AmbisonicProcessor::AmbisonicProcessor()
     : m_orientation(0, 0, 0)
 {
     m_pfTempSample = nullptr;
 }
 
-CAmbisonicProcessor::~CAmbisonicProcessor()
+AmbisonicProcessor::~AmbisonicProcessor()
 {
     if(m_pfTempSample)
         delete [] m_pfTempSample;
 }
 
-bool CAmbisonicProcessor::Configure(unsigned nOrder, bool b3D, unsigned /*nBlockSize*/, unsigned nMisc)
+bool AmbisonicProcessor::Configure(unsigned nOrder, bool b3D, unsigned /*nBlockSize*/, unsigned nMisc)
 {
-    bool success = CAmbisonicBase::Configure(nOrder, b3D, nMisc);
+    bool success = AmbisonicBase::Configure(nOrder, b3D, nMisc);
     if(!success)
         return false;
     if(m_pfTempSample)
@@ -42,11 +42,11 @@ bool CAmbisonicProcessor::Configure(unsigned nOrder, bool b3D, unsigned /*nBlock
     return true;
 }
 
-void CAmbisonicProcessor::Reset()
+void AmbisonicProcessor::Reset()
 {
 }
 
-void CAmbisonicProcessor::Refresh()
+void AmbisonicProcessor::Refresh()
 {
     // Trig terms used multiple times in rotation equations
     m_fCosAlpha = cosf(m_orientation.fAlpha);
@@ -69,17 +69,17 @@ void CAmbisonicProcessor::Refresh()
     m_fSin3Gamma = sinf(3.f * m_orientation.fGamma);
 }
 
-void CAmbisonicProcessor::SetOrientation(Orientation orientation)
+void AmbisonicProcessor::SetOrientation(Orientation orientation)
 {
     m_orientation = orientation;
 }
 
-Orientation CAmbisonicProcessor::GetOrientation()
+Orientation AmbisonicProcessor::GetOrientation()
 {
     return m_orientation;
 }
 
-void CAmbisonicProcessor::Process(CBFormat* pBFSrcDst, unsigned nSamples)
+void AmbisonicProcessor::Process(BFormat* pBFSrcDst, unsigned nSamples)
 {
     /* 3D Ambisonics input expected so perform 3D rotations */
     if(m_nOrder >= 1)
@@ -90,7 +90,7 @@ void CAmbisonicProcessor::Process(CBFormat* pBFSrcDst, unsigned nSamples)
         ProcessOrder3_3D(pBFSrcDst, nSamples);
 }
 
-void CAmbisonicProcessor::ProcessOrder1_3D(CBFormat* pBFSrcDst, unsigned nSamples)
+void AmbisonicProcessor::ProcessOrder1_3D(BFormat* pBFSrcDst, unsigned nSamples)
 {
     /* Rotations are performed in the following order:
         1 - rotation around the z-axis
@@ -128,7 +128,7 @@ void CAmbisonicProcessor::ProcessOrder1_3D(CBFormat* pBFSrcDst, unsigned nSample
     }
 }
 
-void CAmbisonicProcessor::ProcessOrder2_3D(CBFormat* pBFSrcDst, unsigned nSamples)
+void AmbisonicProcessor::ProcessOrder2_3D(BFormat* pBFSrcDst, unsigned nSamples)
 {
     float fSqrt3 = sqrtf(3.f);
 
@@ -180,7 +180,7 @@ void CAmbisonicProcessor::ProcessOrder2_3D(CBFormat* pBFSrcDst, unsigned nSample
     }
 }
 
-void CAmbisonicProcessor::ProcessOrder3_3D(CBFormat* pBFSrcDst, unsigned nSamples)
+void AmbisonicProcessor::ProcessOrder3_3D(BFormat* pBFSrcDst, unsigned nSamples)
 {
         /* (should move these somewhere that does recompute each time) */
         float fSqrt3_2 = sqrtf(3.f/2.f);

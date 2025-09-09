@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CBFormat - Ambisonic BFormat                                            #*/
+/*#  BFormat - Ambisonic BFormat                                            #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#                                                                          #*/
 /*#  Filename:      BFormat.cpp                                              #*/
@@ -15,20 +15,20 @@
 
 #include "BFormat.h"
 
-CBFormat::CBFormat()
+BFormat::BFormat()
 {
     m_nSamples = 0;
     m_nDataLength = 0;
 }
 
-unsigned CBFormat::GetSampleCount()
+unsigned BFormat::GetSampleCount()
 {
     return m_nSamples;
 }
 
-bool CBFormat::Configure(unsigned nOrder, bool b3D, unsigned nSampleCount)
+bool BFormat::Configure(unsigned nOrder, bool b3D, unsigned nSampleCount)
 {
-    bool success = CAmbisonicBase::Configure(nOrder, b3D, nSampleCount);
+    bool success = AmbisonicBase::Configure(nOrder, b3D, nSampleCount);
     if(!success)
         return false;
 
@@ -47,22 +47,22 @@ bool CBFormat::Configure(unsigned nOrder, bool b3D, unsigned nSampleCount)
     return true;
 }
 
-void CBFormat::Reset()
+void BFormat::Reset()
 {
     memset(m_pfData.data(), 0, m_nDataLength * sizeof(float));
 }
 
-void CBFormat::Refresh()
+void BFormat::Refresh()
 {
 
 }
 
-void CBFormat::InsertStream(float* pfData, unsigned nChannel, unsigned nSamples)
+void BFormat::InsertStream(float* pfData, unsigned nChannel, unsigned nSamples)
 {
     memcpy(m_ppfChannels[nChannel], pfData, nSamples * sizeof(float));
 }
 
-void CBFormat::AddStream(float* pfData, unsigned nChannel, unsigned nSamples, unsigned nOffset, float gain)
+void BFormat::AddStream(float* pfData, unsigned nChannel, unsigned nSamples, unsigned nOffset, float gain)
 {
     unsigned niSample = 0;
 
@@ -72,17 +72,17 @@ void CBFormat::AddStream(float* pfData, unsigned nChannel, unsigned nSamples, un
     }
 }
 
-void CBFormat::ExtractStream(float* pfData, unsigned nChannel, unsigned nSamples)
+void BFormat::ExtractStream(float* pfData, unsigned nChannel, unsigned nSamples)
 {
     memcpy(pfData, m_ppfChannels[nChannel], nSamples * sizeof(float));
 }
 
-void CBFormat::operator = (const CBFormat &bf)
+void BFormat::operator = (const BFormat &bf)
 {
     memcpy(m_pfData.data(), bf.m_pfData.data(), m_nDataLength * sizeof(float));
 }
 
-bool CBFormat::operator == (const CBFormat &bf)
+bool BFormat::operator == (const BFormat &bf)
 {
     if(m_b3D == bf.m_b3D && m_nOrder == bf.m_nOrder && m_nDataLength == bf.m_nDataLength)
         return true;
@@ -90,7 +90,7 @@ bool CBFormat::operator == (const CBFormat &bf)
         return false;
 }
 
-bool CBFormat::operator != (const CBFormat &bf)
+bool BFormat::operator != (const BFormat &bf)
 {
     if(m_b3D != bf.m_b3D || m_nOrder != bf.m_nOrder || m_nDataLength != bf.m_nDataLength)
         return true;
@@ -98,7 +98,7 @@ bool CBFormat::operator != (const CBFormat &bf)
         return false;
 }
 
-CBFormat& CBFormat::operator += (const CBFormat &bf)
+BFormat& BFormat::operator += (const BFormat &bf)
 {
     unsigned niChannel = 0;
     unsigned niSample = 0;
@@ -113,7 +113,7 @@ CBFormat& CBFormat::operator += (const CBFormat &bf)
     return *this;
 }
 
-CBFormat& CBFormat::operator -= (const CBFormat &bf)
+BFormat& BFormat::operator -= (const BFormat &bf)
 {
     unsigned niChannel = 0;
     unsigned niSample = 0;
@@ -128,7 +128,7 @@ CBFormat& CBFormat::operator -= (const CBFormat &bf)
     return *this;
 }
 
-CBFormat& CBFormat::operator *= (const CBFormat &bf)
+BFormat& BFormat::operator *= (const BFormat &bf)
 {
     unsigned niChannel = 0;
     unsigned niSample = 0;
@@ -143,7 +143,7 @@ CBFormat& CBFormat::operator *= (const CBFormat &bf)
     return *this;
 }
 
-CBFormat& CBFormat::operator /= (const CBFormat &bf)
+BFormat& BFormat::operator /= (const BFormat &bf)
 {
     unsigned niChannel = 0;
     unsigned niSample = 0;
@@ -158,7 +158,7 @@ CBFormat& CBFormat::operator /= (const CBFormat &bf)
     return *this;
 }
 
-CBFormat& CBFormat::operator += (const float &fValue)
+BFormat& BFormat::operator += (const float &fValue)
 {
     unsigned niChannel = 0;
     unsigned niSample = 0;
@@ -173,7 +173,7 @@ CBFormat& CBFormat::operator += (const float &fValue)
     return *this;
 }
 
-CBFormat& CBFormat::operator -= (const float &fValue)
+BFormat& BFormat::operator -= (const float &fValue)
 {
     unsigned niChannel = 0;
     unsigned niSample = 0;
@@ -188,7 +188,7 @@ CBFormat& CBFormat::operator -= (const float &fValue)
     return *this;
 }
 
-CBFormat& CBFormat::operator *= (const float &fValue)
+BFormat& BFormat::operator *= (const float &fValue)
 {
     unsigned niChannel = 0;
     unsigned niSample = 0;
@@ -203,7 +203,7 @@ CBFormat& CBFormat::operator *= (const float &fValue)
     return *this;
 }
 
-CBFormat& CBFormat::operator /= (const float &fValue)
+BFormat& BFormat::operator /= (const float &fValue)
 {
     unsigned niChannel = 0;
     unsigned niSample = 0;

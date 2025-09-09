@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Calculate the gain vector to spatialise a DirectSpeaker channel.        #*/
-/*#  CAdmDirectSpeakersGainCalc                                              #*/
+/*#  AdmDirectSpeakersGainCalc                                              #*/
 /*#  Copyright © 2020 Peter Stitt                                            #*/
 /*#                                                                          #*/
 /*#  Filename:      AdmDirectSpeakersGainCalc.cpp                            #*/
@@ -19,7 +19,7 @@
 namespace admrender {
 
 	//===================================================================================================================================
-	CAdmDirectSpeakersGainCalc::CAdmDirectSpeakersGainCalc(Layout layoutWithLFE)
+	AdmDirectSpeakersGainCalc::AdmDirectSpeakersGainCalc(Layout layoutWithLFE)
 		: m_pointSourcePannerGainCalc(getLayoutWithoutLFE(layoutWithLFE)), m_screenEdgeLock(layoutWithLFE.reproductionScreen, layoutWithLFE)
 	{
 		m_layout = layoutWithLFE;
@@ -27,11 +27,11 @@ namespace admrender {
 		m_gainsPSP.resize(getLayoutWithoutLFE(layoutWithLFE).channels.size(), 0.);
 	}
 
-	CAdmDirectSpeakersGainCalc::~CAdmDirectSpeakersGainCalc()
+	AdmDirectSpeakersGainCalc::~AdmDirectSpeakersGainCalc()
 	{
 	}
 
-	int CAdmDirectSpeakersGainCalc::findClosestWithinBounds(const DirectSpeakerPolarPosition& direction, double tol)
+	int AdmDirectSpeakersGainCalc::findClosestWithinBounds(const DirectSpeakerPolarPosition& direction, double tol)
 	{
 		// See Rec. ITU-R BS.2127-0 sec 8.5
 		std::vector<unsigned int> withinBounds;
@@ -105,7 +105,7 @@ namespace admrender {
 		return -1;
 	}
 
-	void CAdmDirectSpeakersGainCalc::calculateGains(const DirectSpeakerMetadata& metadata, std::vector<double>& gains)
+	void AdmDirectSpeakersGainCalc::calculateGains(const DirectSpeakerMetadata& metadata, std::vector<double>& gains)
 	{
 		assert(gains.size() == m_nCh); // Gain vector length must match the number of channels
 
@@ -187,7 +187,7 @@ namespace admrender {
 		}
 	}
 
-	bool CAdmDirectSpeakersGainCalc::MappingRuleApplies(const MappingRule& rule, const std::string& inputLayout, const std::string& speakerLabel, Layout& outputLayout)
+	bool AdmDirectSpeakersGainCalc::MappingRuleApplies(const MappingRule& rule, const std::string& inputLayout, const std::string& speakerLabel, Layout& outputLayout)
 	{
 		// All conditions must be met for the rule to apply
 		// "rule.speakerLabel is equal to the first (and only) speakerLabel"

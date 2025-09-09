@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicSpeaker - Ambisonic Speaker                                   #*/
+/*#  AmbisonicSpeaker - Ambisonic Speaker                                   #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#                                                                          #*/
 /*#  Filename:      AmbisonicSpeaker.h                                       #*/
@@ -23,11 +23,11 @@
 
 /** This is a speaker class to be used in the decoder. */
 
-class CAmbisonicSpeaker : public CAmbisonicSource
+class AmbisonicSpeaker : public AmbisonicSource
 {
 public:
-    CAmbisonicSpeaker();
-    ~CAmbisonicSpeaker();
+    AmbisonicSpeaker();
+    ~AmbisonicSpeaker();
 
     /** Re-create the object for the given configuration. Previous data is
      *  lost. The last argument is not used, it is just there to match with
@@ -47,7 +47,7 @@ public:
      * @param nSamples  Number of samples to decode.
      * @param pfDst     Mono speaker signal output.
      */
-    void Process(CBFormat* pBFSrc, unsigned nSamples, float* pfDst);
+    void Process(BFormat* pBFSrc, unsigned nSamples, float* pfDst);
 };
 
 #endif // _AMBISONIC_SPEAKER_H

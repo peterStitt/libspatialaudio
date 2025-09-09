@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicDecoder - Ambisonic Decoder                                   #*/
+/*#  AmbisonicDecoder - Ambisonic Decoder                                   #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#  Copyright © 2017 Videolabs                                              #*/
 /*#                                                                          #*/
@@ -42,11 +42,11 @@ enum class Amblib_SpeakerSetUps
 /** This is a basic decoder, handling both default and custom speaker
     configurations. */
 
-class CAmbisonicDecoder : public CAmbisonicBase
+class AmbisonicDecoder : public AmbisonicBase
 {
 public:
-    CAmbisonicDecoder();
-    ~CAmbisonicDecoder();
+    AmbisonicDecoder();
+    ~AmbisonicDecoder();
 
     /** Re-create the object for the given configuration. Previous data is
      *  lost. nSpeakerSetUp can be any of the ::SpeakerSetUps enumerations. If
@@ -76,7 +76,7 @@ public:
      * @param nSamples  The number of samples to be decoded.
      * @param ppfDst    Decoded output of size nSpeakers x nSamples.
      */
-    void Process(CBFormat* pBFSrc, unsigned nSamples, float** ppfDst);
+    void Process(BFormat* pBFSrc, unsigned nSamples, float** ppfDst);
 
     /** Returns the current speaker setup, which is a Amblib_SpeakerSetUps enumeration.
      * @return      The current speaker layout.
@@ -156,13 +156,13 @@ protected:
 
     Amblib_SpeakerSetUps m_nSpeakerSetUp;
     unsigned m_nSpeakers;
-    CAmbisonicSpeaker* m_pAmbSpeakers;
+    AmbisonicSpeaker* m_pAmbSpeakers;
     bool m_bPresetLoaded;
 
 private:
-    CAmbisonicOptimFilters m_shelfFilters;
+    AmbisonicOptimFilters m_shelfFilters;
     // A temp version of the input when optimisation filtering is applied to avoid overwriting the input
-    CBFormat m_pBFSrcTmp;
+    BFormat m_pBFSrcTmp;
 
     /** Configure decoder matrix to account for the speaker layout
     */

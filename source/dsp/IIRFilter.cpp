@@ -14,17 +14,17 @@
 #include "IIRFilter.h"
 #include "Tools.h" // for M_PI
 
-CIIRFilter::CIIRFilter()
+IIRFilter::IIRFilter()
 {
     m_b.resize(3, 0.);
     m_a.resize(2, 0.);
 }
 
-CIIRFilter::~CIIRFilter()
+IIRFilter::~IIRFilter()
 {
 }
 
-bool CIIRFilter::Configure(unsigned int nCh, unsigned int sampleRate, float frequency, float q, FilterType filterType)
+bool IIRFilter::Configure(unsigned int nCh, unsigned int sampleRate, float frequency, float q, FilterType filterType)
 {
     // Must process at least one channel, have a positive, non-zero sample rate and
     // the cutoff frequency must not be above Nyquist
@@ -68,7 +68,7 @@ bool CIIRFilter::Configure(unsigned int nCh, unsigned int sampleRate, float freq
     return true;
 }
 
-void CIIRFilter::Reset()
+void IIRFilter::Reset()
 {
     // Clear the states for all channels
     for (int iCh = 0; iCh < m_nCh; ++iCh)
@@ -78,13 +78,13 @@ void CIIRFilter::Reset()
     }
 }
 
-void CIIRFilter::Process(float** pIn, float** pOut, unsigned int nSamples)
+void IIRFilter::Process(float** pIn, float** pOut, unsigned int nSamples)
 {
     for (int iCh = 0; iCh < m_nCh; ++iCh)
         Process(pIn[iCh], pOut[iCh], nSamples, iCh);
 }
 
-void CIIRFilter::Process(float* pIn, float* pOut, unsigned int nSamples, unsigned int iCh)
+void IIRFilter::Process(float* pIn, float* pOut, unsigned int nSamples, unsigned int iCh)
 {
     auto b0 = m_b[0];
     auto b1 = m_b[1];

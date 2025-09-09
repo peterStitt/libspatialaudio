@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Calculate the gains required for point source panning.                  #*/
-/*#  CPointSourcePannerGainCalc - ADM Point Source Panner                    #*/
+/*#  PointSourcePannerGainCalc - ADM Point Source Panner                    #*/
 /*#  Copyright © 2020 Peter Stitt                                            #*/
 /*#                                                                          #*/
 /*#  Filename:      PointSourcePannerGainCalc.cpp                            #*/
@@ -17,7 +17,7 @@
 #include<string>
 #include <map>
 
-CPointSourcePannerGainCalc::CPointSourcePannerGainCalc(const Layout& layout)
+PointSourcePannerGainCalc::PointSourcePannerGainCalc(const Layout& layout)
 {
 	// Store the output layout
 	m_outputLayout = getLayoutWithoutLFE(layout);
@@ -196,16 +196,16 @@ CPointSourcePannerGainCalc::CPointSourcePannerGainCalc(const Layout& layout)
 	m_quadGains.resize(4, 0.);
 }
 
-CPointSourcePannerGainCalc::~CPointSourcePannerGainCalc()
+PointSourcePannerGainCalc::~PointSourcePannerGainCalc()
 {
 }
 
-void CPointSourcePannerGainCalc::CalculateGains(PolarPosition direction, std::vector<double>& gains)
+void PointSourcePannerGainCalc::CalculateGains(PolarPosition direction, std::vector<double>& gains)
 {
 	return CalculateGains(PolarToCartesian(direction), gains);
 }
 
-void CPointSourcePannerGainCalc::CalculateGains(CartesianPosition position, std::vector<double>& gains)
+void PointSourcePannerGainCalc::CalculateGains(CartesianPosition position, std::vector<double>& gains)
 {
 	if (m_downmixOutput == DownmixOutput::Downmix_0_2_0) // then downmix from 0+5+0 to 0+2+0
 	{
@@ -270,12 +270,12 @@ void CPointSourcePannerGainCalc::CalculateGains(CartesianPosition position, std:
 	}
 }
 
-unsigned int CPointSourcePannerGainCalc::getNumChannels()
+unsigned int PointSourcePannerGainCalc::getNumChannels()
 {
 	return (unsigned int)m_outputLayout.channels.size();
 }
 
-void CPointSourcePannerGainCalc::CalculateGainsFromRegions(CartesianPosition position, std::vector<double>& gains)
+void PointSourcePannerGainCalc::CalculateGainsFromRegions(CartesianPosition position, std::vector<double>& gains)
 {
 	double tol = 1e-6;
 
@@ -338,7 +338,7 @@ void CPointSourcePannerGainCalc::CalculateGainsFromRegions(CartesianPosition pos
 	}
 }
 
-Layout CPointSourcePannerGainCalc::CalculateExtraSpeakersLayout(const Layout& layout)
+Layout PointSourcePannerGainCalc::CalculateExtraSpeakersLayout(const Layout& layout)
 {
 	Layout extraSpeakers;
 	unsigned int nSpeakers = (unsigned int)layout.channels.size();
@@ -426,7 +426,7 @@ Layout CPointSourcePannerGainCalc::CalculateExtraSpeakersLayout(const Layout& la
 	return extraSpeakers;
 }
 
-bool CPointSourcePannerGainCalc::CheckScreenSpeakerWidths(const Layout& layout, bool& wideLeft, bool& wideRight)
+bool PointSourcePannerGainCalc::CheckScreenSpeakerWidths(const Layout& layout, bool& wideLeft, bool& wideRight)
 {
 	int chCount = 0;
 	for (auto& channel : layout.channels)

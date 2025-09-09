@@ -12,8 +12,8 @@
 
 #include "PolarExtent.h"
 
-// CSpreadPannerBase ================================================================================
-CSpreadPannerBase::CSpreadPannerBase()
+// SpreadPannerBase ================================================================================
+SpreadPannerBase::SpreadPannerBase()
 {
 	// Set up the grid on the sphere
 	// The algorithm can be found here:
@@ -47,11 +47,11 @@ CSpreadPannerBase::CSpreadPannerBase()
 	m_closestCircle.resize(3, 0.);
 }
 
-CSpreadPannerBase::~CSpreadPannerBase()
+SpreadPannerBase::~SpreadPannerBase()
 {
 }
 
-double CSpreadPannerBase::CalculateWeights(CartesianPosition position)
+double SpreadPannerBase::CalculateWeights(CartesianPosition position)
 {
 	// Convert position to coordinate system of the weighting function
 	m_posVec[0] = position.x;
@@ -85,7 +85,7 @@ double CSpreadPannerBase::CalculateWeights(CartesianPosition position)
 	return w;
 }
 
-void CSpreadPannerBase::ConfigureWeightingFunction(CartesianPosition position, double width, double height)
+void SpreadPannerBase::ConfigureWeightingFunction(CartesianPosition position, double width, double height)
 {
 	m_width = width;
 	m_height = height;
@@ -108,8 +108,8 @@ void CSpreadPannerBase::ConfigureWeightingFunction(CartesianPosition position, d
 	m_circularCapPosition = PolarToCartesian(PolarPosition{ m_circularCapAzimuth, 0, 1 });
 }
 
-// CSpreadPanner ================================================================================
-CSpreadPanner::CSpreadPanner(CPointSourcePannerGainCalc& psp) : m_pointSourcePannerGainCalc(psp)
+// SpreadPanner ================================================================================
+SpreadPanner::SpreadPanner(PointSourcePannerGainCalc& psp) : m_pointSourcePannerGainCalc(psp)
 {
 	m_nCh = m_pointSourcePannerGainCalc.getNumChannels();
 	std::vector<double> gainsTmp(m_nCh, 0.);
@@ -121,11 +121,11 @@ CSpreadPanner::CSpreadPanner(CPointSourcePannerGainCalc& psp) : m_pointSourcePan
 	}
 }
 
-CSpreadPanner::~CSpreadPanner()
+SpreadPanner::~SpreadPanner()
 {
 }
 
-void CSpreadPanner::CalculateGains(CartesianPosition position, double width, double height, std::vector<double>& gains)
+void SpreadPanner::CalculateGains(CartesianPosition position, double width, double height, std::vector<double>& gains)
 {
 	ConfigureWeightingFunction(position, width, height);
 
@@ -150,8 +150,8 @@ void CSpreadPanner::CalculateGains(CartesianPosition position, double width, dou
 			g = 0.;
 }
 
-// CAmbisonicSpreadPanner ================================================================================
-CAmbisonicSpreadPanner::CAmbisonicSpreadPanner(unsigned int ambiOrder)
+// AmbisonicSpreadPanner ================================================================================
+AmbisonicSpreadPanner::AmbisonicSpreadPanner(unsigned int ambiOrder)
 {
 	m_ambiSource.Configure(ambiOrder, true, 0);
 	std::vector<float> hoaGains(m_ambiSource.GetChannelCount(), 0.f);
@@ -167,11 +167,11 @@ CAmbisonicSpreadPanner::CAmbisonicSpreadPanner(unsigned int ambiOrder)
 	m_nCh = m_ambiSource.GetChannelCount();
 }
 
-CAmbisonicSpreadPanner::~CAmbisonicSpreadPanner()
+AmbisonicSpreadPanner::~AmbisonicSpreadPanner()
 {
 }
 
-void CAmbisonicSpreadPanner::CalculateGains(CartesianPosition position, double width, double height, std::vector<double>& gains)
+void AmbisonicSpreadPanner::CalculateGains(CartesianPosition position, double width, double height, std::vector<double>& gains)
 {
 	ConfigureWeightingFunction(position, width, height);
 
@@ -202,21 +202,21 @@ void CAmbisonicSpreadPanner::CalculateGains(CartesianPosition position, double w
 				gains[iCh] += m_weights[i] * m_virtualSourcePanningVectors[i][iCh];
 }
 
-unsigned int CAmbisonicSpreadPanner::GetAmbisonicOrder()
+unsigned int AmbisonicSpreadPanner::GetAmbisonicOrder()
 {
 	return m_ambiSource.GetOrder();
 }
 
 // PolarExtentHandlerBase ==========================================================================
-CPolarExtentHandlerBase::CPolarExtentHandlerBase()
+PolarExtentHandlerBase::PolarExtentHandlerBase()
 {
 }
 
-CPolarExtentHandlerBase::~CPolarExtentHandlerBase()
+PolarExtentHandlerBase::~PolarExtentHandlerBase()
 {
 }
 
-double CPolarExtentHandlerBase::PolarExtentModification(double distance, double extent)
+double PolarExtentHandlerBase::PolarExtentModification(double distance, double extent)
 {
 	const double minSize = 0.2;
 	double size = minSize + (1 - minSize) * extent / 360.;
@@ -231,7 +231,7 @@ double CPolarExtentHandlerBase::PolarExtentModification(double distance, double 
 }
 
 // PolarExtentHandler ==========================================================================
-CPolarExtentHandler::CPolarExtentHandler(CPointSourcePannerGainCalc& psp) : m_pointSourcePannerGainGalc(psp),
+PolarExtentHandler::PolarExtentHandler(PointSourcePannerGainCalc& psp) : m_pointSourcePannerGainGalc(psp),
 	m_spreadPanner(m_pointSourcePannerGainGalc)
 {
 	m_nCh = m_pointSourcePannerGainGalc.getNumChannels();
@@ -241,11 +241,11 @@ CPolarExtentHandler::CPolarExtentHandler(CPointSourcePannerGainCalc& psp) : m_po
 	m_g2.resize(m_nCh);
 }
 
-CPolarExtentHandler::~CPolarExtentHandler()
+PolarExtentHandler::~PolarExtentHandler()
 {
 }
 
-void CPolarExtentHandler::handle(CartesianPosition position, double width, double height, double depth, std::vector<double>& gains)
+void PolarExtentHandler::handle(CartesianPosition position, double width, double height, double depth, std::vector<double>& gains)
 {
 	// Get the distance of the source
 	double sourceDistance = norm(position);
@@ -280,7 +280,7 @@ void CPolarExtentHandler::handle(CartesianPosition position, double width, doubl
 	}
 }
 
-void CPolarExtentHandler::CalculatePolarExtentGains(CartesianPosition position, double width, double height, std::vector<double>& gains)
+void PolarExtentHandler::CalculatePolarExtentGains(CartesianPosition position, double width, double height, std::vector<double>& gains)
 {
 	double p = clamp(std::max(width, height) / m_minExtent, 0., 1.);
 
@@ -315,7 +315,7 @@ void CPolarExtentHandler::CalculatePolarExtentGains(CartesianPosition position, 
 }
 
 // AmbisonicPolarExtentHandler ==========================================================================
-CAmbisonicPolarExtentHandler::CAmbisonicPolarExtentHandler(unsigned int ambiOrder) : m_ambiSpreadPanner(ambiOrder)
+AmbisonicPolarExtentHandler::AmbisonicPolarExtentHandler(unsigned int ambiOrder) : m_ambiSpreadPanner(ambiOrder)
 {
 	m_ambiSource.Configure(ambiOrder, true, 0);
 	m_nCh = m_ambiSource.GetChannelCount();
@@ -325,11 +325,11 @@ CAmbisonicPolarExtentHandler::CAmbisonicPolarExtentHandler(unsigned int ambiOrde
 	m_g2.resize(m_nCh);
 }
 
-CAmbisonicPolarExtentHandler::~CAmbisonicPolarExtentHandler()
+AmbisonicPolarExtentHandler::~AmbisonicPolarExtentHandler()
 {
 }
 
-void CAmbisonicPolarExtentHandler::handle(CartesianPosition position, double width, double height, double depth, std::vector<double>& gains)
+void AmbisonicPolarExtentHandler::handle(CartesianPosition position, double width, double height, double depth, std::vector<double>& gains)
 {
 	// Get the distance of the source
 	double sourceDistance = norm(position);
@@ -363,7 +363,7 @@ void CAmbisonicPolarExtentHandler::handle(CartesianPosition position, double wid
 	}
 }
 
-void CAmbisonicPolarExtentHandler::CalculatePolarExtentGains(CartesianPosition position, double width, double height, std::vector<double>& gains)
+void AmbisonicPolarExtentHandler::CalculatePolarExtentGains(CartesianPosition position, double width, double height, std::vector<double>& gains)
 {
 	double p = clamp(std::max(width, height) / m_minExtent, 0., 1.);
 

@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicSource - Ambisonic Source                                     #*/
+/*#  AmbisonicSource - Ambisonic Source                                     #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#  Copyright © 2017 Videolabs                                              #*/
 /*#                                                                          #*/
@@ -27,10 +27,10 @@
     mono stream into a 3D soundfield, or a single speaker for decoding a 3D
     soundfield. */
 
-class CAmbisonicSource : public CAmbisonicBase
+class AmbisonicSource : public AmbisonicBase
 {
 public:
-    CAmbisonicSource();
+    AmbisonicSource();
 
     /** Re-create the object for the given configuration. Previous data is
      *  lost. The last argument is not used, it is just there to match with

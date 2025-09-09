@@ -14,7 +14,7 @@
 
 #include<random>
 
-CDecorrelate::CDecorrelate()
+Decorrelator::Decorrelator()
 {
     m_pfScratchBufferA = nullptr;
     m_pFFT_decor_cfg = nullptr;
@@ -24,7 +24,7 @@ CDecorrelate::CDecorrelate()
     m_pfOverlap = nullptr;
 }
 
-CDecorrelate::~CDecorrelate()
+Decorrelator::~Decorrelator()
 {
     if (m_pfScratchBufferA)
         delete[] m_pfScratchBufferA;
@@ -55,7 +55,7 @@ CDecorrelate::~CDecorrelate()
     }
 }
 
-bool CDecorrelate::Configure(Layout layout, unsigned int nBlockSize)
+bool Decorrelator::Configure(Layout layout, unsigned int nBlockSize)
 {
     m_layout = layout;
 
@@ -118,7 +118,7 @@ bool CDecorrelate::Configure(Layout layout, unsigned int nBlockSize)
     return true;
 }
 
-void CDecorrelate::Reset()
+void Decorrelator::Reset()
 {
     for (unsigned i = 0; i < m_nCh; i++)
     {
@@ -127,7 +127,7 @@ void CDecorrelate::Reset()
     }
 }
 
-void CDecorrelate::Process(float** ppInDirect, float** ppInDiffuse, unsigned int nSamples)
+void Decorrelator::Process(float** ppInDirect, float** ppInDiffuse, unsigned int nSamples)
 {
     kiss_fft_cpx cpTemp;
 
@@ -175,7 +175,7 @@ void CDecorrelate::Process(float** ppInDirect, float** ppInDiffuse, unsigned int
         m_nWritePos -= (int)m_nDelayLineLength;
 }
 
-void CDecorrelate::WriteToDelayLine(float* pDelayLine, const float* pIn, int nWritePos, int nSamples)
+void Decorrelator::WriteToDelayLine(float* pDelayLine, const float* pIn, int nWritePos, int nSamples)
 {
     int overrun = nWritePos + nSamples - m_nDelayLineLength;
     if (overrun > 0) {
@@ -187,7 +187,7 @@ void CDecorrelate::WriteToDelayLine(float* pDelayLine, const float* pIn, int nWr
     }
 }
 
-void CDecorrelate::ReadFromDelayLine(const float* pDelayLine, float* pOut, int nReadPos, int nSamples)
+void Decorrelator::ReadFromDelayLine(const float* pDelayLine, float* pOut, int nReadPos, int nSamples)
 {
     int overrun = nReadPos + nSamples - m_nDelayLineLength;
     if (overrun > 0) {
@@ -199,7 +199,7 @@ void CDecorrelate::ReadFromDelayLine(const float* pDelayLine, float* pOut, int n
     }
 }
 
-std::vector<std::vector<float>> CDecorrelate::CalculateDecorrelationFilterBank()
+std::vector<std::vector<float>> Decorrelator::CalculateDecorrelationFilterBank()
 {
     std::vector<std::vector<float>> decorrelationFilter;
     // Get the index of the channel names in a sorted list of all channel names in the layout
@@ -215,7 +215,7 @@ std::vector<std::vector<float>> CDecorrelate::CalculateDecorrelationFilterBank()
     return decorrelationFilter;
 }
 
-std::vector<float> CDecorrelate::CalculateDecorrelationFilter(unsigned int seedIndex)
+std::vector<float> Decorrelator::CalculateDecorrelationFilter(unsigned int seedIndex)
 {
     int N = (int)m_nDecorrelationFilterSamples;
 

@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicSpeaker - Ambisonic Speaker                                   #*/
+/*#  AmbisonicSpeaker - Ambisonic Speaker                                   #*/
 /*#  Copyright © 2017 Videolabs                                              #*/
 /*#                                                                          #*/
 /*#  Filename:      AmbisonicSpeaker.cpp                                     #*/

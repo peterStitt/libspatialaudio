@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicRotator - Ambisonic sound field rotation                      #*/
+/*#  AmbisonicRotator - Ambisonic sound field rotation                      #*/
 /*#  Copyright © 2024 Videolabs                                              #*/
 /*#                                                                          #*/
 /*#  Filename:      AmbisonicRotator.h                                       #*/
@@ -19,7 +19,7 @@
 
 #include "Tools.h"
 
-CAmbisonicRotator::CAmbisonicRotator()
+AmbisonicRotator::AmbisonicRotator()
 {
     m_sqrt3_2 = 0.5f * std::sqrt(3.f);
     m_sqrt6_4 = 0.25f * std::sqrt(6.f);
@@ -28,14 +28,14 @@ CAmbisonicRotator::CAmbisonicRotator()
     m_sqrt15_2 = 0.5f * std::sqrt(15.f);
 }
 
-CAmbisonicRotator::~CAmbisonicRotator()
+AmbisonicRotator::~AmbisonicRotator()
 {
 
 }
 
-bool CAmbisonicRotator::Configure(unsigned nOrder, bool b3D, unsigned nBlockSize, unsigned sampleRate, float fadeTimeMilliSec)
+bool AmbisonicRotator::Configure(unsigned nOrder, bool b3D, unsigned nBlockSize, unsigned sampleRate, float fadeTimeMilliSec)
 {
-    bool success = CAmbisonicBase::Configure(nOrder, b3D, nBlockSize);
+    bool success = AmbisonicBase::Configure(nOrder, b3D, nBlockSize);
     if (!success)
         return false;
 
@@ -61,18 +61,18 @@ bool CAmbisonicRotator::Configure(unsigned nOrder, bool b3D, unsigned nBlockSize
     return true;
 }
 
-void CAmbisonicRotator::Reset()
+void AmbisonicRotator::Reset()
 {
     updateTargetRotationMatrix();
     m_currentMatrix = m_targetMatrix;
     m_fadingCounter = m_fadingSamples;
 }
 
-void CAmbisonicRotator::Refresh()
+void AmbisonicRotator::Refresh()
 {
 }
 
-void CAmbisonicRotator::SetOrientation(RotationOrientation orientation)
+void AmbisonicRotator::SetOrientation(RotationOrientation orientation)
 {
     if (m_orientation.yaw != orientation.yaw || m_orientation.pitch != orientation.pitch
         || m_orientation.roll != orientation.roll)
@@ -94,7 +94,7 @@ void CAmbisonicRotator::SetOrientation(RotationOrientation orientation)
     }
 }
 
-void CAmbisonicRotator::SetRotationOrder(RotationOrder rotOrder)
+void AmbisonicRotator::SetRotationOrder(RotationOrder rotOrder)
 {
     if (m_rotOrder != rotOrder)
     {
@@ -103,12 +103,12 @@ void CAmbisonicRotator::SetRotationOrder(RotationOrder rotOrder)
     }
 }
 
-RotationOrientation CAmbisonicRotator::GetOrientation()
+RotationOrientation AmbisonicRotator::GetOrientation()
 {
     return m_orientation;
 }
 
-void CAmbisonicRotator::Process(CBFormat* pBFSrcDst, unsigned nSamples)
+void AmbisonicRotator::Process(BFormat* pBFSrcDst, unsigned nSamples)
 {
     // Make a copy of the input to use during the matrix multiplication
     m_tempBuffer = *pBFSrcDst;
@@ -142,7 +142,7 @@ void CAmbisonicRotator::Process(CBFormat* pBFSrcDst, unsigned nSamples)
                 }
 }
 
-void CAmbisonicRotator::getYawMatrix(float yaw, std::vector<std::vector<float>>& yawMat)
+void AmbisonicRotator::getYawMatrix(float yaw, std::vector<std::vector<float>>& yawMat)
 {
     yawMat[0][0] = 1.f;
     if (m_nOrder > 0)
@@ -193,7 +193,7 @@ void CAmbisonicRotator::getYawMatrix(float yaw, std::vector<std::vector<float>>&
     }
 }
 
-void CAmbisonicRotator::getPitchMatrix(float pitch, std::vector<std::vector<float>>& pitchMat)
+void AmbisonicRotator::getPitchMatrix(float pitch, std::vector<std::vector<float>>& pitchMat)
 {
     pitchMat[0][0] = 1.f;
     if (m_nOrder > 0)
@@ -262,7 +262,7 @@ void CAmbisonicRotator::getPitchMatrix(float pitch, std::vector<std::vector<floa
     }
 }
 
-void CAmbisonicRotator::getRollMatrix(float roll, std::vector<std::vector<float>>& rollMat)
+void AmbisonicRotator::getRollMatrix(float roll, std::vector<std::vector<float>>& rollMat)
 {
     rollMat[0][0] = 1.f;
     if (m_nOrder > 0)
@@ -330,7 +330,7 @@ void CAmbisonicRotator::getRollMatrix(float roll, std::vector<std::vector<float>
     }
 }
 
-void CAmbisonicRotator::updateTargetRotationMatrix()
+void AmbisonicRotator::updateTargetRotationMatrix()
 {
     // Calculate the yaw matrix using the inverse
     getYawMatrix(m_orientation.yaw, m_yawMatrix);
@@ -341,37 +341,37 @@ void CAmbisonicRotator::updateTargetRotationMatrix()
 
     switch (m_rotOrder)
     {
-    case CAmbisonicRotator::RotationOrder::YawPitchRoll:
+    case AmbisonicRotator::RotationOrder::YawPitchRoll:
         // R_yp = R_pitch * R_yaw
         multiplyMat(m_pitchMatrix, m_yawMatrix, m_targetMatrixTmp);
         // R_ypr = R_roll * R_yp
         multiplyMat(m_rollMatrix, m_targetMatrixTmp, m_targetMatrix);
         break;
-    case CAmbisonicRotator::RotationOrder::YawRollPitch:
+    case AmbisonicRotator::RotationOrder::YawRollPitch:
         // R_yr = R_roll * R_yaw
         multiplyMat(m_rollMatrix, m_yawMatrix, m_targetMatrixTmp);
         // R_yrp = R_pitch * R_yp
         multiplyMat(m_pitchMatrix, m_targetMatrixTmp, m_targetMatrix);
         break;
-    case CAmbisonicRotator::RotationOrder::PitchYawRoll:
+    case AmbisonicRotator::RotationOrder::PitchYawRoll:
         // R_py = R_yaw * R_pitch
         multiplyMat(m_yawMatrix, m_pitchMatrix, m_targetMatrixTmp);
         // R_pyr = R_roll * R_ry
         multiplyMat(m_rollMatrix, m_targetMatrixTmp, m_targetMatrix);
         break;
-    case CAmbisonicRotator::RotationOrder::PitchRollYaw:
+    case AmbisonicRotator::RotationOrder::PitchRollYaw:
         // R_pr = R_roll * R_pitch
         multiplyMat(m_rollMatrix, m_pitchMatrix, m_targetMatrixTmp);
         // R_pry = R_yaw * R_ry
         multiplyMat(m_yawMatrix, m_targetMatrixTmp, m_targetMatrix);
         break;
-    case CAmbisonicRotator::RotationOrder::RollYawPitch:
+    case AmbisonicRotator::RotationOrder::RollYawPitch:
         // R_ry = R_yaw * R_roll
         multiplyMat(m_yawMatrix, m_rollMatrix, m_targetMatrixTmp);
         // R_pyr = R_pitch * R_ry
         multiplyMat(m_pitchMatrix, m_targetMatrixTmp, m_targetMatrix);
         break;
-    case CAmbisonicRotator::RotationOrder::RollPitchYaw:
+    case AmbisonicRotator::RotationOrder::RollPitchYaw:
         // R_rp = R_pitch * R_roll
         multiplyMat(m_pitchMatrix, m_rollMatrix, m_targetMatrixTmp);
         // R_rpy = R_yaw * R_ry

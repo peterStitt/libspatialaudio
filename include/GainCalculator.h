@@ -140,11 +140,11 @@ namespace admrender {
 	};
 
 	/** The main ADM gain calculator class which processes metadata to calculate direct and diffuse gains. */
-	class CGainCalculator
+	class GainCalculator
 	{
 	public:
-		CGainCalculator(Layout outputLayoutNoLFE);
-		~CGainCalculator();
+		GainCalculator(Layout outputLayoutNoLFE);
+		~GainCalculator();
 
 		/** Calculate the panning (loudspeaker or HOA) gains to apply to a
 		 *	mono signal for spatialisation based on the input metadata.
@@ -166,15 +166,15 @@ namespace admrender {
 		// The cartesian/allocentric positions for the speakers, if a valid array is selected
 		std::vector<CartesianPosition> m_cartPositions;
 
-		CPointSourcePannerGainCalc m_pspGainCalculator;
-		CPolarExtentHandler m_extentPanner;
-		CAmbisonicPolarExtentHandler m_ambiExtentPanner;
+		PointSourcePannerGainCalc m_pspGainCalculator;
+		PolarExtentHandler m_extentPanner;
+		AmbisonicPolarExtentHandler m_ambiExtentPanner;
 
-		CAllocentricPannerGainCalc m_alloGainCalculator;
-		CAllocentricExtent m_alloExtentPanner;
+		AllocentricPannerGainCalc m_alloGainCalculator;
+		AllocentricExtent m_alloExtentPanner;
 
-		CScreenScaleHandler m_screenScale;
-		CScreenEdgeLock m_screenEdgeLock;
+		ScreenScaleHandler m_screenScale;
+		ScreenEdgeLockHandler m_screenEdgeLock;
 
 		PolarChannelLockHandler m_polarChannelLockHandler;
 		AlloChannelLockHandler m_alloChannelLockHandler;

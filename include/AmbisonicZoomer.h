@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicZoomer - Ambisonic Zoomer                                     #*/
+/*#  AmbisonicZoomer - Ambisonic Zoomer                                     #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#  Copyright © 2017 Videolabs                                              #*/
 /*#                                                                          #*/
@@ -27,11 +27,11 @@
 
 /** This object is used to apply a zoom effect into BFormat soundfields. */
 
-class CAmbisonicZoomer : public CAmbisonicBase
+class AmbisonicZoomer : public AmbisonicBase
 {
 public:
-    CAmbisonicZoomer();
-    virtual ~CAmbisonicZoomer() = default;
+    AmbisonicZoomer();
+    virtual ~AmbisonicZoomer() = default;
 
     /** Re-create the object for the given configuration. Previous data is
      *  lost. The last argument is not used, it is just there to match with
@@ -65,10 +65,10 @@ public:
      * @param pBFSrcDst     B-Format signal to process.
      * @param nSamples      Number of samples to process.
      */
-    void Process(CBFormat* pBFSrcDst, unsigned nSamples);
+    void Process(BFormat* pBFSrcDst, unsigned nSamples);
 
 protected:
-    CAmbisonicDecoder m_AmbDecoderFront;
+    AmbisonicDecoder m_AmbDecoderFront;
 
     std::unique_ptr<float[]> m_AmbEncoderFront;
     std::unique_ptr<float[]> m_AmbEncoderFront_weighted;
