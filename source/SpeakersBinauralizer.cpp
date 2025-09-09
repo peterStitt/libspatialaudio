@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicBinauralizer - Ambisonic Binauralizer                         #*/
+/*#  AmbisonicBinauralizer - Ambisonic Binauralizer                         #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#                                                                          #*/
 /*#  Filename:      AmbisonicBinauralizer.cpp                                #*/
@@ -23,7 +23,7 @@ SpeakersBinauralizer::SpeakersBinauralizer()
 
 bool SpeakersBinauralizer::Configure(unsigned nSampleRate,
                              unsigned nBlockSize,
-                             CAmbisonicSpeaker *speakers,
+                             AmbisonicSpeaker *speakers,
                              unsigned nSpeakers,
                              unsigned& tailLength,
                              std::string HRTFPath)
@@ -180,7 +180,7 @@ void SpeakersBinauralizer::Process(float** pBFSrc, float** ppfDst)
 
 void SpeakersBinauralizer::AllocateBuffers()
 {
-    CAmbisonicBinauralizer::AllocateBuffers();
+    AmbisonicBinauralizer::AllocateBuffers();
 
     //Allocate the FFTBins for each channel, for each ear
     for(unsigned niEar = 0; niEar < 2; niEar++)

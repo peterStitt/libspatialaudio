@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicSource - Ambisonic Source                                     #*/
+/*#  AmbisonicSource - Ambisonic Source                                     #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#  Copyright © 2017 Videolabs                                              #*/
 /*#                                                                          #*/
@@ -22,7 +22,7 @@
 #define fSqrt152 sqrtf(15.f)/2.f
 #define fSqrt38 sqrtf(3.f/8.f)
 
-CAmbisonicSource::CAmbisonicSource()
+AmbisonicSource::AmbisonicSource()
 {
     m_polPosition.fAzimuth = 0.f;
     m_polPosition.fElevation = 0.f;
@@ -30,9 +30,9 @@ CAmbisonicSource::CAmbisonicSource()
     m_fGain = 1.f;
 }
 
-bool CAmbisonicSource::Configure(unsigned nOrder, bool b3D, unsigned nMisc)
+bool AmbisonicSource::Configure(unsigned nOrder, bool b3D, unsigned nMisc)
 {
-    bool success = CAmbisonicBase::Configure(nOrder, b3D, nMisc);
+    bool success = AmbisonicBase::Configure(nOrder, b3D, nMisc);
     if(!success)
         return false;
 
@@ -43,12 +43,12 @@ bool CAmbisonicSource::Configure(unsigned nOrder, bool b3D, unsigned nMisc)
     return true;
 }
 
-void CAmbisonicSource::Reset()
+void AmbisonicSource::Reset()
 {
     //memset(m_pfCoeff, 0, m_nChannelCount * sizeof(float));
 }
 
-void CAmbisonicSource::Refresh()
+void AmbisonicSource::Refresh()
 {
     float fCosAzim = cosf(m_polPosition.fAzimuth);
     float fSinAzim = sinf(m_polPosition.fAzimuth);
@@ -117,22 +117,22 @@ void CAmbisonicSource::Refresh()
         m_pfCoeff[ni] *= m_fGain;
 }
 
-void CAmbisonicSource::SetPosition(PolarPoint polPosition)
+void AmbisonicSource::SetPosition(PolarPoint polPosition)
 {
     m_polPosition = polPosition;
 }
 
-PolarPoint CAmbisonicSource::GetPosition()
+PolarPoint AmbisonicSource::GetPosition()
 {
     return m_polPosition;
 }
 
-void CAmbisonicSource::SetOrderWeight(unsigned nOrder, float fWeight)
+void AmbisonicSource::SetOrderWeight(unsigned nOrder, float fWeight)
 {
     m_pfOrderWeights[nOrder] = fWeight;
 }
 
-void CAmbisonicSource::SetOrderWeightAll(float fWeight)
+void AmbisonicSource::SetOrderWeightAll(float fWeight)
 {
     for(unsigned niOrder = 0; niOrder < m_nOrder + 1; niOrder++)
     {
@@ -140,22 +140,22 @@ void CAmbisonicSource::SetOrderWeightAll(float fWeight)
     }
 }
 
-void CAmbisonicSource::SetCoefficient(unsigned nChannel, float fCoeff)
+void AmbisonicSource::SetCoefficient(unsigned nChannel, float fCoeff)
 {
     m_pfCoeff[nChannel] = fCoeff;
 }
 
-float CAmbisonicSource::GetOrderWeight(unsigned nOrder)
+float AmbisonicSource::GetOrderWeight(unsigned nOrder)
 {
     return m_pfOrderWeights[nOrder];
 }
 
-float CAmbisonicSource::GetCoefficient(unsigned nChannel)
+float AmbisonicSource::GetCoefficient(unsigned nChannel)
 {
     return m_pfCoeff[nChannel];
 }
 
-void CAmbisonicSource::GetCoefficients(std::vector<float>& hoaCoeffs)
+void AmbisonicSource::GetCoefficients(std::vector<float>& hoaCoeffs)
 {
     assert(hoaCoeffs.capacity() >= m_pfCoeff.size());
     hoaCoeffs.resize(m_pfCoeff.size());
@@ -163,12 +163,12 @@ void CAmbisonicSource::GetCoefficients(std::vector<float>& hoaCoeffs)
         hoaCoeffs[i] = m_pfCoeff[i];
 }
 
-void CAmbisonicSource::SetGain(float fGain)
+void AmbisonicSource::SetGain(float fGain)
 {
     m_fGain = fGain;
 }
 
-float CAmbisonicSource::GetGain()
+float AmbisonicSource::GetGain()
 {
     return m_fGain;
 }

@@ -43,10 +43,10 @@ static inline std::pair<double, double> CompensatePosition(double az, double el,
 /** The the position of the source from a position relative to the reference screen to a position
  *  relative to the reproduction screen.
 */
-class CScreenScaleHandler {
+class ScreenScaleHandler {
 public:
-	CScreenScaleHandler(const admrender::Optional<Screen>& reproductionScreen, const Layout& layout);
-	~CScreenScaleHandler();
+	ScreenScaleHandler(const admrender::Optional<Screen>& reproductionScreen, const Layout& layout);
+	~ScreenScaleHandler();
 
 	/** Scales a position depending on the reproduction screen and the reference screen. See Rec. ITU-R BS.2127-0 sec. 7.3.3 pg 40 for more details
 	 * @param position			Cartesian position to be scaled.
@@ -79,11 +79,11 @@ private:
 };
 
 /** Apply screen edge locking to supplied position based on the reproduction screen and (if cartesian == true) the layout. */
-class CScreenEdgeLock
+class ScreenEdgeLockHandler
 {
 public:
-	CScreenEdgeLock(const admrender::Optional<Screen>& reproductionScreen, const Layout& layout);
-	~CScreenEdgeLock();
+	ScreenEdgeLockHandler(const admrender::Optional<Screen>& reproductionScreen, const Layout& layout);
+	~ScreenEdgeLockHandler();
 
 	/** Apply screen edge locking to a position. See Rec. ITU-R BS.2127-1 sec. 7.3.4 pg. 43.
 	 * @param position			The position to process.

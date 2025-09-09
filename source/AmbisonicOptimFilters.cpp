@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicOptimFilters - Ambisonic psychoactic optimising filters       #*/
+/*#  AmbisonicOptimFilters - Ambisonic psychoactic optimising filters       #*/
 /*#  Copyright © 2020 Videolabs                                              #*/
 /*#                                                                          #*/
 /*#  Filename:      AmbisonicShelfFilters.cpp                                #*/
@@ -30,17 +30,17 @@ const float maxReGains2D[][4] = {
     {1.322875655532295f, 1.222177742203739f, 0.935414346693485f, 0.506242596451317f}
 };
 
-CAmbisonicOptimFilters::CAmbisonicOptimFilters()
+AmbisonicOptimFilters::AmbisonicOptimFilters()
 {
 }
 
-CAmbisonicOptimFilters::~CAmbisonicOptimFilters()
+AmbisonicOptimFilters::~AmbisonicOptimFilters()
 {
 }
 
-bool CAmbisonicOptimFilters::Configure(unsigned nOrder, bool b3D, unsigned nBlockSize, unsigned sampleRate)
+bool AmbisonicOptimFilters::Configure(unsigned nOrder, bool b3D, unsigned nBlockSize, unsigned sampleRate)
 {
-    bool success = CAmbisonicBase::Configure(nOrder, b3D, 0);
+    bool success = AmbisonicBase::Configure(nOrder, b3D, 0);
     if(!success)
         return false;
 
@@ -67,22 +67,22 @@ bool CAmbisonicOptimFilters::Configure(unsigned nOrder, bool b3D, unsigned nBloc
     return true;
 }
 
-void CAmbisonicOptimFilters::Reset()
+void AmbisonicOptimFilters::Reset()
 {
     m_bandFilterIIR.Reset();
 }
 
-void CAmbisonicOptimFilters::Refresh()
+void AmbisonicOptimFilters::Refresh()
 {
 }
 
-void CAmbisonicOptimFilters::SetHighFrequencyGains(const std::vector<float>& gHighFreq)
+void AmbisonicOptimFilters::SetHighFrequencyGains(const std::vector<float>& gHighFreq)
 {
     assert(gHighFreq.size() == m_nOrder + 1);
     m_gHighFreq = gHighFreq;
 }
 
-std::vector<float> CAmbisonicOptimFilters::GetMaxReGains(unsigned nOrder, bool b3D)
+std::vector<float> AmbisonicOptimFilters::GetMaxReGains(unsigned nOrder, bool b3D)
 {
     std::vector<float> maxReGains(nOrder + 1);
     for (unsigned int i = 0; i <= nOrder; ++i)
@@ -90,7 +90,7 @@ std::vector<float> CAmbisonicOptimFilters::GetMaxReGains(unsigned nOrder, bool b
     return maxReGains;
 }
 
-void CAmbisonicOptimFilters::Process(CBFormat* pBFSrcDst, unsigned int nSamples)
+void AmbisonicOptimFilters::Process(BFormat* pBFSrcDst, unsigned int nSamples)
 {
     assert(nSamples <= m_nMaxBlockSize);
 

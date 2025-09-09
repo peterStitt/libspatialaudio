@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicZoomer - Ambisonic Zoomer                                     #*/
+/*#  AmbisonicZoomer - Ambisonic Zoomer                                     #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#  Copyright © 2017 Videolabs                                              #*/
 /*#                                                                          #*/
@@ -21,14 +21,14 @@
 #include <iostream>
 #include <algorithm>
 
-CAmbisonicZoomer::CAmbisonicZoomer()
+AmbisonicZoomer::AmbisonicZoomer()
 {
     m_fZoom = 0;
 }
 
-bool CAmbisonicZoomer::Configure(unsigned nOrder, bool b3D, unsigned nBlockSize, unsigned sampleRate)
+bool AmbisonicZoomer::Configure(unsigned nOrder, bool b3D, unsigned nBlockSize, unsigned sampleRate)
 {
-    bool success = CAmbisonicBase::Configure(nOrder, b3D, sampleRate);
+    bool success = AmbisonicBase::Configure(nOrder, b3D, sampleRate);
     if(!success)
         return false;
 
@@ -63,29 +63,29 @@ bool CAmbisonicZoomer::Configure(unsigned nOrder, bool b3D, unsigned nBlockSize,
     return true;
 }
 
-void CAmbisonicZoomer::Reset()
+void AmbisonicZoomer::Reset()
 {
 
 }
 
-void CAmbisonicZoomer::Refresh()
+void AmbisonicZoomer::Refresh()
 {
     m_fZoomRed = sqrtf(1.f - m_fZoom * m_fZoom);
     m_fZoomBlend = 1.f - m_fZoom;
 }
 
-void CAmbisonicZoomer::SetZoom(float fZoom)
+void AmbisonicZoomer::SetZoom(float fZoom)
 {
     // Limit the zoom value to always preserve the spacial effect.
     m_fZoom = std::min(fZoom, 0.99f);
 }
 
-float CAmbisonicZoomer::GetZoom()
+float AmbisonicZoomer::GetZoom()
 {
     return m_fZoom;
 }
 
-void CAmbisonicZoomer::Process(CBFormat* pBFSrcDst, unsigned nSamples)
+void AmbisonicZoomer::Process(BFormat* pBFSrcDst, unsigned nSamples)
 {
     for(unsigned niSample = 0; niSample < nSamples; niSample++)
     {
@@ -113,7 +113,7 @@ void CAmbisonicZoomer::Process(CBFormat* pBFSrcDst, unsigned nSamples)
     }
 }
 
-float CAmbisonicZoomer::factorial(unsigned M)
+float AmbisonicZoomer::factorial(unsigned M)
 {
     unsigned ret = 1;
     for(unsigned int i = 1; i <= M; ++i)

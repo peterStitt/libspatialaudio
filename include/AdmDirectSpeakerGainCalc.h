@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Calculate the gain vector to spatialise a DirectSpeaker channel.        #*/
-/*#  CAdmDirectSpeakersGainCalc                                              #*/
+/*#  AdmDirectSpeakersGainCalc                                              #*/
 /*#  Copyright © 2020 Peter Stitt                                            #*/
 /*#                                                                          #*/
 /*#  Filename:      AdmDirectSpeakersGainCalc.h                              #*/
@@ -24,11 +24,11 @@
 namespace admrender {
 
 	/** A class to calculate the gains to be applied to a set of loudspeakers for DirectSpeaker processing. */
-	class CAdmDirectSpeakersGainCalc
+	class AdmDirectSpeakersGainCalc
 	{
 	public:
-		CAdmDirectSpeakersGainCalc(Layout layoutWithLFE);
-		~CAdmDirectSpeakersGainCalc();
+		AdmDirectSpeakersGainCalc(Layout layoutWithLFE);
+		~AdmDirectSpeakersGainCalc();
 
 		/** Calculate the gain vector corresponding to the metadata input.
 		 *
@@ -40,12 +40,12 @@ namespace admrender {
 	private:
 		unsigned int m_nCh = 0;
 		Layout m_layout;
-		CPointSourcePannerGainCalc m_pointSourcePannerGainCalc;
+		PointSourcePannerGainCalc m_pointSourcePannerGainCalc;
 
 		// Temp vector holding the point-source panner gains
 		std::vector<double> m_gainsPSP;
 
-		CScreenEdgeLock m_screenEdgeLock;
+		ScreenEdgeLockHandler m_screenEdgeLock;
 
 		/** Find the closest speaker in the layout within the tolerance bounds set.
 		 *

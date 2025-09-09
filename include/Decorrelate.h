@@ -22,11 +22,11 @@
 
 	It is based on Rec. ITU-R BS.2127-0 section 7.4 pg.63
 */
-class CDecorrelate
+class Decorrelator
 {
 public:
-	CDecorrelate();
-	~CDecorrelate();
+	Decorrelator();
+	~Decorrelator();
 
 	/** Re-create the object for the given configuration. Previous data is lost.
 	 *

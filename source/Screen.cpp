@@ -13,19 +13,19 @@
 
 #include "Screen.h"
 
-CScreenScaleHandler::CScreenScaleHandler(const admrender::Optional<Screen>& reproductionScreen, const Layout& layout) : m_layout(layout)
+ScreenScaleHandler::ScreenScaleHandler(const admrender::Optional<Screen>& reproductionScreen, const Layout& layout) : m_layout(layout)
 {
 	m_repScreen = reproductionScreen;
 	if (m_repScreen.hasValue())
 		m_repPolarEdges.fromScreen(m_repScreen.value());
 }
 
-CScreenScaleHandler::~CScreenScaleHandler()
+ScreenScaleHandler::~ScreenScaleHandler()
 {
 
 }
 
-CartesianPosition CScreenScaleHandler::handle(CartesianPosition position, bool screenRef, const Screen& referenceScreen, bool cartesian)
+CartesianPosition ScreenScaleHandler::handle(CartesianPosition position, bool screenRef, const Screen& referenceScreen, bool cartesian)
 {
 	if (screenRef && m_repScreen.hasValue())
 	{
@@ -45,14 +45,14 @@ CartesianPosition CScreenScaleHandler::handle(CartesianPosition position, bool s
 		return position; // return unmodified
 }
 
-CartesianPosition CScreenScaleHandler::ScalePosition(CartesianPosition position)
+CartesianPosition ScreenScaleHandler::ScalePosition(CartesianPosition position)
 {
 	PolarPosition polarPosition = CartesianToPolar(position);
 	auto AzEl_s = ScaleAzEl(polarPosition.azimuth, polarPosition.elevation);
 	return PolarToCartesian(PolarPosition{ AzEl_s.first,AzEl_s.second,polarPosition.distance });
 }
 
-std::pair<double, double> CScreenScaleHandler::ScaleAzEl(double az, double el)
+std::pair<double, double> ScreenScaleHandler::ScaleAzEl(double az, double el)
 {
 	double azScaled = interp(az, { -180., m_refPolarEdges.rightAzimuth,m_refPolarEdges.leftAzimuth, 180. },
 		{ -180., m_repPolarEdges.rightAzimuth,m_repPolarEdges.leftAzimuth, 180. });
@@ -63,20 +63,20 @@ std::pair<double, double> CScreenScaleHandler::ScaleAzEl(double az, double el)
 }
 
 
-// CScreenEdgeLock ==========================================================================================================
-CScreenEdgeLock::CScreenEdgeLock(const admrender::Optional<Screen>& reproductionScreen, const Layout& layout) : m_layout(layout)
+// ScreenEdgeLockHandler ==========================================================================================================
+ScreenEdgeLockHandler::ScreenEdgeLockHandler(const admrender::Optional<Screen>& reproductionScreen, const Layout& layout) : m_layout(layout)
 {
 	m_reproductionScreen = reproductionScreen;
 	if (m_reproductionScreen.hasValue())
 		m_repPolarEdges.fromScreen(m_reproductionScreen.value());
 }
 
-CScreenEdgeLock::~CScreenEdgeLock()
+ScreenEdgeLockHandler::~ScreenEdgeLockHandler()
 {
 
 }
 
-CartesianPosition CScreenEdgeLock::HandleVector(CartesianPosition position, admrender::ScreenEdgeLock screenEdgeLock, bool cartesian)
+CartesianPosition ScreenEdgeLockHandler::HandleVector(CartesianPosition position, admrender::ScreenEdgeLock screenEdgeLock, bool cartesian)
 {
 	if (m_reproductionScreen.hasValue())
 	{
@@ -98,7 +98,7 @@ CartesianPosition CScreenEdgeLock::HandleVector(CartesianPosition position, admr
 		return position;
 }
 
-std::pair<double, double> CScreenEdgeLock::HandleAzEl(double az, double el, admrender::ScreenEdgeLock screenEdgeLock)
+std::pair<double, double> ScreenEdgeLockHandler::HandleAzEl(double az, double el, admrender::ScreenEdgeLock screenEdgeLock)
 {
 	if (m_reproductionScreen.hasValue())
 	{

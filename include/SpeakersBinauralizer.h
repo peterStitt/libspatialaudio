@@ -12,7 +12,7 @@
 /** A class to convert speaker signals to binaural by applying the
 appropriate static HRTFs.
 */
-class SpeakersBinauralizer : public CAmbisonicBinauralizer
+class SpeakersBinauralizer : public AmbisonicBinauralizer
 {
 public:
     SpeakersBinauralizer();
@@ -20,7 +20,7 @@ public:
     /** Configure the speaker binauralizer instance.
      * @param nSampleRate   Sample rate of the audio to be processed.
      * @param nBlockSize    Maximum number of samples to be processed per block.
-     * @param speakers      Pointer to any array of CAmbisonicSpeaker which define the layout to be binauralized.
+     * @param speakers      Pointer to any array of AmbisonicSpeaker which define the layout to be binauralized.
      * @param nSpeakers     Number of speakers.
      * @param tailLength    Return the length of the HRTF
      * @param HRTFPath      Path to the HRTF
@@ -28,7 +28,7 @@ public:
      */
     bool Configure(unsigned nSampleRate,
                    unsigned nBlockSize,
-                   CAmbisonicSpeaker *speakers,
+                   AmbisonicSpeaker *speakers,
                    unsigned nSpeakers,
                    unsigned& tailLength,
                    std::string HRTFPath = "");

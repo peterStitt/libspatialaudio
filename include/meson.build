@@ -9,7 +9,7 @@ spatialaudio_headers = [files(
     'AdmDirectSpeakerGainCalc.h',
     'AdmMappingRules.h',
     'AdmMetadata.h',
-    'AdmRenderer.h',
+    'Renderer.h',
     'AllocentricPannerGainCalc.h',
     'AllocentricExtent.h',
     'AmbisonicAllRAD.h',

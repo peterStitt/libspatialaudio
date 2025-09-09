@@ -16,11 +16,11 @@
 #include "LoudspeakerLayouts.h"
 
 /** Class to calculate the panning gains for a point source using the ADM cartesian/allocentric method on the specified loudspeaker layout. */
-class CAllocentricPannerGainCalc
+class AllocentricPannerGainCalc
 {
 public:
-    CAllocentricPannerGainCalc(const Layout& layout);
-    ~CAllocentricPannerGainCalc();
+    AllocentricPannerGainCalc(const Layout& layout);
+    ~AllocentricPannerGainCalc();
 
     /** Calculate the gains to be applied to a mono signal in order to place it in the target
      *  speaker layout based on Rec. ITU-R BS.2127-1 Sec. 7.3.10.

@@ -384,7 +384,7 @@ namespace admrender {
 	}
 
 	//===================================================================================================================================
-	CGainCalculator::CGainCalculator(Layout outputLayout)
+	GainCalculator::GainCalculator(Layout outputLayout)
 		: m_outputLayout(outputLayout)
 		, m_nCh((unsigned int)m_outputLayout.channels.size())
 		, m_nChNoLFE((unsigned int)getLayoutWithoutLFE(outputLayout).channels.size())
@@ -412,11 +412,11 @@ namespace admrender {
 		m_cartesianLayout = m_cartPositions.size() > 0;
 	}
 
-	CGainCalculator::~CGainCalculator()
+	GainCalculator::~GainCalculator()
 	{
 	}
 
-	void CGainCalculator::CalculateGains(const ObjectMetadata& metadata, std::vector<double>& directGains, std::vector<double>& diffuseGains)
+	void GainCalculator::CalculateGains(const ObjectMetadata& metadata, std::vector<double>& directGains, std::vector<double>& diffuseGains)
 	{
 		assert(directGains.size() == m_nCh && diffuseGains.size() == m_nCh); // Gain vectors must already be of the expected size
 
@@ -524,7 +524,7 @@ namespace admrender {
 			g *= diffuseCoefficient;
 	}
 
-	void CGainCalculator::divergedPositionsAndGains(const admrender::Optional<admrender::ObjectDivergence>& objectDivergence, CartesianPosition position, bool cartesian, std::vector<CartesianPosition>& divergedPos, std::vector<double>& divergedGains)
+	void GainCalculator::divergedPositionsAndGains(const admrender::Optional<admrender::ObjectDivergence>& objectDivergence, CartesianPosition position, bool cartesian, std::vector<CartesianPosition>& divergedPos, std::vector<double>& divergedGains)
 	{
 		assert(divergedPos.capacity() == 3 && divergedGains.capacity() == 3); // Must be able to hold up to 3 positions/gains
 
@@ -598,7 +598,7 @@ namespace admrender {
 		}
 	}
 
-	void CGainCalculator::insertLFE(const Layout& layout, const std::vector<double>& gainsNoLFE, std::vector<double>& gainsWithLFE)
+	void GainCalculator::insertLFE(const Layout& layout, const std::vector<double>& gainsNoLFE, std::vector<double>& gainsWithLFE)
 	{
 		assert(gainsWithLFE.capacity() >= layout.channels.size());
 		gainsWithLFE.resize(layout.channels.size());

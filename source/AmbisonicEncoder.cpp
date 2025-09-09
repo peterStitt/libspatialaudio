@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicEncoder - Ambisonic Encoder                                   #*/
+/*#  AmbisonicEncoder - Ambisonic Encoder                                   #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#                                                                          #*/
 /*#  Filename:      AmbisonicEncoder.cpp                                     #*/
@@ -17,20 +17,20 @@
 #include <assert.h>
 #include <cmath>
 
-CAmbisonicEncoder::CAmbisonicEncoder() : m_coeffInterp(0)
+AmbisonicEncoder::AmbisonicEncoder() : m_coeffInterp(0)
 { }
 
-CAmbisonicEncoder::~CAmbisonicEncoder()
+AmbisonicEncoder::~AmbisonicEncoder()
 { }
 
-bool CAmbisonicEncoder::Configure(unsigned nOrder, bool b3D, unsigned sampleRate, float fadeTimeMilliSec)
+bool AmbisonicEncoder::Configure(unsigned nOrder, bool b3D, unsigned sampleRate, float fadeTimeMilliSec)
 {
-    bool success = CAmbisonicSource::Configure(nOrder, b3D, sampleRate);
+    bool success = AmbisonicSource::Configure(nOrder, b3D, sampleRate);
     if(!success || fadeTimeMilliSec < 0.f)
         return false;
 
     m_pfCoeffCurrent.resize(m_nChannelCount);
-    m_coeffInterp = CGainInterp<float>(m_nChannelCount);
+    m_coeffInterp = GainInterp<float>(m_nChannelCount);
 
     m_fadingTimeMilliSec = fadeTimeMilliSec;
     m_fadingSamples = (unsigned)std::round(0.001f * m_fadingTimeMilliSec * (float)sampleRate);
@@ -38,34 +38,34 @@ bool CAmbisonicEncoder::Configure(unsigned nOrder, bool b3D, unsigned sampleRate
     return true;
 }
 
-void CAmbisonicEncoder::Refresh()
+void AmbisonicEncoder::Refresh()
 {
-    CAmbisonicSource::Refresh();
+    AmbisonicSource::Refresh();
 }
 
-void CAmbisonicEncoder::Reset()
+void AmbisonicEncoder::Reset()
 {
-    CAmbisonicSource::Reset();
+    AmbisonicSource::Reset();
     m_coeffInterp.Reset();
 }
 
-void CAmbisonicEncoder::SetPosition(PolarPoint polPosition)
+void AmbisonicEncoder::SetPosition(PolarPoint polPosition)
 {
     // Update the coefficients
-    CAmbisonicSource::SetPosition(polPosition);
-    CAmbisonicSource::Refresh();
-    CAmbisonicSource::GetCoefficients(m_pfCoeffCurrent);
+    AmbisonicSource::SetPosition(polPosition);
+    AmbisonicSource::Refresh();
+    AmbisonicSource::GetCoefficients(m_pfCoeffCurrent);
     m_coeffInterp.SetGainVector(m_pfCoeffCurrent, m_fadingSamples);
 }
 
-void CAmbisonicEncoder::Process(float* pfSrc, unsigned nSamples, CBFormat* pfDst, unsigned int nOffset)
+void AmbisonicEncoder::Process(float* pfSrc, unsigned nSamples, BFormat* pfDst, unsigned int nOffset)
 {
     assert(nSamples + nOffset <= pfDst->GetSampleCount()); // Cannot write beyond the of the destination buffers!
 
     m_coeffInterp.Process(pfSrc, pfDst->m_ppfChannels.get(), nSamples, nOffset);
 }
 
-void CAmbisonicEncoder::ProcessAccumul(float* pfSrc, unsigned nSamples, CBFormat* pfDst, unsigned int nOffset, float fGain)
+void AmbisonicEncoder::ProcessAccumul(float* pfSrc, unsigned nSamples, BFormat* pfDst, unsigned int nOffset, float fGain)
 {
     assert(nSamples + nOffset <= pfDst->GetSampleCount()); // Cannot write beyond the of the destination buffers!
 

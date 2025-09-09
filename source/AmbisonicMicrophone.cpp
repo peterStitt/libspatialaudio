@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicMicrophone - Ambisonic Microphone                             #*/
+/*#  AmbisonicMicrophone - Ambisonic Microphone                             #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#                                                                          #*/
 /*#  Filename:      AmbisonicMicrophone.cpp                                  #*/
@@ -15,22 +15,22 @@
 
 #include "AmbisonicMicrophone.h"
 
-CAmbisonicMicrophone::CAmbisonicMicrophone()
+AmbisonicMicrophone::AmbisonicMicrophone()
 {
     m_fDirectivity = 1.f;
 }
 
-CAmbisonicMicrophone::~CAmbisonicMicrophone()
+AmbisonicMicrophone::~AmbisonicMicrophone()
 { }
 
-void CAmbisonicMicrophone::Refresh()
+void AmbisonicMicrophone::Refresh()
 {
-    CAmbisonicSource::Refresh();
+    AmbisonicSource::Refresh();
 
     m_pfCoeff[0] *= (2.f - m_fDirectivity) * sqrtf(2.f);
 }
 
-void CAmbisonicMicrophone::Process(CBFormat* pBFSrc, unsigned nSamples, float* pfDst)
+void AmbisonicMicrophone::Process(BFormat* pBFSrc, unsigned nSamples, float* pfDst)
 {
     unsigned niChannel = 0;
     unsigned niSample = 0;
@@ -48,12 +48,12 @@ void CAmbisonicMicrophone::Process(CBFormat* pBFSrc, unsigned nSamples, float* p
     }
 }
 
-void CAmbisonicMicrophone::SetDirectivity(float fDirectivity)
+void AmbisonicMicrophone::SetDirectivity(float fDirectivity)
 {
     m_fDirectivity = fDirectivity;
 }
 
-float CAmbisonicMicrophone::GetDirectivity()
+float AmbisonicMicrophone::GetDirectivity()
 {
     return m_fDirectivity;
 }

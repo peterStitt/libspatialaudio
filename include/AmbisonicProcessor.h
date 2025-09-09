@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicProcessor - Ambisonic Processor                               #*/
+/*#  AmbisonicProcessor - Ambisonic Processor                               #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#  Copyright © 2017 Videolabs                                              #*/
 /*#                                                                          #*/
@@ -35,7 +35,7 @@ enum ProcessorModes
 };
 
 
-class CAmbisonicProcessor;
+class AmbisonicProcessor;
 
 
 /// Struct for soundfield rotation.
@@ -85,7 +85,7 @@ public:
         }
     }
 
-    friend class CAmbisonicProcessor;
+    friend class AmbisonicProcessor;
 
 private:
     /** rotation around the Z axis (yaw) */
@@ -110,18 +110,18 @@ private:
 
 /** DEPRECATED: This object is used to rotate the BFormat signal around all three axes.
  *  Orientation structs are used to define the the soundfield's orientation.
- *  Please use CAmbisonicRotator instead.
+ *  Please use AmbisonicRotator instead.
  */
 
 class
-    [[deprecated("This class is deprecated. Please use CAmbisonicRotator class instead.")]]
-CAmbisonicProcessor : public CAmbisonicBase
+    [[deprecated("This class is deprecated. Please use AmbisonicRotator class instead.")]]
+AmbisonicProcessor : public AmbisonicBase
 {
 public:
-    /** DEPRECATED: Please use CAmbisonicRotator instead.
+    /** DEPRECATED: Please use AmbisonicRotator instead.
      */
-    CAmbisonicProcessor();
-    ~CAmbisonicProcessor();
+    AmbisonicProcessor();
+    ~AmbisonicProcessor();
 
     /** Re-create the object for the given configuration. Previous data is
      *  lost. The last argument is not used, it is just there to match with
@@ -154,12 +154,12 @@ public:
      * @param pBFSrcDst  BFormat stream to be rotated.
      * @param nSamples   Number of samples in the signal.
      */
-    void Process(CBFormat* pBFSrcDst, unsigned nSamples);
+    void Process(BFormat* pBFSrcDst, unsigned nSamples);
 
 private:
-    void ProcessOrder1_3D(CBFormat* pBFSrcDst, unsigned nSamples);
-    void ProcessOrder2_3D(CBFormat* pBFSrcDst, unsigned nSamples);
-    void ProcessOrder3_3D(CBFormat* pBFSrcDst, unsigned nSamples);
+    void ProcessOrder1_3D(BFormat* pBFSrcDst, unsigned nSamples);
+    void ProcessOrder2_3D(BFormat* pBFSrcDst, unsigned nSamples);
+    void ProcessOrder3_3D(BFormat* pBFSrcDst, unsigned nSamples);
 
 protected:
     Orientation m_orientation;

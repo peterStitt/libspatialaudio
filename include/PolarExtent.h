@@ -31,11 +31,11 @@
  *  to each of the virtual source directions. Finally, the panning gain vectors are weighted
  *  by the weighting function and summed together for each loudspeaker.
  */
-class CSpreadPannerBase
+class SpreadPannerBase
 {
 public:
-	CSpreadPannerBase();
-	~CSpreadPannerBase();
+	SpreadPannerBase();
+	~SpreadPannerBase();
 
 protected:
 	std::vector<CartesianPosition> m_virtualSourcePositions;
@@ -89,11 +89,11 @@ protected:
 /** Spread panner that calculates the gains for the layout supplied in the point source panner
  *  supplied in the constructor.
  */
-class CSpreadPanner : private CSpreadPannerBase
+class SpreadPanner : private SpreadPannerBase
 {
 public:
-	CSpreadPanner(CPointSourcePannerGainCalc& psp);
-	~CSpreadPanner();
+	SpreadPanner(PointSourcePannerGainCalc& psp);
+	~SpreadPanner();
 
 	/** Calculate the gains for a source in the defined direction and with the specified width and height.
 	 * @param position	The source position.
@@ -104,18 +104,18 @@ public:
 	void CalculateGains(CartesianPosition position, double width, double height, std::vector<double>& gainsOut);
 
 private:
-	CPointSourcePannerGainCalc& m_pointSourcePannerGainCalc;
+	PointSourcePannerGainCalc& m_pointSourcePannerGainCalc;
 	unsigned int m_nCh = 0;
 };
 
 /** Spread panner that calculates the gains encoding an ambisonic signal with the specified spread.
  *  Note that this is not part of the ADM specification. It is used for the libspatialaudio binaural ADM rendering.
  */
-class CAmbisonicSpreadPanner : private CSpreadPannerBase
+class AmbisonicSpreadPanner : private SpreadPannerBase
 {
 public:
-	CAmbisonicSpreadPanner(unsigned int ambiOrder);
-	~CAmbisonicSpreadPanner();
+	AmbisonicSpreadPanner(unsigned int ambiOrder);
+	~AmbisonicSpreadPanner();
 
 	/** Calculate the ambisonic encoding gains for a source in the defined direction and with the specified width and height.
 	 * @param position	The source position.
@@ -129,16 +129,16 @@ public:
 	unsigned int GetAmbisonicOrder();
 
 private:
-	 CAmbisonicSource m_ambiSource;
+	 AmbisonicSource m_ambiSource;
 	 unsigned int m_nCh = 0;
 };
 
 /** Class that handles the extent parameters to calculate a gain vector. */
-class CPolarExtentHandlerBase
+class PolarExtentHandlerBase
 {
 public:
-	CPolarExtentHandlerBase();
-	~CPolarExtentHandlerBase();
+	PolarExtentHandlerBase();
+	~PolarExtentHandlerBase();
 
 	/** Pure virtual function for the main gain calculation function. */
 	virtual void handle(CartesianPosition position, double width, double height, double depth, std::vector<double>& gainsOut) = 0;
@@ -172,11 +172,11 @@ protected:
 
 
 /** Class that handles the extent parameters to calculate a gain vector */
-class CPolarExtentHandler : public CPolarExtentHandlerBase
+class PolarExtentHandler : public PolarExtentHandlerBase
 {
 public:
-	CPolarExtentHandler(CPointSourcePannerGainCalc& psp);
-	~CPolarExtentHandler();
+	PolarExtentHandler(PointSourcePannerGainCalc& psp);
+	~PolarExtentHandler();
 
 	/** Return a vector of gains for the loudspeakers in the output layout that correspond
 	 *  to the position, width, height and depth.
@@ -190,8 +190,8 @@ public:
 	void handle(CartesianPosition position, double width, double height, double depth, std::vector<double>& gainsOut) override;
 
 private:
-	CPointSourcePannerGainCalc m_pointSourcePannerGainGalc;
-	CSpreadPanner m_spreadPanner;
+	PointSourcePannerGainCalc m_pointSourcePannerGainGalc;
+	SpreadPanner m_spreadPanner;
 
 	/** Calculate the polar extent gain vector as described in ITU-R BS.2127-0 section 7.3.8.2.2 pg 49.
 	 * @param position	Source position.
@@ -203,11 +203,11 @@ private:
 };
 
 /** Class that handles the extent parameters to calculate a gain vector for Ambisonic panning. */
-class CAmbisonicPolarExtentHandler : public CPolarExtentHandlerBase
+class AmbisonicPolarExtentHandler : public PolarExtentHandlerBase
 {
 public:
-	CAmbisonicPolarExtentHandler(unsigned int ambiOrder);
-	~CAmbisonicPolarExtentHandler();
+	AmbisonicPolarExtentHandler(unsigned int ambiOrder);
+	~AmbisonicPolarExtentHandler();
 
 	/** Return a vector of ambisonic coefficients that correspond to the position, width, height and depth.
 	 *
@@ -223,8 +223,8 @@ public:
 	void handle(CartesianPosition position, double width, double height, double depth, std::vector<double>& gainsOut) override;
 
 private:
-	CAmbisonicSource m_ambiSource;
-	CAmbisonicSpreadPanner m_ambiSpreadPanner;
+	AmbisonicSource m_ambiSource;
+	AmbisonicSpreadPanner m_ambiSpreadPanner;
 
 	/** Calculate the HOA extent gain vector. Essentially works as described in ITU-R BS.2127-0 section 7.3.8.2.2 pg 49
 	 *  except instead of using loudspeaker gains it uses HOA encoding coefficients

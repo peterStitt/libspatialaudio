@@ -17,18 +17,18 @@
 #include <cmath>
 
 template<typename T>
-CGainInterp<T>::CGainInterp(unsigned int nCh) : m_currentGainVec(nCh), m_targetGainVec(nCh), m_deltaGainVec(nCh)
+GainInterp<T>::GainInterp(unsigned int nCh) : m_currentGainVec(nCh), m_targetGainVec(nCh), m_deltaGainVec(nCh)
 {
 
 }
 
 template<typename T>
-CGainInterp<T>::~CGainInterp()
+GainInterp<T>::~GainInterp()
 {
 }
 
 template<typename T>
-void CGainInterp<T>::SetGainVector(const std::vector<T>& newGainVec, unsigned int interpTimeInSamples)
+void GainInterp<T>::SetGainVector(const std::vector<T>& newGainVec, unsigned int interpTimeInSamples)
 {
 	assert(newGainVec.size() == m_targetGainVec.size()); //Number of channels must match!
 
@@ -59,7 +59,7 @@ void CGainInterp<T>::SetGainVector(const std::vector<T>& newGainVec, unsigned in
 }
 
 template<typename T>
-void CGainInterp<T>::Process(const float* pIn, float** ppOut, unsigned int nSamples, unsigned int nOffset)
+void GainInterp<T>::Process(const float* pIn, float** ppOut, unsigned int nSamples, unsigned int nOffset)
 {
 	if (m_isFirstCall)
 	{
@@ -89,7 +89,7 @@ void CGainInterp<T>::Process(const float* pIn, float** ppOut, unsigned int nSamp
 }
 
 template<typename T>
-void CGainInterp<T>::ProcessAccumul(const float* pIn, float** ppOut, unsigned int nSamples, unsigned int nOffset, T gain)
+void GainInterp<T>::ProcessAccumul(const float* pIn, float** ppOut, unsigned int nSamples, unsigned int nOffset, T gain)
 {
 	if (m_isFirstCall)
 	{
@@ -120,11 +120,11 @@ void CGainInterp<T>::ProcessAccumul(const float* pIn, float** ppOut, unsigned in
 }
 
 template<typename T>
-void CGainInterp<T>::Reset()
+void GainInterp<T>::Reset()
 {
 	m_iInterpCount = m_interpDurInSamples;
 	m_currentGainVec = m_targetGainVec;
 }
 
-template class CGainInterp<float>;
-template class CGainInterp<double>;
+template class GainInterp<float>;
+template class GainInterp<double>;

@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicBase - Ambisonic Base                                         #*/
+/*#  AmbisonicBase - Ambisonic Base                                         #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#                                                                          #*/
 /*#  Filename:      AmbisonicBase.h                                          #*/
@@ -23,11 +23,11 @@
 /** This is the base class for most if not all of the classes that make up this
     library. */
 
-class CAmbisonicBase
+class AmbisonicBase
 {
 public:
-    CAmbisonicBase();
-    virtual ~CAmbisonicBase() = default;
+    AmbisonicBase();
+    virtual ~AmbisonicBase() = default;
 
     /**
      *  Gets the order of the current Ambisonic configuration.

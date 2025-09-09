@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicBinauralizer - Ambisonic Binauralizer                         #*/
+/*#  AmbisonicBinauralizer - Ambisonic Binauralizer                         #*/
 /*#  Copyright © 2007 Aristotel Digenis                                      #*/
 /*#  Copyright © 2017 Videolabs                                              #*/
 /*#                                                                          #*/
@@ -32,10 +32,10 @@
 
 /** B-Format to binaural decoder. */
 
-class CAmbisonicBinauralizer : public CAmbisonicBase
+class AmbisonicBinauralizer : public AmbisonicBase
 {
 public:
-    CAmbisonicBinauralizer();
+    AmbisonicBinauralizer();
 
     /** Re-create the object for the given configuration. Previous data is
      *  lost. The tailLength variable it updated with the number of taps
@@ -73,11 +73,11 @@ public:
      *  working with variable sizes of buffers. Must be less than the max size
      *  set at Configure
      */
-    void Process(CBFormat* pBFSrc, float** ppfDst);
-    void Process(CBFormat* pBFSrc, float** ppfDst, unsigned int nSamples);
+    void Process(BFormat* pBFSrc, float** ppfDst);
+    void Process(BFormat* pBFSrc, float** ppfDst, unsigned int nSamples);
 
 protected:
-    CAmbisonicDecoder m_AmbDecoder;
+    AmbisonicDecoder m_AmbDecoder;
 
     bool m_useSymHead = true;
 

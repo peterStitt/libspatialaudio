@@ -18,15 +18,15 @@
 *	A class to handle the interpolation from one gain vector applied to a mono input over a specified duration
 */
 template <typename T>
-class CGainInterp
+class GainInterp
 {
 public:
 
 	/** Constructor
 	 * @param nCh	The number of channels of gain to apply
 	 */
-	CGainInterp(unsigned int nCh);
-	~CGainInterp();
+	GainInterp(unsigned int nCh);
+	~GainInterp();
 
 	/** Set the gain vector target and the time in samples to interpolate to it.
 	 *

@@ -1,7 +1,7 @@
 /*############################################################################*/
 /*#                                                                          #*/
 /*#  Ambisonic C++ Library                                                   #*/
-/*#  CAmbisonicShelfFilters - Ambisonic psychoactic optimising filters       #*/
+/*#  AmbisonicShelfFilters - Ambisonic psychoactic optimising filters       #*/
 /*#  Copyright © 2020 Videolabs                                              #*/
 /*#                                                                          #*/
 /*#  Filename:      AmbisonicShelfFilters.h                                  #*/
@@ -25,12 +25,12 @@
  *  This class is deprecated in favour of AmbisonicOptimFilters, which uses LinkwitzRiley IIR filters to apply frequency dependent gains.
  */
 class
-    [[deprecated("This class is deprecated. Please use CAmbisonicOptimFilters class instead.")]]
-CAmbisonicShelfFilters : public CAmbisonicBase
+    [[deprecated("This class is deprecated. Please use AmbisonicOptimFilters class instead.")]]
+AmbisonicShelfFilters : public AmbisonicBase
 {
 public:
-    CAmbisonicShelfFilters();
-    ~CAmbisonicShelfFilters();
+    AmbisonicShelfFilters();
+    ~AmbisonicShelfFilters();
 
     /** Re-create the object for the given configuration. Previous data is
      *  lost. The last argument is not used, it is just there to match with
@@ -53,8 +53,8 @@ public:
      *  Overload with number of samples (nSamples < m_nBlockSize) to process shorter block sizes
      * @param pBFSrcDst     The signal to be filtered.
      */
-    void Process(CBFormat* pBFSrcDst);
-    void Process(CBFormat* pBFSrcDst, unsigned int nSamples);
+    void Process(BFormat* pBFSrcDst);
+    void Process(BFormat* pBFSrcDst, unsigned int nSamples);
 
 protected:
     kiss_fftr_cfg m_pFFT_psych_cfg;
