@@ -20,6 +20,8 @@
 #include "Renderer.h"
 #include "AllocentricExtent.h"
 
+using namespace spaudio;
+
 /**
 	Get the gain vector for a signal routed directed to a specified speaker in the layout
 */
@@ -58,15 +60,15 @@ static inline bool compareGainVectors(std::vector<double> a, std::vector<double>
 */
 static inline bool testDirectSpeakers()
 {
-	admrender::DirectSpeakerMetadata metadata;
+	DirectSpeakerMetadata metadata;
 	metadata.audioPackFormatID.push_back("AP_00010004");
 
-	Layout layout = Layout::getMatchingLayout(admrender::ituPackNames.find("AP_00010004")->second);
+	Layout layout = Layout::getMatchingLayout(ituPackNames.find("AP_00010004")->second);
 	// Need to set the reproduction screen in the layout for screen edge locking to work
 	layout.reproductionScreen = Screen();
 	double screenWidth = 20.;
 	layout.reproductionScreen->widthAzimuth = screenWidth;
-	admrender::AdmDirectSpeakersGainCalc gainCalc(layout);
+	spaudio::adm::DirectSpeakersGainCalc gainCalc(layout);
 	PointSourcePannerGainCalc psp(layout);
 	size_t nCh = layout.channels.size();
 	size_t nChNoLfe = Layout::getLayoutWithoutLFE(layout).channels.size();
@@ -130,7 +132,7 @@ static inline bool testDirectSpeakers()
 	// Test screen edge locking
 	speakerLabel = "";
 	metadata.speakerLabel = speakerLabel;
-	metadata.screenEdgeLock.horizontal = admrender::ScreenEdgeLock::LEFT;
+	metadata.screenEdgeLock.horizontal = ScreenEdgeLock::LEFT;
 	std::vector<double> gEdgeLock(nCh);
 	gainCalc.calculateGains(metadata, gEdgeLock);
 	std::vector<double> gEdgeLockTestTmp(nChNoLfe);
@@ -141,7 +143,7 @@ static inline bool testDirectSpeakers()
 
 	// Test with bounds
 	// Should find the M+030 speaker within the bounds set
-	metadata.screenEdgeLock.horizontal = admrender::ScreenEdgeLock::NO_HOR;
+	metadata.screenEdgeLock.horizontal = ScreenEdgeLock::NO_HOR;
 	metadata.polarPosition.azimuth = 28.;
 	metadata.polarPosition.elevation = 5.;
 	metadata.polarPosition.distance = 1.;
@@ -250,15 +252,15 @@ static inline bool testPointSourcePanner()
 */
 static inline bool testGainCalculator()
 {
-	admrender::ObjectMetadata metadata;
+	ObjectMetadata metadata;
 	metadata.referenceScreen = Screen();
 
-	Layout layout = Layout::getMatchingLayout(admrender::ituPackNames.find("AP_00010004")->second);
+	Layout layout = Layout::getMatchingLayout(ituPackNames.find("AP_00010004")->second);
 	// Need to set the reproduction screen in the layout for screen scaling and screen edge locking to work
 	layout.reproductionScreen = Screen();
 	double screenWidth = 20.;
 	layout.reproductionScreen->widthAzimuth = screenWidth;
-	admrender::GainCalculator gainCalc(layout);
+	spaudio::adm::ObjectGainCalculator gainCalc(layout);
 	PointSourcePannerGainCalc psp(layout);
 	auto nCh = layout.channels.size();
 
@@ -298,7 +300,7 @@ static inline bool testGainCalculator()
 	layoutScreenScaling.reproductionScreen = Screen();
 	layoutScreenScaling.reproductionScreen->widthAzimuth = 60.;
 	layoutScreenScaling.reproductionScreen->centrePolarPosition = { 30.,0.,1. };
-	admrender::GainCalculator gainCalcScrnScale(layoutScreenScaling);
+	spaudio::adm::ObjectGainCalculator gainCalcScrnScale(layoutScreenScaling);
 	gainCalcScrnScale.CalculateGains(metadata, directGains, diffuseGains);
 	assert(compareGainVectors(directGains, getDirectGain("M+030", layout)));
 
@@ -306,37 +308,37 @@ static inline bool testGainCalculator()
 	metadata.screenRef = false;
 
 	// Test screen edge lock - left
-	metadata.screenEdgeLock.horizontal = admrender::ScreenEdgeLock::LEFT;
+	metadata.screenEdgeLock.horizontal = ScreenEdgeLock::LEFT;
 	gainCalc.CalculateGains(metadata, directGains, diffuseGains);
 	std::vector<double> gainsEdge(nCh);
 	psp.CalculateGains(PolarPosition{ screenWidth / 2.,0.,1. }, gainsEdge);
 	assert(compareGainVectors(directGains, insertLFE(gainsEdge, layout)));
 
 	// Test screen edge lock - right
-	metadata.screenEdgeLock.horizontal = admrender::ScreenEdgeLock::RIGHT;
+	metadata.screenEdgeLock.horizontal = ScreenEdgeLock::RIGHT;
 	gainCalc.CalculateGains(metadata, directGains, diffuseGains);
 	psp.CalculateGains(PolarPosition{ -screenWidth / 2.,0.,1. }, gainsEdge);
 	assert(compareGainVectors(directGains, insertLFE(gainsEdge, layout)));
 
-	metadata.screenEdgeLock.horizontal = admrender::ScreenEdgeLock::NO_HOR;
+	metadata.screenEdgeLock.horizontal = ScreenEdgeLock::NO_HOR;
 
 	// Test screen edge lock - top
-	metadata.screenEdgeLock.vertical = admrender::ScreenEdgeLock::TOP;
+	metadata.screenEdgeLock.vertical = ScreenEdgeLock::TOP;
 	gainCalc.CalculateGains(metadata, directGains, diffuseGains);
 	double screenTopEdge = RAD2DEG * std::atan(std::tan(DEG2RAD * 0.5 * screenWidth) / layout.reproductionScreen->aspectRatio);
 	psp.CalculateGains(PolarPosition{ 0.,screenTopEdge,1. }, gainsEdge);
 	assert(compareGainVectors(directGains, insertLFE(gainsEdge, layout)));
 
 	// Test screen edge lock - bottom
-	metadata.screenEdgeLock.vertical = admrender::ScreenEdgeLock::BOTTOM;
+	metadata.screenEdgeLock.vertical = ScreenEdgeLock::BOTTOM;
 	gainCalc.CalculateGains(metadata, directGains, diffuseGains);
 	psp.CalculateGains(PolarPosition{ 0.,-screenTopEdge,1. }, gainsEdge);
 	assert(compareGainVectors(directGains, insertLFE(gainsEdge, layout)));
 
 
 	// Switch off screen edge lock
-	metadata.screenEdgeLock.horizontal = admrender::ScreenEdgeLock::NO_HOR;
-	metadata.screenEdgeLock.vertical = admrender::ScreenEdgeLock::NO_VERT;
+	metadata.screenEdgeLock.horizontal = ScreenEdgeLock::NO_HOR;
+	metadata.screenEdgeLock.vertical = ScreenEdgeLock::NO_VERT;
 
 
 	// Test channel lock - source on speakers
@@ -345,7 +347,7 @@ static inline bool testGainCalculator()
 
 	// Test channel lock - source closer to one speaker than another (left)
 	metadataPolarPos = { 14,0.,1. };
-	metadata.channelLock = admrender::ChannelLock();
+	metadata.channelLock = ChannelLock();
 	metadata.channelLock->maxDistance = 0.5;
 	gainCalc.CalculateGains(metadata, directGains, diffuseGains);
 	assert(compareGainVectors(directGains, getDirectGain("M+000", layout)));
@@ -693,16 +695,16 @@ void testDecoderPresets()
 */
 void testAdmHoaDecodingRouting()
 {
-	auto outputLayout = admrender::OutputLayout::FivePointOne;
+	auto outputLayout = spaudio::OutputLayout::FivePointOne;
 	unsigned nLdspk = 6;
 	unsigned order = 1;
 	unsigned sampleRate = 48000;
 	unsigned nSamples = 1;
-	admrender::StreamInformation channelInfo;
+	StreamInformation channelInfo;
 	channelInfo.nChannels = OrderToComponents(order, true);
-	channelInfo.typeDefinition.resize(channelInfo.nChannels, admrender::TypeDefinition::HOA);
+	channelInfo.typeDefinition.resize(channelInfo.nChannels, TypeDefinition::HOA);
 
-	admrender::HoaMetadata metadata;
+	HoaMetadata metadata;
 	metadata.normalization = "SN3D";
 	metadata.trackInds.resize(channelInfo.nChannels);
 
@@ -716,7 +718,7 @@ void testAdmHoaDecodingRouting()
 			metadata.degrees.push_back(iDegree);
 		}
 
-	admrender::Renderer admRenderer;
+	spaudio::Renderer admRenderer;
 	bool admSuccess = admRenderer.Configure(outputLayout, order, sampleRate, nSamples, channelInfo);
 	assert(admSuccess);
 
@@ -873,12 +875,12 @@ void testAdmRenderer()
 	unsigned nSamples = 1;
 	unsigned order = 1;
 	unsigned sampleRate = 48000;
-	auto layout = admrender::OutputLayout::ThirteenPointOne;
-	admrender::StreamInformation streamInfo;
+	auto layout = spaudio::OutputLayout::ThirteenPointOne;
+	StreamInformation streamInfo;
 	streamInfo.nChannels = 1;
-	streamInfo.typeDefinition = { admrender::TypeDefinition::Objects };
+	streamInfo.typeDefinition = { TypeDefinition::Objects };
 
-	admrender::Renderer renderer;
+	spaudio::Renderer renderer;
 	renderer.Configure(layout, order, sampleRate, nSamples, streamInfo);
 	auto nLdspk = renderer.GetSpeakerCount();
 
@@ -889,7 +891,7 @@ void testAdmRenderer()
 	for (unsigned iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
 		ldspkOut[iLdspk] = new float[nSamples];
 
-	admrender::ObjectMetadata objMetadata;
+	ObjectMetadata objMetadata;
 	objMetadata.blockLength = nSamples;
 	objMetadata.trackInd = 0;
 	objMetadata.jumpPosition.flag = true;
@@ -920,12 +922,12 @@ void testAdmRendererBinaural()
 	unsigned nSamples = 1024;
 	unsigned order = 1;
 	unsigned sampleRate = 48000;
-	auto layout = admrender::OutputLayout::Binaural;
-	admrender::StreamInformation streamInfo;
+	auto layout = spaudio::OutputLayout::Binaural;
+	StreamInformation streamInfo;
 	streamInfo.nChannels = 1;
-	streamInfo.typeDefinition = { admrender::TypeDefinition::Objects };
+	streamInfo.typeDefinition = { TypeDefinition::Objects };
 
-	admrender::Renderer renderer;
+	spaudio::Renderer renderer;
 	renderer.Configure(layout, order, sampleRate, nSamples, streamInfo, "", true);
 	auto nLdspk = 2;
 
@@ -936,7 +938,7 @@ void testAdmRendererBinaural()
 	for (int iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
 		ldspkOut[iLdspk] = new float[nSamples];
 
-	admrender::ObjectMetadata objMetadata;
+	ObjectMetadata objMetadata;
 	objMetadata.blockLength = nSamples;
 	objMetadata.trackInd = 0;
 	objMetadata.position = PolarPosition{90., 0.f, 1.f};
@@ -964,12 +966,12 @@ void testAdmRendererDirectSpeakerBinaural()
 	unsigned nSamples = 256;
 	unsigned order = 1;
 	unsigned sampleRate = 48000;
-	auto layout = admrender::OutputLayout::Binaural;
-	admrender::StreamInformation streamInfo;
+	auto layout = spaudio::OutputLayout::Binaural;
+	StreamInformation streamInfo;
 	streamInfo.nChannels = 2;
-	streamInfo.typeDefinition = std::vector<admrender::TypeDefinition>(streamInfo.nChannels, admrender::TypeDefinition::DirectSpeakers);
+	streamInfo.typeDefinition = std::vector<TypeDefinition>(streamInfo.nChannels, TypeDefinition::DirectSpeakers);
 
-	admrender::Renderer renderer;
+	spaudio::Renderer renderer;
 	renderer.Configure(layout, order, sampleRate, nSamples, streamInfo, "", true);
 	auto nLdspk = 2;
 
@@ -980,9 +982,9 @@ void testAdmRendererDirectSpeakerBinaural()
 	for (int iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
 		ldspkOut[iLdspk] = new float[nSamples];
 
-	admrender::DirectSpeakerMetadata speakerMetadata;
+	DirectSpeakerMetadata speakerMetadata;
 	speakerMetadata.trackInd = 0;
-	speakerMetadata.polarPosition = admrender::DirectSpeakerPolarPosition{ -90., 0.f, 1.f };
+	speakerMetadata.polarPosition = DirectSpeakerPolarPosition{ -90., 0.f, 1.f };
 	speakerMetadata.speakerLabel = "LFE";
 
 	renderer.AddDirectSpeaker(impulse.data(), nSamples, speakerMetadata);
@@ -991,7 +993,7 @@ void testAdmRendererDirectSpeakerBinaural()
 	impulse[64] = 1.f;
 
 	speakerMetadata.trackInd = 1;
-	speakerMetadata.polarPosition = admrender::DirectSpeakerPolarPosition{ 90., 0.f, 1.f };
+	speakerMetadata.polarPosition = DirectSpeakerPolarPosition{ 90., 0.f, 1.f };
 	speakerMetadata.speakerLabel = "M+090";
 
 	//renderer.AddDirectSpeaker(impulse.data(), nSamples, speakerMetadata);
@@ -1014,7 +1016,7 @@ void testAlloPSP()
 {
 	Layout layout = Layout::getLayoutWithoutLFE(Layout::getMatchingLayout("4+5+0"));
 	assert(layout.channels.size() > 0);
-	AllocentricPannerGainCalc alloPSP(layout);
+	spaudio::adm::AllocentricPannerGainCalc alloPSP(layout);
 
 	CartesianPosition position = { 0.,1.,0. };
 
@@ -1029,7 +1031,7 @@ void testAlloExtent()
 {
 	Layout layout = Layout::getLayoutWithoutLFE(Layout::getMatchingLayout("9+10+3"));
 	assert(layout.channels.size() > 0);
-	AllocentricExtent alloExtent(layout);
+	spaudio::adm::AllocentricExtent alloExtent(layout);
 
 	CartesianPosition position = { 0.,1.,0. };
 
@@ -1091,12 +1093,12 @@ void testAdmRenderCustomPositions()
 	unsigned int hoaOrder = 1;
 	unsigned int sampleRate = 48000;
 	unsigned int nSamples = 128;
-	admrender::StreamInformation streamInfo;
-	admrender::Optional<Screen> screen;
+	StreamInformation streamInfo;
+	Optional<Screen> screen;
 
-	admrender::Renderer admRenderer;
+	spaudio::Renderer admRenderer;
 	std::vector<PolarPosition> customPositions;
-	admrender::OutputLayout outputTarget = admrender::OutputLayout::FivePointOne;
+	spaudio::OutputLayout outputTarget = spaudio::OutputLayout::FivePointOne;
 	auto layout = Layout::getMatchingLayout("0+5+0");
 	customPositions.resize(layout.channels.size());
 	for (size_t i = 0; i < layout.channels.size(); ++i)

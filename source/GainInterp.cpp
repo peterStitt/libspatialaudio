@@ -16,115 +16,119 @@
 #include <cstddef>
 #include <cmath>
 
-template<typename T>
-GainInterp<T>::GainInterp(unsigned int nCh) : m_currentGainVec(nCh), m_targetGainVec(nCh), m_deltaGainVec(nCh)
-{
+namespace spaudio {
 
-}
+    template<typename T>
+    GainInterp<T>::GainInterp(unsigned int nCh) : m_currentGainVec(nCh), m_targetGainVec(nCh), m_deltaGainVec(nCh)
+    {
 
-template<typename T>
-GainInterp<T>::~GainInterp()
-{
-}
+    }
 
-template<typename T>
-void GainInterp<T>::SetGainVector(const std::vector<T>& newGainVec, unsigned int interpTimeInSamples)
-{
-	assert(newGainVec.size() == m_targetGainVec.size()); //Number of channels must match!
+    template<typename T>
+    GainInterp<T>::~GainInterp()
+    {
+    }
 
-	if (m_targetGainVec != newGainVec)
-	{
-		if (interpTimeInSamples > 0)
-		{
-			m_targetGainVec = newGainVec;
+    template<typename T>
+    void GainInterp<T>::SetGainVector(const std::vector<T>& newGainVec, unsigned int interpTimeInSamples)
+    {
+        assert(newGainVec.size() == m_targetGainVec.size()); //Number of channels must match!
 
-			for (size_t i = 0; i < m_targetGainVec.size(); ++i)
-				m_deltaGainVec[i] = (m_targetGainVec[i] - m_currentGainVec[i]) / static_cast<T>(interpTimeInSamples);
+        if (m_targetGainVec != newGainVec)
+        {
+            if (interpTimeInSamples > 0)
+            {
+                m_targetGainVec = newGainVec;
 
-			m_interpDurInSamples = interpTimeInSamples;
-			// Reset the interpolation counter to start interpolation
-			m_iInterpCount = 0;
-		}
-		else
-		{
-			// If smoothing time is zero samples then set current and target vectors to the current value and do not interpolate
-			m_targetGainVec = newGainVec;
-			m_currentGainVec = newGainVec;
-			for (auto& g : m_deltaGainVec)
-				g = static_cast<T>(0.);
-			m_interpDurInSamples = interpTimeInSamples;
-			m_iInterpCount = m_interpDurInSamples;
-		}
-	}
-}
+                for (size_t i = 0; i < m_targetGainVec.size(); ++i)
+                    m_deltaGainVec[i] = (m_targetGainVec[i] - m_currentGainVec[i]) / static_cast<T>(interpTimeInSamples);
 
-template<typename T>
-void GainInterp<T>::Process(const float* pIn, float** ppOut, unsigned int nSamples, unsigned int nOffset)
-{
-	if (m_isFirstCall)
-	{
-		Reset();
-		m_isFirstCall = false;
-	}
+                m_interpDurInSamples = interpTimeInSamples;
+                // Reset the interpolation counter to start interpolation
+                m_iInterpCount = 0;
+            }
+            else
+            {
+                // If smoothing time is zero samples then set current and target vectors to the current value and do not interpolate
+                m_targetGainVec = newGainVec;
+                m_currentGainVec = newGainVec;
+                for (auto& g : m_deltaGainVec)
+                    g = static_cast<T>(0.);
+                m_interpDurInSamples = interpTimeInSamples;
+                m_iInterpCount = m_interpDurInSamples;
+            }
+        }
+    }
 
-	unsigned int nCh = (unsigned int)m_targetGainVec.size();
-	// The number of samples to interpolate over in this block
-	unsigned int nInterpSamples = std::min(nSamples, m_interpDurInSamples - m_iInterpCount);
+    template<typename T>
+    void GainInterp<T>::Process(const float* pIn, float** ppOut, unsigned int nSamples, unsigned int nOffset)
+    {
+        if (m_isFirstCall)
+        {
+            Reset();
+            m_isFirstCall = false;
+        }
 
-	if (m_iInterpCount < m_interpDurInSamples)
-	{
-		for (unsigned int iCh = 0; iCh < nCh; ++iCh)
-			for (unsigned int i = 0; i < nInterpSamples; ++i)
-			{
-				ppOut[iCh][i + nOffset] = pIn[i] * static_cast<float>(m_currentGainVec[iCh]);
-				m_currentGainVec[iCh] += m_deltaGainVec[iCh];
-			}
+        unsigned int nCh = (unsigned int)m_targetGainVec.size();
+        // The number of samples to interpolate over in this block
+        unsigned int nInterpSamples = std::min(nSamples, m_interpDurInSamples - m_iInterpCount);
 
-		m_iInterpCount += nInterpSamples;
-	}
+        if (m_iInterpCount < m_interpDurInSamples)
+        {
+            for (unsigned int iCh = 0; iCh < nCh; ++iCh)
+                for (unsigned int i = 0; i < nInterpSamples; ++i)
+                {
+                    ppOut[iCh][i + nOffset] = pIn[i] * static_cast<float>(m_currentGainVec[iCh]);
+                    m_currentGainVec[iCh] += m_deltaGainVec[iCh];
+                }
 
-	for (unsigned int iCh = 0; iCh < nCh; ++iCh)
-			for (unsigned int i = nInterpSamples; i < nSamples; ++i)
-				ppOut[iCh][i + nOffset] = pIn[i] * static_cast<float>(m_targetGainVec[iCh]);
-}
+            m_iInterpCount += nInterpSamples;
+        }
 
-template<typename T>
-void GainInterp<T>::ProcessAccumul(const float* pIn, float** ppOut, unsigned int nSamples, unsigned int nOffset, T gain)
-{
-	if (m_isFirstCall)
-	{
-		Reset();
-		m_isFirstCall = false;
-	}
+        for (unsigned int iCh = 0; iCh < nCh; ++iCh)
+            for (unsigned int i = nInterpSamples; i < nSamples; ++i)
+                ppOut[iCh][i + nOffset] = pIn[i] * static_cast<float>(m_targetGainVec[iCh]);
+    }
 
-	unsigned int nCh = (unsigned int)m_targetGainVec.size();
-	// The number of samples to interpolate over in this block
-	unsigned int nInterpSamples = std::min(nSamples, m_interpDurInSamples - m_iInterpCount);
+    template<typename T>
+    void GainInterp<T>::ProcessAccumul(const float* pIn, float** ppOut, unsigned int nSamples, unsigned int nOffset, T gain)
+    {
+        if (m_isFirstCall)
+        {
+            Reset();
+            m_isFirstCall = false;
+        }
 
-	if (m_iInterpCount < m_interpDurInSamples)
-	{
-		for (unsigned int iCh = 0; iCh < nCh; ++iCh)
-			for (unsigned int i = 0; i < nInterpSamples; ++i)
-			{
-				ppOut[iCh][i + nOffset] += pIn[i] * static_cast<float>(m_currentGainVec[iCh] * gain);
-				m_currentGainVec[iCh] += m_deltaGainVec[iCh];
-			}
+        unsigned int nCh = (unsigned int)m_targetGainVec.size();
+        // The number of samples to interpolate over in this block
+        unsigned int nInterpSamples = std::min(nSamples, m_interpDurInSamples - m_iInterpCount);
 
-		m_iInterpCount += nInterpSamples;
-	}
+        if (m_iInterpCount < m_interpDurInSamples)
+        {
+            for (unsigned int iCh = 0; iCh < nCh; ++iCh)
+                for (unsigned int i = 0; i < nInterpSamples; ++i)
+                {
+                    ppOut[iCh][i + nOffset] += pIn[i] * static_cast<float>(m_currentGainVec[iCh] * gain);
+                    m_currentGainVec[iCh] += m_deltaGainVec[iCh];
+                }
 
-	for (unsigned int iCh = 0; iCh < nCh; ++iCh)
-		if (std::abs(m_targetGainVec[iCh]) > static_cast<T>(1e-6))
-			for (unsigned int i = nInterpSamples; i < nSamples; ++i)
-				ppOut[iCh][i + nOffset] += pIn[i] * static_cast<float>(m_targetGainVec[iCh]);
-}
+            m_iInterpCount += nInterpSamples;
+        }
 
-template<typename T>
-void GainInterp<T>::Reset()
-{
-	m_iInterpCount = m_interpDurInSamples;
-	m_currentGainVec = m_targetGainVec;
-}
+        for (unsigned int iCh = 0; iCh < nCh; ++iCh)
+            if (std::abs(m_targetGainVec[iCh]) > static_cast<T>(1e-6))
+                for (unsigned int i = nInterpSamples; i < nSamples; ++i)
+                    ppOut[iCh][i + nOffset] += pIn[i] * static_cast<float>(m_targetGainVec[iCh]);
+    }
 
-template class GainInterp<float>;
-template class GainInterp<double>;
+    template<typename T>
+    void GainInterp<T>::Reset()
+    {
+        m_iInterpCount = m_interpDurInSamples;
+        m_currentGainVec = m_targetGainVec;
+    }
+
+    template class GainInterp<float>;
+    template class GainInterp<double>;
+
+} // namespace spaudio

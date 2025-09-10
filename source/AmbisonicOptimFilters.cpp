@@ -17,95 +17,99 @@
 #include <cmath>
 #include <assert.h>
 
-// Precalculated max-rE gains
-const float maxReGains3D[][4] = {
-    {1.417794018951694f, 0.814424156449370f, 0.f, 0.f},
-    {1.583040780613530f, 1.225234967342221f, 0.630932597243196f, 0.f},
-    {1.669215604860955f, 1.437112458085760f, 1.021316810756924f, 0.507430850075628f }
-};
+namespace spaudio {
 
-const float maxReGains2D[][4] = {
-    {1.224744871391589f, 0.866025403784439f, 0.f, 0.f},
-    {1.290994448735806f, 1.118033988749895f, 0.645497224367903f, 0.f},
-    {1.322875655532295f, 1.222177742203739f, 0.935414346693485f, 0.506242596451317f}
-};
+    // Precalculated max-rE gains
+    const float maxReGains3D[][4] = {
+        {1.417794018951694f, 0.814424156449370f, 0.f, 0.f},
+        {1.583040780613530f, 1.225234967342221f, 0.630932597243196f, 0.f},
+        {1.669215604860955f, 1.437112458085760f, 1.021316810756924f, 0.507430850075628f }
+    };
 
-AmbisonicOptimFilters::AmbisonicOptimFilters()
-{
-}
+    const float maxReGains2D[][4] = {
+        {1.224744871391589f, 0.866025403784439f, 0.f, 0.f},
+        {1.290994448735806f, 1.118033988749895f, 0.645497224367903f, 0.f},
+        {1.322875655532295f, 1.222177742203739f, 0.935414346693485f, 0.506242596451317f}
+    };
 
-AmbisonicOptimFilters::~AmbisonicOptimFilters()
-{
-}
-
-bool AmbisonicOptimFilters::Configure(unsigned nOrder, bool b3D, unsigned nBlockSize, unsigned sampleRate)
-{
-    bool success = AmbisonicBase::Configure(nOrder, b3D, 0);
-    if(!success)
-        return false;
-
-    // The cross-over frequency depends on the order. From:
-    // [1] S. Bertet, J. Daniel, E. Parizet, and O. Warusfel,
-    // “Investigation on localisation accuracy for first and higher
-    // order Ambisonics reproduced sound sources,” Acta Acust. united
-    // with Acust., vol. 99, no. 4, pp. 642–657, 2013.
-    float headRadius = 0.09f;
-    float speedOfSound = 343.f;
-    float M = static_cast<float>(nOrder);
-    float crossoverFreq = speedOfSound * M / (4.f * headRadius * (M + 1) * std::sin((float)M_PI / (2.f * M + 2.f)));
-
-    success = m_bandFilterIIR.Configure(GetChannelCount(), sampleRate, crossoverFreq);
-    if (!success)
-        return false;
-
-    // Get the gains to be applied to each sub-set of channels, one for each order
-    m_gHighFreq = GetMaxReGains(nOrder, b3D);
-
-    m_nMaxBlockSize = nBlockSize;
-    m_lowPassOut.Configure(nOrder, b3D, nBlockSize);
-
-    return true;
-}
-
-void AmbisonicOptimFilters::Reset()
-{
-    m_bandFilterIIR.Reset();
-}
-
-void AmbisonicOptimFilters::Refresh()
-{
-}
-
-void AmbisonicOptimFilters::SetHighFrequencyGains(const std::vector<float>& gHighFreq)
-{
-    assert(gHighFreq.size() == m_nOrder + 1);
-    m_gHighFreq = gHighFreq;
-}
-
-std::vector<float> AmbisonicOptimFilters::GetMaxReGains(unsigned nOrder, bool b3D)
-{
-    std::vector<float> maxReGains(nOrder + 1);
-    for (unsigned int i = 0; i <= nOrder; ++i)
-        maxReGains[i] = b3D ? maxReGains3D[nOrder - 1][i] : maxReGains2D[nOrder - 1][i];
-    return maxReGains;
-}
-
-void AmbisonicOptimFilters::Process(BFormat* pBFSrcDst, unsigned int nSamples)
-{
-    assert(nSamples <= m_nMaxBlockSize);
-
-    float** inOutHP = reinterpret_cast<float**>(pBFSrcDst->m_ppfChannels.get());
-    float** outLP = reinterpret_cast<float**>(m_lowPassOut.m_ppfChannels.get());
-    m_bandFilterIIR.Process(inOutHP, outLP, inOutHP, nSamples);
-
-    // Multiply the high-pass channels by the appropriate max-rE gain and add it to the output
-    for (unsigned int iCh = 0; iCh < m_lowPassOut.GetChannelCount(); ++iCh)
+    AmbisonicOptimFilters::AmbisonicOptimFilters()
     {
-        float gHighFreq = m_gHighFreq[ComponentPositionToOrder(iCh, m_b3D)];
-        float* chDataHP = inOutHP[iCh];
-        float* chDataLP = outLP[iCh];
-        // Scale the high-passed data and add the low-passed signal
-        for (unsigned iSamp = 0; iSamp < nSamples; ++iSamp)
-            chDataHP[iSamp] = gHighFreq * chDataHP[iSamp] + chDataLP[iSamp];
     }
-}
+
+    AmbisonicOptimFilters::~AmbisonicOptimFilters()
+    {
+    }
+
+    bool AmbisonicOptimFilters::Configure(unsigned nOrder, bool b3D, unsigned nBlockSize, unsigned sampleRate)
+    {
+        bool success = AmbisonicBase::Configure(nOrder, b3D, 0);
+        if (!success)
+            return false;
+
+        // The cross-over frequency depends on the order. From:
+        // [1] S. Bertet, J. Daniel, E. Parizet, and O. Warusfel,
+        // “Investigation on localisation accuracy for first and higher
+        // order Ambisonics reproduced sound sources,” Acta Acust. united
+        // with Acust., vol. 99, no. 4, pp. 642–657, 2013.
+        float headRadius = 0.09f;
+        float speedOfSound = 343.f;
+        float M = static_cast<float>(nOrder);
+        float crossoverFreq = speedOfSound * M / (4.f * headRadius * (M + 1) * std::sin((float)M_PI / (2.f * M + 2.f)));
+
+        success = m_bandFilterIIR.Configure(GetChannelCount(), sampleRate, crossoverFreq);
+        if (!success)
+            return false;
+
+        // Get the gains to be applied to each sub-set of channels, one for each order
+        m_gHighFreq = GetMaxReGains(nOrder, b3D);
+
+        m_nMaxBlockSize = nBlockSize;
+        m_lowPassOut.Configure(nOrder, b3D, nBlockSize);
+
+        return true;
+    }
+
+    void AmbisonicOptimFilters::Reset()
+    {
+        m_bandFilterIIR.Reset();
+    }
+
+    void AmbisonicOptimFilters::Refresh()
+    {
+    }
+
+    void AmbisonicOptimFilters::SetHighFrequencyGains(const std::vector<float>& gHighFreq)
+    {
+        assert(gHighFreq.size() == m_nOrder + 1);
+        m_gHighFreq = gHighFreq;
+    }
+
+    std::vector<float> AmbisonicOptimFilters::GetMaxReGains(unsigned nOrder, bool b3D)
+    {
+        std::vector<float> maxReGains(nOrder + 1);
+        for (unsigned int i = 0; i <= nOrder; ++i)
+            maxReGains[i] = b3D ? maxReGains3D[nOrder - 1][i] : maxReGains2D[nOrder - 1][i];
+        return maxReGains;
+    }
+
+    void AmbisonicOptimFilters::Process(BFormat* pBFSrcDst, unsigned int nSamples)
+    {
+        assert(nSamples <= m_nMaxBlockSize);
+
+        float** inOutHP = reinterpret_cast<float**>(pBFSrcDst->m_ppfChannels.get());
+        float** outLP = reinterpret_cast<float**>(m_lowPassOut.m_ppfChannels.get());
+        m_bandFilterIIR.Process(inOutHP, outLP, inOutHP, nSamples);
+
+        // Multiply the high-pass channels by the appropriate max-rE gain and add it to the output
+        for (unsigned int iCh = 0; iCh < m_lowPassOut.GetChannelCount(); ++iCh)
+        {
+            float gHighFreq = m_gHighFreq[ComponentPositionToOrder(iCh, m_b3D)];
+            float* chDataHP = inOutHP[iCh];
+            float* chDataLP = outLP[iCh];
+            // Scale the high-passed data and add the low-passed signal
+            for (unsigned iSamp = 0; iSamp < nSamples; ++iSamp)
+                chDataHP[iSamp] = gHighFreq * chDataHP[iSamp] + chDataLP[iSamp];
+        }
+    }
+
+} // namespace spaudio

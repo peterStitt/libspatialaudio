@@ -18,58 +18,62 @@
 
 #include "AmbisonicCommons.h"
 
-/// Ambisonic base class.
+namespace spaudio {
 
-/** This is the base class for most if not all of the classes that make up this
-    library. */
+    /// Ambisonic base class.
 
-class AmbisonicBase
-{
-public:
-    AmbisonicBase();
-    virtual ~AmbisonicBase() = default;
+    /** This is the base class for most if not all of the classes that make up this
+        library. */
 
-    /**
-     *  Gets the order of the current Ambisonic configuration.
-     */
-    unsigned GetOrder();
+    class AmbisonicBase
+    {
+    public:
+        AmbisonicBase();
+        virtual ~AmbisonicBase() = default;
 
-    /**
-     *  Gets true or false depending on whether the current Ambisonic
-     *  configuration has height(3D).
-     */
-    bool GetHeight();
+        /**
+         *  Gets the order of the current Ambisonic configuration.
+         */
+        unsigned GetOrder();
 
-    /**
-     *  Gets the number of B-Format channels in the current Ambisonic
-     *  configuration.
-     */
-    unsigned GetChannelCount();
+        /**
+         *  Gets true or false depending on whether the current Ambisonic
+         *  configuration has height(3D).
+         */
+        bool GetHeight();
 
-    /** Re-create the object for the given configuration. Previous data is
-     *  lost.
-     *
-     * @param nOrder    The ambisonic order.
-     * @param b3D       Flag true if the signal is 3D.
-     * @param nMisc     Unused input.
-     * @return          Returns true if correctly configured.
-     */
-    virtual bool Configure(unsigned nOrder, bool b3D, unsigned nMisc);
+        /**
+         *  Gets the number of B-Format channels in the current Ambisonic
+         *  configuration.
+         */
+        unsigned GetChannelCount();
 
-    /**
-     *  Not implemented.
-     */
-    virtual void Reset() = 0;
+        /** Re-create the object for the given configuration. Previous data is
+         *  lost.
+         *
+         * @param nOrder    The ambisonic order.
+         * @param b3D       Flag true if the signal is 3D.
+         * @param nMisc     Unused input.
+         * @return          Returns true if correctly configured.
+         */
+        virtual bool Configure(unsigned nOrder, bool b3D, unsigned nMisc);
 
-    /**
-     *  Not implemented.
-     */
-    virtual void Refresh() = 0;
+        /**
+         *  Not implemented.
+         */
+        virtual void Reset() = 0;
 
-protected:
-    unsigned m_nOrder;
-    bool m_b3D;
-    unsigned m_nChannelCount;
-};
+        /**
+         *  Not implemented.
+         */
+        virtual void Refresh() = 0;
+
+    protected:
+        unsigned m_nOrder;
+        bool m_b3D;
+        unsigned m_nChannelCount;
+    };
+
+} // namespace spaudio
 
 #endif //_AMBISONIC_BASE_H

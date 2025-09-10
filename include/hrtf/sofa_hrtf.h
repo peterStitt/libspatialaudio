@@ -11,20 +11,23 @@
 
 #include "hrtf.h"
 
+namespace spaudio {
 
-class SOFA_HRTF : public HRTF
-{
-public:
-    SOFA_HRTF(std::string path, unsigned i_sampleRate);
-    ~SOFA_HRTF();
-    bool get(float f_azimuth, float f_elevation, float **pfHRTF);
+    class SOFA_HRTF : public HRTF
+    {
+    public:
+        SOFA_HRTF(std::string path, unsigned i_sampleRate);
+        ~SOFA_HRTF();
+        bool get(float f_azimuth, float f_elevation, float** pfHRTF);
 
-private:
-    struct MYSOFA_EASY *hrtf;
+    private:
+        struct MYSOFA_EASY* hrtf;
 
-    unsigned i_filterExtraLength;
-    int i_internalLength;
-};
+        unsigned i_filterExtraLength;
+        int i_internalLength;
+    };
+
+} // namespace spaudio
 
 #endif
 

@@ -23,67 +23,71 @@
 
 #include <memory>
 
-/// Ambisonic zoomer.
+namespace spaudio {
 
-/** This object is used to apply a zoom effect into BFormat soundfields. */
+    /// Ambisonic zoomer.
 
-class AmbisonicZoomer : public AmbisonicBase
-{
-public:
-    AmbisonicZoomer();
-    virtual ~AmbisonicZoomer() = default;
+    /** This object is used to apply a zoom effect into BFormat soundfields. */
 
-    /** Re-create the object for the given configuration. Previous data is
-     *  lost. The last argument is not used, it is just there to match with
-     *  the base class's form. Returns true if successful.
-     * @param nOrder        Order of the signal to process.
-     * @param b3D           Flag if the signal is 3D.
-     * @param nBlockSize    Number of samples to process each block.
-     * @param sampleRate    Sample rate of the signal to process.
-     * @return              Returns true if successfully configured.
-     */
-    virtual bool Configure(unsigned nOrder, bool b3D, unsigned nBlockSize, unsigned sampleRate);
+    class AmbisonicZoomer : public AmbisonicBase
+    {
+    public:
+        AmbisonicZoomer();
+        virtual ~AmbisonicZoomer() = default;
 
-    /** Not implemented. */
-    void Reset();
+        /** Re-create the object for the given configuration. Previous data is
+         *  lost. The last argument is not used, it is just there to match with
+         *  the base class's form. Returns true if successful.
+         * @param nOrder        Order of the signal to process.
+         * @param b3D           Flag if the signal is 3D.
+         * @param nBlockSize    Number of samples to process each block.
+         * @param sampleRate    Sample rate of the signal to process.
+         * @return              Returns true if successfully configured.
+         */
+        virtual bool Configure(unsigned nOrder, bool b3D, unsigned nBlockSize, unsigned sampleRate);
 
-    /** Recalculate coefficients. */
-    void Refresh();
+        /** Not implemented. */
+        void Reset();
 
-    /** Set zoom factor. This is in a range from 0 to 1, with 0 being no zoom,
-     *  1 full forward zoom.
-     * @param fZoom     How much zoom to apply.
-     */
-    void SetZoom(float fZoom);
+        /** Recalculate coefficients. */
+        void Refresh();
 
-    /** Get zoom factor.
-     * @return      Zoom factor
-     */
-    float GetZoom();
+        /** Set zoom factor. This is in a range from 0 to 1, with 0 being no zoom,
+         *  1 full forward zoom.
+         * @param fZoom     How much zoom to apply.
+         */
+        void SetZoom(float fZoom);
 
-    /** Zoom into B-Format stream.
-     * @param pBFSrcDst     B-Format signal to process.
-     * @param nSamples      Number of samples to process.
-     */
-    void Process(BFormat* pBFSrcDst, unsigned nSamples);
+        /** Get zoom factor.
+         * @return      Zoom factor
+         */
+        float GetZoom();
 
-protected:
-    AmbisonicDecoder m_AmbDecoderFront;
+        /** Zoom into B-Format stream.
+         * @param pBFSrcDst     B-Format signal to process.
+         * @param nSamples      Number of samples to process.
+         */
+        void Process(BFormat* pBFSrcDst, unsigned nSamples);
 
-    std::unique_ptr<float[]> m_AmbEncoderFront;
-    std::unique_ptr<float[]> m_AmbEncoderFront_weighted;
-    std::unique_ptr<float[]> a_m;
+    protected:
+        AmbisonicDecoder m_AmbDecoderFront;
 
-    float m_fZoom;
-    float m_fZoomRed;
-    float m_AmbFrontMic;
-    float m_fZoomBlend;
+        std::unique_ptr<float[]> m_AmbEncoderFront;
+        std::unique_ptr<float[]> m_AmbEncoderFront_weighted;
+        std::unique_ptr<float[]> a_m;
 
-    /** Compute factorial of integer.
-     * @param M     Interger input.
-     * @return      Factorial of input as a float.
-     */
-    float factorial(unsigned M);
-};
+        float m_fZoom;
+        float m_fZoomRed;
+        float m_AmbFrontMic;
+        float m_fZoomBlend;
+
+        /** Compute factorial of integer.
+         * @param M     Interger input.
+         * @return      Factorial of input as a float.
+         */
+        float factorial(unsigned M);
+    };
+
+} // namespace spaudio
 
 #endif // _AMBISONIC_ZOOMER_H

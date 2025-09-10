@@ -15,205 +15,209 @@
 
 #include "BFormat.h"
 
-BFormat::BFormat()
-{
-    m_nSamples = 0;
-    m_nDataLength = 0;
-}
+namespace spaudio {
 
-unsigned BFormat::GetSampleCount()
-{
-    return m_nSamples;
-}
-
-bool BFormat::Configure(unsigned nOrder, bool b3D, unsigned nSampleCount)
-{
-    bool success = AmbisonicBase::Configure(nOrder, b3D, nSampleCount);
-    if(!success)
-        return false;
-
-    m_nSamples = nSampleCount;
-    m_nDataLength = m_nSamples * m_nChannelCount;
-
-    m_pfData.resize(m_nDataLength);
-    memset(m_pfData.data(), 0, m_nDataLength * sizeof(float));
-    m_ppfChannels.reset(new float*[m_nChannelCount]);
-
-    for(unsigned niChannel = 0; niChannel < m_nChannelCount; niChannel++)
+    BFormat::BFormat()
     {
-        m_ppfChannels[niChannel] = &m_pfData[niChannel * m_nSamples];
+        m_nSamples = 0;
+        m_nDataLength = 0;
     }
 
-    return true;
-}
-
-void BFormat::Reset()
-{
-    memset(m_pfData.data(), 0, m_nDataLength * sizeof(float));
-}
-
-void BFormat::Refresh()
-{
-
-}
-
-void BFormat::InsertStream(float* pfData, unsigned nChannel, unsigned nSamples)
-{
-    memcpy(m_ppfChannels[nChannel], pfData, nSamples * sizeof(float));
-}
-
-void BFormat::AddStream(float* pfData, unsigned nChannel, unsigned nSamples, unsigned nOffset, float gain)
-{
-    unsigned niSample = 0;
-
-    for (niSample = 0; niSample < nSamples; niSample++)
+    unsigned BFormat::GetSampleCount()
     {
-        m_ppfChannels[nChannel][niSample + nOffset] += pfData[niSample] * gain;
+        return m_nSamples;
     }
-}
 
-void BFormat::ExtractStream(float* pfData, unsigned nChannel, unsigned nSamples)
-{
-    memcpy(pfData, m_ppfChannels[nChannel], nSamples * sizeof(float));
-}
+    bool BFormat::Configure(unsigned nOrder, bool b3D, unsigned nSampleCount)
+    {
+        bool success = AmbisonicBase::Configure(nOrder, b3D, nSampleCount);
+        if (!success)
+            return false;
 
-void BFormat::operator = (const BFormat &bf)
-{
-    memcpy(m_pfData.data(), bf.m_pfData.data(), m_nDataLength * sizeof(float));
-}
+        m_nSamples = nSampleCount;
+        m_nDataLength = m_nSamples * m_nChannelCount;
 
-bool BFormat::operator == (const BFormat &bf)
-{
-    if(m_b3D == bf.m_b3D && m_nOrder == bf.m_nOrder && m_nDataLength == bf.m_nDataLength)
+        m_pfData.resize(m_nDataLength);
+        memset(m_pfData.data(), 0, m_nDataLength * sizeof(float));
+        m_ppfChannels.reset(new float* [m_nChannelCount]);
+
+        for (unsigned niChannel = 0; niChannel < m_nChannelCount; niChannel++)
+        {
+            m_ppfChannels[niChannel] = &m_pfData[niChannel * m_nSamples];
+        }
+
         return true;
-    else
-        return false;
-}
+    }
 
-bool BFormat::operator != (const BFormat &bf)
-{
-    if(m_b3D != bf.m_b3D || m_nOrder != bf.m_nOrder || m_nDataLength != bf.m_nDataLength)
-        return true;
-    else
-        return false;
-}
-
-BFormat& BFormat::operator += (const BFormat &bf)
-{
-    unsigned niChannel = 0;
-    unsigned niSample = 0;
-    for(niChannel = 0; niChannel < m_nChannelCount; niChannel++)
+    void BFormat::Reset()
     {
-        for(niSample = 0; niSample < m_nSamples; niSample++)
+        memset(m_pfData.data(), 0, m_nDataLength * sizeof(float));
+    }
+
+    void BFormat::Refresh()
+    {
+
+    }
+
+    void BFormat::InsertStream(float* pfData, unsigned nChannel, unsigned nSamples)
+    {
+        memcpy(m_ppfChannels[nChannel], pfData, nSamples * sizeof(float));
+    }
+
+    void BFormat::AddStream(float* pfData, unsigned nChannel, unsigned nSamples, unsigned nOffset, float gain)
+    {
+        unsigned niSample = 0;
+
+        for (niSample = 0; niSample < nSamples; niSample++)
         {
-            m_ppfChannels[niChannel][niSample] += bf.m_ppfChannels[niChannel][niSample];
+            m_ppfChannels[nChannel][niSample + nOffset] += pfData[niSample] * gain;
         }
     }
 
-    return *this;
-}
-
-BFormat& BFormat::operator -= (const BFormat &bf)
-{
-    unsigned niChannel = 0;
-    unsigned niSample = 0;
-    for(niChannel = 0; niChannel < m_nChannelCount; niChannel++)
+    void BFormat::ExtractStream(float* pfData, unsigned nChannel, unsigned nSamples)
     {
-        for(niSample = 0; niSample < m_nSamples; niSample++)
-        {
-            m_ppfChannels[niChannel][niSample] -= bf.m_ppfChannels[niChannel][niSample];
-        }
+        memcpy(pfData, m_ppfChannels[nChannel], nSamples * sizeof(float));
     }
 
-    return *this;
-}
-
-BFormat& BFormat::operator *= (const BFormat &bf)
-{
-    unsigned niChannel = 0;
-    unsigned niSample = 0;
-    for(niChannel = 0; niChannel < m_nChannelCount; niChannel++)
+    void BFormat::operator = (const BFormat& bf)
     {
-        for(niSample = 0; niSample < m_nSamples; niSample++)
-        {
-            m_ppfChannels[niChannel][niSample] *= bf.m_ppfChannels[niChannel][niSample];
-        }
+        memcpy(m_pfData.data(), bf.m_pfData.data(), m_nDataLength * sizeof(float));
     }
 
-    return *this;
-}
-
-BFormat& BFormat::operator /= (const BFormat &bf)
-{
-    unsigned niChannel = 0;
-    unsigned niSample = 0;
-    for(niChannel = 0; niChannel < m_nChannelCount; niChannel++)
+    bool BFormat::operator == (const BFormat& bf)
     {
-        for(niSample = 0; niSample < m_nSamples; niSample++)
-        {
-            m_ppfChannels[niChannel][niSample] /= bf.m_ppfChannels[niChannel][niSample];
-        }
+        if (m_b3D == bf.m_b3D && m_nOrder == bf.m_nOrder && m_nDataLength == bf.m_nDataLength)
+            return true;
+        else
+            return false;
     }
 
-    return *this;
-}
-
-BFormat& BFormat::operator += (const float &fValue)
-{
-    unsigned niChannel = 0;
-    unsigned niSample = 0;
-    for(niChannel = 0; niChannel < m_nChannelCount; niChannel++)
+    bool BFormat::operator != (const BFormat& bf)
     {
-        for(niSample = 0; niSample < m_nSamples; niSample++)
-        {
-            m_ppfChannels[niChannel][niSample] += fValue;
-        }
+        if (m_b3D != bf.m_b3D || m_nOrder != bf.m_nOrder || m_nDataLength != bf.m_nDataLength)
+            return true;
+        else
+            return false;
     }
 
-    return *this;
-}
-
-BFormat& BFormat::operator -= (const float &fValue)
-{
-    unsigned niChannel = 0;
-    unsigned niSample = 0;
-    for(niChannel = 0; niChannel < m_nChannelCount; niChannel++)
+    BFormat& BFormat::operator += (const BFormat& bf)
     {
-        for(niSample = 0; niSample < m_nSamples; niSample++)
+        unsigned niChannel = 0;
+        unsigned niSample = 0;
+        for (niChannel = 0; niChannel < m_nChannelCount; niChannel++)
         {
-            m_ppfChannels[niChannel][niSample] -= fValue;
+            for (niSample = 0; niSample < m_nSamples; niSample++)
+            {
+                m_ppfChannels[niChannel][niSample] += bf.m_ppfChannels[niChannel][niSample];
+            }
         }
+
+        return *this;
     }
 
-    return *this;
-}
-
-BFormat& BFormat::operator *= (const float &fValue)
-{
-    unsigned niChannel = 0;
-    unsigned niSample = 0;
-    for(niChannel = 0; niChannel < m_nChannelCount; niChannel++)
+    BFormat& BFormat::operator -= (const BFormat& bf)
     {
-        for(niSample = 0; niSample < m_nSamples; niSample++)
+        unsigned niChannel = 0;
+        unsigned niSample = 0;
+        for (niChannel = 0; niChannel < m_nChannelCount; niChannel++)
         {
-            m_ppfChannels[niChannel][niSample] *= fValue;
+            for (niSample = 0; niSample < m_nSamples; niSample++)
+            {
+                m_ppfChannels[niChannel][niSample] -= bf.m_ppfChannels[niChannel][niSample];
+            }
         }
+
+        return *this;
     }
 
-    return *this;
-}
-
-BFormat& BFormat::operator /= (const float &fValue)
-{
-    unsigned niChannel = 0;
-    unsigned niSample = 0;
-    for(niChannel = 0; niChannel < m_nChannelCount; niChannel++)
+    BFormat& BFormat::operator *= (const BFormat& bf)
     {
-        for(niSample = 0; niSample < m_nSamples; niSample++)
+        unsigned niChannel = 0;
+        unsigned niSample = 0;
+        for (niChannel = 0; niChannel < m_nChannelCount; niChannel++)
         {
-            m_ppfChannels[niChannel][niSample] /= fValue;
+            for (niSample = 0; niSample < m_nSamples; niSample++)
+            {
+                m_ppfChannels[niChannel][niSample] *= bf.m_ppfChannels[niChannel][niSample];
+            }
         }
+
+        return *this;
     }
 
-    return *this;
-}
+    BFormat& BFormat::operator /= (const BFormat& bf)
+    {
+        unsigned niChannel = 0;
+        unsigned niSample = 0;
+        for (niChannel = 0; niChannel < m_nChannelCount; niChannel++)
+        {
+            for (niSample = 0; niSample < m_nSamples; niSample++)
+            {
+                m_ppfChannels[niChannel][niSample] /= bf.m_ppfChannels[niChannel][niSample];
+            }
+        }
+
+        return *this;
+    }
+
+    BFormat& BFormat::operator += (const float& fValue)
+    {
+        unsigned niChannel = 0;
+        unsigned niSample = 0;
+        for (niChannel = 0; niChannel < m_nChannelCount; niChannel++)
+        {
+            for (niSample = 0; niSample < m_nSamples; niSample++)
+            {
+                m_ppfChannels[niChannel][niSample] += fValue;
+            }
+        }
+
+        return *this;
+    }
+
+    BFormat& BFormat::operator -= (const float& fValue)
+    {
+        unsigned niChannel = 0;
+        unsigned niSample = 0;
+        for (niChannel = 0; niChannel < m_nChannelCount; niChannel++)
+        {
+            for (niSample = 0; niSample < m_nSamples; niSample++)
+            {
+                m_ppfChannels[niChannel][niSample] -= fValue;
+            }
+        }
+
+        return *this;
+    }
+
+    BFormat& BFormat::operator *= (const float& fValue)
+    {
+        unsigned niChannel = 0;
+        unsigned niSample = 0;
+        for (niChannel = 0; niChannel < m_nChannelCount; niChannel++)
+        {
+            for (niSample = 0; niSample < m_nSamples; niSample++)
+            {
+                m_ppfChannels[niChannel][niSample] *= fValue;
+            }
+        }
+
+        return *this;
+    }
+
+    BFormat& BFormat::operator /= (const float& fValue)
+    {
+        unsigned niChannel = 0;
+        unsigned niSample = 0;
+        for (niChannel = 0; niChannel < m_nChannelCount; niChannel++)
+        {
+            for (niSample = 0; niSample < m_nSamples; niSample++)
+            {
+                m_ppfChannels[niChannel][niSample] /= fValue;
+            }
+        }
+
+        return *this;
+    }
+
+} // namespace spaudio
