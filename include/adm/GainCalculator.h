@@ -169,7 +169,6 @@ namespace spaudio {
 
             PointSourcePannerGainCalc m_pspGainCalculator;
             PolarExtentHandler m_extentPanner;
-            AmbisonicPolarExtentHandler m_ambiExtentPanner;
 
             AllocentricPannerGainCalc m_alloGainCalculator;
             AllocentricExtent m_alloExtentPanner;

@@ -110,8 +110,6 @@ namespace spaudio {
             "UH+180", "M+150", "M-150", "B+030", "B-030",
             "B+135", // Not in Rec. ITU-R BS.2094-1. Used in BEAR 9+10+3 plus 2 layout.
             "B-135", // Not in Rec. ITU-R BS.2094-1. Used in BEAR 9+10+3 plus 2 layout.
-            "ACN0", "ACN1", "ACN2", "ACN3", "ACN4", "ACN5", "ACN6", "ACN7", "ACN8",
-            "ACN9", "ACN10", "ACN11", "ACN12","ACN13", "ACN14", "ACN15", "ACN16",
             "" /* empty to indicate no appropriate channel name */
         };
 
@@ -207,7 +205,7 @@ namespace spaudio {
         ~Channel();
 
         std::string name;
-        ChannelTypes channelType;
+        ChannelTypes channelType = ChannelTypes::Custom;
         // Real loudspeaker position
         PolarPosition polarPosition;
         // Nominal loudspeaker position from ITU-R BS.2051-2
@@ -223,16 +221,13 @@ namespace spaudio {
     {
     public:
         Layout();
-        Layout(std::string layoutName, std::vector<Channel> layoutChannels, bool layoutHasLfe, bool layoutIsHoa = false, unsigned int layoutOrder = 0);
+        Layout(std::string layoutName, std::vector<Channel> layoutChannels, bool layoutHasLfe);
         Layout(OutputLayout layoutType);
         Layout(std::string& layoutName);
 
         std::string name;
         std::vector<Channel> channels;
         bool hasLFE = false;
-
-        bool isHoa = false;
-        unsigned int hoaOrder = 0;
 
         Optional<Screen> reproductionScreen = Optional<Screen>();
 
