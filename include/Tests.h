@@ -61,7 +61,7 @@ static inline bool compareGainVectors(std::vector<double> a, std::vector<double>
 static inline bool testDirectSpeakers()
 {
 	DirectSpeakerMetadata metadata;
-	metadata.audioPackFormatID.push_back("AP_00010004");
+	metadata.audioPackFormatID = std::string("AP_00010004");
 
 	Layout layout = Layout::getMatchingLayout(ituPackNames.find("AP_00010004")->second);
 	// Need to set the reproduction screen in the layout for screen edge locking to work
@@ -120,7 +120,7 @@ static inline bool testDirectSpeakers()
 	}
 
 	// Test no pack format set but with a speaker label matching one in the layout
-	metadata.audioPackFormatID.clear();
+	metadata.audioPackFormatID.reset();
 	std::string speakerLabel = "M-030";
 	metadata.speakerLabel = speakerLabel;
 	std::vector<double> gNoPackMatch(nCh);
@@ -147,7 +147,7 @@ static inline bool testDirectSpeakers()
 	metadata.polarPosition.azimuth = 28.;
 	metadata.polarPosition.elevation = 5.;
 	metadata.polarPosition.distance = 1.;
-	metadata.polarPosition.bounds.push_back({ 25.,35.,-10.,10.,0.9,1.1 });
+	metadata.polarPosition.bounds = PolarBounds{ 25.,35.,-10.,10.,0.9,1.1 };
 	std::vector<double> gBounds(nCh);
 	gainCalc.calculateGains(metadata, gBounds);
 	auto gBoundsTest = getDirectGain("M+030", layout);
@@ -158,8 +158,7 @@ static inline bool testDirectSpeakers()
 	metadata.polarPosition.azimuth = 28.;
 	metadata.polarPosition.elevation = 5.;
 	metadata.polarPosition.distance = 1.;
-	metadata.polarPosition.bounds.clear();
-	metadata.polarPosition.bounds.push_back({ 27.,29.,-10.,10.,0.9,1.1 });
+	metadata.polarPosition.bounds = PolarBounds{ 27.,29.,-10.,10.,0.9,1.1 };
 	std::vector<double> gNoBounds(nCh);
 	gainCalc.calculateGains(metadata, gNoBounds);
 	std::vector<double> gNoBoundsTestTmp(nChNoLfe);
@@ -172,8 +171,7 @@ static inline bool testDirectSpeakers()
 	metadata.polarPosition.azimuth = 16.;
 	metadata.polarPosition.elevation = 0.;
 	metadata.polarPosition.distance = 1.;
-	metadata.polarPosition.bounds.clear();
-	metadata.polarPosition.bounds.push_back({ 0.,30.,0.,0.,1.,1. });
+	metadata.polarPosition.bounds = PolarBounds{ 0.,30.,0.,0.,1.,1. };
 	std::vector<double> gTwoBounds(nCh);
 	gainCalc.calculateGains(metadata, gTwoBounds);
 	auto gTwoBoundsTest = getDirectGain("M+030", layout);
