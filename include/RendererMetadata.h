@@ -188,7 +188,7 @@ namespace spaudio {
         double elevation = 0.0;
         double distance = 1.f;
         // Bounds for speaker used in DirectSpeaker gain calculation
-        std::vector<PolarBounds> bounds;
+        Optional<PolarBounds> bounds;
     };
     inline bool operator==(const DirectSpeakerPolarPosition& lhs, const DirectSpeakerPolarPosition& rhs)
     {
@@ -201,7 +201,7 @@ namespace spaudio {
         double y = 0.0;
         double z = 0.0;
         // Bounds for speaker used in DirectSpeaker gain calculation
-        std::vector<CartesianBounds> bounds;
+        Optional<CartesianBounds> bounds;
     };
     inline bool operator==(const DirectSpeakerCartesianPosition& lhs, const DirectSpeakerCartesianPosition& rhs)
     {
@@ -447,7 +447,7 @@ namespace spaudio {
         // The track index (starting from 0)
         unsigned int trackInd = 0;
         // audioPackFormatID
-        std::vector<std::string> audioPackFormatID;
+        Optional<std::string> audioPackFormatID;
         // Channel frequency information
         Frequency channelFrequency;
         // Screen edge lock

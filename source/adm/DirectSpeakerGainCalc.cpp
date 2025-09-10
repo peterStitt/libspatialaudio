@@ -48,14 +48,14 @@ namespace spaudio {
             double maxEl = el;
             double minDist = d;
             double maxDist = d;
-            if (direction.bounds.size() > 0)
+            if (direction.bounds.hasValue())
             {
-                minAz = direction.bounds[0].minAzimuth;
-                minEl = direction.bounds[0].minElevation;
-                maxAz = direction.bounds[0].maxAzimuth;
-                maxEl = direction.bounds[0].maxElevation;
-                minDist = direction.bounds[0].minDistance;
-                maxDist = direction.bounds[0].maxDistance;
+                minAz = direction.bounds.value().minAzimuth;
+                minEl = direction.bounds.value().minElevation;
+                maxAz = direction.bounds.value().maxAzimuth;
+                maxEl = direction.bounds.value().maxElevation;
+                minDist = direction.bounds.value().minDistance;
+                maxDist = direction.bounds.value().maxDistance;
             }
 
             for (unsigned int iSpk = 0; iSpk < m_nCh; ++iSpk)
@@ -118,9 +118,9 @@ namespace spaudio {
             for (auto& g : gains)
                 g = 0.f;
 
-            if (metadata.audioPackFormatID.size() > 0)
+            if (metadata.audioPackFormatID.hasValue())
             {
-                auto ituPack = ituPackNames.find(metadata.audioPackFormatID[0]);
+                auto ituPack = ituPackNames.find(metadata.audioPackFormatID.value());
                 if (ituPack != ituPackNames.end()) // if the audioPackFormat is in the list of ITU packs
                 {
                     const std::string& layoutName = ituPack->second;
