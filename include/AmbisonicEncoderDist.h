@@ -18,68 +18,72 @@
 
 #include "AmbisonicEncoder.h"
 
-const unsigned knSpeedOfSound = 344;
-const unsigned knMaxDistance = 150;
+namespace spaudio {
 
-/// Ambisonic encoder with distance cues.
+    const unsigned knSpeedOfSound = 344;
+    const unsigned knMaxDistance = 150;
 
-/** This is similar to a normal the ambisonic encoder, but takes the source's
-    distance into account, delaying the signal, adjusting its gain, and
-    implementing "W-Panning"(interior effect). If distance is not an issue,
-    then use AmbisonicEncoder which is more efficient. */
+    /// Ambisonic encoder with distance cues.
 
-class AmbisonicEncoderDist : public AmbisonicEncoder
-{
-public:
-    AmbisonicEncoderDist();
-    ~AmbisonicEncoderDist();
+    /** This is similar to a normal the ambisonic encoder, but takes the source's
+        distance into account, delaying the signal, adjusting its gain, and
+        implementing "W-Panning"(interior effect). If distance is not an issue,
+        then use AmbisonicEncoder which is more efficient. */
 
-    /** Re-create the object for the given configuration. Previous data is
-     *  lost. Returns true if successful.
-     * @param nOrder        Order to which the signal should be encoded.
-     * @param b3D           Flag if the 2D or 3D encoding.
-     * @param nSampleRate   Sample rate of the signal to be encoded.
-     * @return              Returns true if successfully configured.
-     */
-    virtual bool Configure(unsigned nOrder, bool b3D, unsigned nSampleRate);
+    class AmbisonicEncoderDist : public AmbisonicEncoder
+    {
+    public:
+        AmbisonicEncoderDist();
+        ~AmbisonicEncoderDist();
 
-    /** Resets members such as delay lines. */
-    virtual void Reset();
+        /** Re-create the object for the given configuration. Previous data is
+         *  lost. Returns true if successful.
+         * @param nOrder        Order to which the signal should be encoded.
+         * @param b3D           Flag if the 2D or 3D encoding.
+         * @param nSampleRate   Sample rate of the signal to be encoded.
+         * @return              Returns true if successfully configured.
+         */
+        virtual bool Configure(unsigned nOrder, bool b3D, unsigned nSampleRate);
 
-    /** Refreshes coefficients. */
-    virtual void Refresh();
+        /** Resets members such as delay lines. */
+        virtual void Reset();
 
-    /** Encode mono stream to B-Format.
-     * @param pfSrc     Pointer to mono signal to be encoded.
-     * @param nSamples  Number of samples to encode.
-     * @param pBFDst    Output B-Format signal.
-     */
-    void Process(float* pfSrc, unsigned nSamples, BFormat* pBFDst);
+        /** Refreshes coefficients. */
+        virtual void Refresh();
 
-    /** Set the radius of the intended playback speaker setup which is used for
-     *  the interior effect (W-Panning).
-     * @param fRoomRadius   Room radius in metres
-     */
-    void SetRoomRadius(float fRoomRadius);
+        /** Encode mono stream to B-Format.
+         * @param pfSrc     Pointer to mono signal to be encoded.
+         * @param nSamples  Number of samples to encode.
+         * @param pBFDst    Output B-Format signal.
+         */
+        void Process(float* pfSrc, unsigned nSamples, BFormat* pBFDst);
 
-    /** Returns the radius of the intended playback speaker setup, which is
-     *  used for the interior effect (W-Panning).
-     * @return  Room radius in metres.
-     */
-    float GetRoomRadius();
+        /** Set the radius of the intended playback speaker setup which is used for
+         *  the interior effect (W-Panning).
+         * @param fRoomRadius   Room radius in metres
+         */
+        void SetRoomRadius(float fRoomRadius);
 
-protected:
-    unsigned m_nSampleRate;
-    float m_fDelay;
-    int m_nDelay;
-    unsigned m_nDelayBufferLength;
-    float* m_pfDelayBuffer;
-    int m_nIn;
-    int m_nOutA;
-    int m_nOutB;
-    float m_fRoomRadius;
-    float m_fInteriorGain;
-    float m_fExteriorGain;
-};
+        /** Returns the radius of the intended playback speaker setup, which is
+         *  used for the interior effect (W-Panning).
+         * @return  Room radius in metres.
+         */
+        float GetRoomRadius();
+
+    protected:
+        unsigned m_nSampleRate;
+        float m_fDelay;
+        int m_nDelay;
+        unsigned m_nDelayBufferLength;
+        float* m_pfDelayBuffer;
+        int m_nIn;
+        int m_nOutA;
+        int m_nOutB;
+        float m_fRoomRadius;
+        float m_fInteriorGain;
+        float m_fExteriorGain;
+    };
+
+} // namespace spaudio
 
 #endif // _AMBISONIC_ENCODER_DIST_H

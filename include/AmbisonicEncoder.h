@@ -22,66 +22,70 @@
 
 #include <algorithm> // for std::max
 
-/// Ambisonic encoder.
+namespace spaudio {
 
-/** This is a basic encoder that only takes the source's azimuth an elevation
-    into account. If distance cues are going to be used, then use
-    AmbisonicEncoderDist instead. */
+    /// Ambisonic encoder.
 
-class AmbisonicEncoder : public AmbisonicSource
-{
-public:
-    AmbisonicEncoder();
-    ~AmbisonicEncoder();
+    /** This is a basic encoder that only takes the source's azimuth an elevation
+        into account. If distance cues are going to be used, then use
+        AmbisonicEncoderDist instead. */
 
-    /** Re-create the object for the given configuration. Previous data is
-     *  lost. Returns true if successful.
-     * @param nOrder    Ambisonic order.
-     * @param b3D       Flag true if encoding is to be 3D.
-     * @param nMisc     Sample rate of signal to process.
-     * @return          Returns true if encoder is correctly configured.
-     */
-    virtual bool Configure(unsigned nOrder, bool b3D, unsigned sampleRate, float fadeTimeMilliSec);
+    class AmbisonicEncoder : public AmbisonicSource
+    {
+    public:
+        AmbisonicEncoder();
+        ~AmbisonicEncoder();
 
-    /** Recalculate coefficients, and apply normalisation factors. */
-    void Refresh();
+        /** Re-create the object for the given configuration. Previous data is
+         *  lost. Returns true if successful.
+         * @param nOrder    Ambisonic order.
+         * @param b3D       Flag true if encoding is to be 3D.
+         * @param nMisc     Sample rate of signal to process.
+         * @return          Returns true if encoder is correctly configured.
+         */
+        virtual bool Configure(unsigned nOrder, bool b3D, unsigned sampleRate, float fadeTimeMilliSec);
 
-    /** Reset the state of the encoder. */
-    void Reset();
+        /** Recalculate coefficients, and apply normalisation factors. */
+        void Refresh();
 
-    /** Set the position of the source.
-     * @param polPosition   New polar position to encode.
-     */
-    void SetPosition(PolarPoint polPosition);
+        /** Reset the state of the encoder. */
+        void Reset();
 
-    /** Encode mono stream to B-Format.
-     * @param pfSrc     Pointer to the signal to encode.
-     * @param nSamples  The number of samples to encode.
-     * @param pBFDst    The BFormat encoded output.
-     * @param nOffset   Optional offset position when writing to the output.
-     */
-    void Process(float* pfSrc, unsigned nSamples, BFormat* pBFDst, unsigned int nOffset = 0);
+        /** Set the position of the source.
+         * @param polPosition   New polar position to encode.
+         */
+        void SetPosition(PolarPoint polPosition);
 
-    /** Encode mono stream to B-Format and *adds* it to the pBFDst buffer.
-     *  Allows an optional offset for the position in samples at which the output is to be written.
-     * @param pfSrc     Pointer to the signal to encode.
-     * @param nSamples  The number of samples to encode.
-     * @param pBFDst    The BFormat encoded output.
-     * @param nOffset   Optional offset position when writing to the output.
-     * @param fGain     Optional gain to apply to the output.
-     */
-    void ProcessAccumul(float* pfSrc, unsigned nSamples, BFormat* pBFDst, unsigned int nOffset = 0, float fGain = 1.f);
+        /** Encode mono stream to B-Format.
+         * @param pfSrc     Pointer to the signal to encode.
+         * @param nSamples  The number of samples to encode.
+         * @param pBFDst    The BFormat encoded output.
+         * @param nOffset   Optional offset position when writing to the output.
+         */
+        void Process(float* pfSrc, unsigned nSamples, BFormat* pBFDst, unsigned int nOffset = 0);
 
-private:
-    // The current HOA coefficients
-    std::vector<float> m_pfCoeffCurrent;
+        /** Encode mono stream to B-Format and *adds* it to the pBFDst buffer.
+         *  Allows an optional offset for the position in samples at which the output is to be written.
+         * @param pfSrc     Pointer to the signal to encode.
+         * @param nSamples  The number of samples to encode.
+         * @param pBFDst    The BFormat encoded output.
+         * @param nOffset   Optional offset position when writing to the output.
+         * @param fGain     Optional gain to apply to the output.
+         */
+        void ProcessAccumul(float* pfSrc, unsigned nSamples, BFormat* pBFDst, unsigned int nOffset = 0, float fGain = 1.f);
 
-    // The time to fade from the previous encoding gains to the target ones
-    float m_fadingTimeMilliSec = 0.f;
-    unsigned int m_fadingSamples = 0;
-    unsigned int m_fadingCounter = 0;
+    private:
+        // The current HOA coefficients
+        std::vector<float> m_pfCoeffCurrent;
 
-    GainInterp<float> m_coeffInterp;
-};
+        // The time to fade from the previous encoding gains to the target ones
+        float m_fadingTimeMilliSec = 0.f;
+        unsigned int m_fadingSamples = 0;
+        unsigned int m_fadingCounter = 0;
+
+        GainInterp<float> m_coeffInterp;
+    };
+
+} // namespace spaudio
 
 #endif // _AMBISONIC_ENCODER_H

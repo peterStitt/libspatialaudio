@@ -21,168 +21,172 @@
 #include "BFormat.h"
 #include "AmbisonicZoomer.h"
 
-enum ProcessorDOR
-{
-    kYaw, kRoll, kPitch, kNumProcessorDOR //(Degrees of Rotation)
-};
+namespace spaudio {
 
-enum ProcessorModes
-{
-    kYawRollPitch, kYawPitchRoll,
-    kRollYawPitch, kRollPitchYaw,
-    kPitchYawRoll, kPitchRollYaw,
-    kNumProcessorModes
-};
-
-
-class AmbisonicProcessor;
-
-
-/// Struct for soundfield rotation.
-class Orientation
-{
-public:
-    Orientation(float fYaw, float fPitch, float fRoll)
-        : fYaw(fYaw), fPitch(fPitch), fRoll(fRoll)
+    enum ProcessorDOR
     {
-        float fCosYaw = cosf(fYaw);
-        float fSinYaw = sinf(fYaw);
-        float fCosRoll = cosf(fRoll);
-        float fSinRoll = sinf(fRoll);
-        float fCosPitch = cosf(fPitch);
-        float fSinPitch = sinf(fPitch);
+        kYaw, kRoll, kPitch, kNumProcessorDOR //(Degrees of Rotation)
+    };
 
-        /* Conversion from yaw, pitch, roll (ZYX) to ZYZ convention to match rotation matrices
-        This method reduces the complexity of the rotation matrices since the Z0 and Z1 rotations are the same form */
-        float r33 = fCosPitch * fCosRoll;
-        if (r33 == 1.f)
+    enum ProcessorModes
+    {
+        kYawRollPitch, kYawPitchRoll,
+        kRollYawPitch, kRollPitchYaw,
+        kPitchYawRoll, kPitchRollYaw,
+        kNumProcessorModes
+    };
+
+
+    class AmbisonicProcessor;
+
+
+    /// Struct for soundfield rotation.
+    class Orientation
+    {
+    public:
+        Orientation(float fYaw, float fPitch, float fRoll)
+            : fYaw(fYaw), fPitch(fPitch), fRoll(fRoll)
         {
-            fBeta = 0.f;
-            fGamma = 0.f;
-            fAlpha = atan2f(fSinYaw, fCosYaw);
-        }
-        else
-        {
-            if (r33 == -1.f)
+            float fCosYaw = cosf(fYaw);
+            float fSinYaw = sinf(fYaw);
+            float fCosRoll = cosf(fRoll);
+            float fSinRoll = sinf(fRoll);
+            float fCosPitch = cosf(fPitch);
+            float fSinPitch = sinf(fPitch);
+
+            /* Conversion from yaw, pitch, roll (ZYX) to ZYZ convention to match rotation matrices
+            This method reduces the complexity of the rotation matrices since the Z0 and Z1 rotations are the same form */
+            float r33 = fCosPitch * fCosRoll;
+            if (r33 == 1.f)
             {
-                fBeta = (float)M_PI;
+                fBeta = 0.f;
                 fGamma = 0.f;
-                fAlpha = atan2f(-fSinYaw, fCosYaw);
+                fAlpha = atan2f(fSinYaw, fCosYaw);
             }
             else
             {
+                if (r33 == -1.f)
+                {
+                    fBeta = (float)M_PI;
+                    fGamma = 0.f;
+                    fAlpha = atan2f(-fSinYaw, fCosYaw);
+                }
+                else
+                {
 
-                float r32 = -fCosYaw * fSinRoll + fCosRoll * fSinPitch * fSinYaw ;
-                float r31 = fCosRoll * fCosYaw * fSinPitch + fSinRoll * fSinYaw ;
-                fAlpha = atan2f( r32 , r31 );
+                    float r32 = -fCosYaw * fSinRoll + fCosRoll * fSinPitch * fSinYaw;
+                    float r31 = fCosRoll * fCosYaw * fSinPitch + fSinRoll * fSinYaw;
+                    fAlpha = atan2f(r32, r31);
 
-                fBeta = acosf( r33 );
+                    fBeta = acosf(r33);
 
-                float r23 = fCosPitch * fSinRoll;
-                float r13 = -fSinPitch;
-                fGamma = atan2f( r23 , -r13 );
+                    float r23 = fCosPitch * fSinRoll;
+                    float r13 = -fSinPitch;
+                    fGamma = atan2f(r23, -r13);
+                }
             }
         }
-    }
 
-    friend class AmbisonicProcessor;
+        friend class AmbisonicProcessor;
 
-private:
-    /** rotation around the Z axis (yaw) */
-    float fYaw;
-    /** rotation around the Y axis (pitch) */
-    float fPitch;
-    /** rotation around the X axis (roll) */
-    float fRoll;
+    private:
+        /** rotation around the Z axis (yaw) */
+        float fYaw;
+        /** rotation around the Y axis (pitch) */
+        float fPitch;
+        /** rotation around the X axis (roll) */
+        float fRoll;
 
-    /** These angles are obtained from Yaw, Pitch and Roll (ZYX convention)**/
-    /** They follow the ZYZ convention to match the rotation equations **/
-    /** rotation around the Z axis */
-    float fAlpha;
-    /** rotation around the X axis */
-    float fBeta;
-    /** rotation around the new Z axis */
-    float fGamma;
-};
+        /** These angles are obtained from Yaw, Pitch and Roll (ZYX convention)**/
+        /** They follow the ZYZ convention to match the rotation equations **/
+        /** rotation around the Z axis */
+        float fAlpha;
+        /** rotation around the X axis */
+        float fBeta;
+        /** rotation around the new Z axis */
+        float fGamma;
+    };
 
 
-/// Ambisonic processor.
+    /// Ambisonic processor.
 
-/** DEPRECATED: This object is used to rotate the BFormat signal around all three axes.
- *  Orientation structs are used to define the the soundfield's orientation.
- *  Please use AmbisonicRotator instead.
- */
-
-class
-    [[deprecated("This class is deprecated. Please use AmbisonicRotator class instead.")]]
-AmbisonicProcessor : public AmbisonicBase
-{
-public:
-    /** DEPRECATED: Please use AmbisonicRotator instead.
+    /** DEPRECATED: This object is used to rotate the BFormat signal around all three axes.
+     *  Orientation structs are used to define the the soundfield's orientation.
+     *  Please use AmbisonicRotator instead.
      */
-    AmbisonicProcessor();
-    ~AmbisonicProcessor();
 
-    /** Re-create the object for the given configuration. Previous data is
-     *  lost. The last argument is not used, it is just there to match with
-     *  the base class's form. Returns true if successful.
-     * @param nOrder        Ambisonic order to process.
-     * @param b3D           True if the signal to process is 3D
-     * @param nBlockSize    Maximum block size (unused).
-     * @param nMisc         Unused.
-     * @return              Returns true if the configuration is successful.
-     */
-    bool Configure(unsigned nOrder, bool b3D, unsigned nBlockSize, unsigned nMisc);
+    class
+        [[deprecated("This class is deprecated. Please use AmbisonicRotator class instead.")]]
+    AmbisonicProcessor : public AmbisonicBase
+    {
+    public:
+        /** DEPRECATED: Please use AmbisonicRotator instead.
+         */
+        AmbisonicProcessor();
+        ~AmbisonicProcessor();
 
-    /** Not implemented. */
-    void Reset();
+        /** Re-create the object for the given configuration. Previous data is
+         *  lost. The last argument is not used, it is just there to match with
+         *  the base class's form. Returns true if successful.
+         * @param nOrder        Ambisonic order to process.
+         * @param b3D           True if the signal to process is 3D
+         * @param nBlockSize    Maximum block size (unused).
+         * @param nMisc         Unused.
+         * @return              Returns true if the configuration is successful.
+         */
+        bool Configure(unsigned nOrder, bool b3D, unsigned nBlockSize, unsigned nMisc);
 
-    /** Recalculate coefficients after the orientation changed. */
-    void Refresh();
+        /** Not implemented. */
+        void Reset();
 
-    /** Set yaw, roll, and pitch settings.
-     * @param orientation   Orientation as yaw, pitch and roll
-     */
-    void SetOrientation(Orientation orientation);
+        /** Recalculate coefficients after the orientation changed. */
+        void Refresh();
 
-    /** Get yaw, roll, and pitch settings.
-     * @return      Current orientation.
-     */
-    Orientation GetOrientation();
+        /** Set yaw, roll, and pitch settings.
+         * @param orientation   Orientation as yaw, pitch and roll
+         */
+        void SetOrientation(Orientation orientation);
 
-    /** Rotate B-Format stream in place.
-     * @param pBFSrcDst  BFormat stream to be rotated.
-     * @param nSamples   Number of samples in the signal.
-     */
-    void Process(BFormat* pBFSrcDst, unsigned nSamples);
+        /** Get yaw, roll, and pitch settings.
+         * @return      Current orientation.
+         */
+        Orientation GetOrientation();
 
-private:
-    void ProcessOrder1_3D(BFormat* pBFSrcDst, unsigned nSamples);
-    void ProcessOrder2_3D(BFormat* pBFSrcDst, unsigned nSamples);
-    void ProcessOrder3_3D(BFormat* pBFSrcDst, unsigned nSamples);
+        /** Rotate B-Format stream in place.
+         * @param pBFSrcDst  BFormat stream to be rotated.
+         * @param nSamples   Number of samples in the signal.
+         */
+        void Process(BFormat* pBFSrcDst, unsigned nSamples);
 
-protected:
-    Orientation m_orientation;
-    float* m_pfTempSample;
+    private:
+        void ProcessOrder1_3D(BFormat* pBFSrcDst, unsigned nSamples);
+        void ProcessOrder2_3D(BFormat* pBFSrcDst, unsigned nSamples);
+        void ProcessOrder3_3D(BFormat* pBFSrcDst, unsigned nSamples);
 
-    float m_fCosAlpha;
-    float m_fSinAlpha;
-    float m_fCosBeta;
-    float m_fSinBeta;
-    float m_fCosGamma;
-    float m_fSinGamma;
-    float m_fCos2Alpha;
-    float m_fSin2Alpha;
-    float m_fCos2Beta;
-    float m_fSin2Beta;
-    float m_fCos2Gamma;
-    float m_fSin2Gamma;
-    float m_fCos3Alpha;
-    float m_fSin3Alpha;
-    float m_fCos3Beta;
-    float m_fSin3Beta;
-    float m_fCos3Gamma;
-    float m_fSin3Gamma;
-};
+    protected:
+        Orientation m_orientation;
+        float* m_pfTempSample;
+
+        float m_fCosAlpha;
+        float m_fSinAlpha;
+        float m_fCosBeta;
+        float m_fSinBeta;
+        float m_fCosGamma;
+        float m_fSinGamma;
+        float m_fCos2Alpha;
+        float m_fSin2Alpha;
+        float m_fCos2Beta;
+        float m_fSin2Beta;
+        float m_fCos2Gamma;
+        float m_fSin2Gamma;
+        float m_fCos3Alpha;
+        float m_fSin3Alpha;
+        float m_fCos3Beta;
+        float m_fSin3Beta;
+        float m_fCos3Gamma;
+        float m_fSin3Gamma;
+    };
+
+} // namespace spaudio
 
 #endif // _AMBISONIC_PROCESSOR_H

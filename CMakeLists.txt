@@ -18,13 +18,14 @@ option(BUILD_STATIC_LIBS "Build static library" ON)
 include(GNUInstallDirs)
 
 list(APPEND headers
-    include/AdmConversions.h
-    include/AdmDirectSpeakerGainCalc.h
-    include/AdmMappingRules.h
-    include/AdmMetadata.h
+    include/adm/Conversions.h
+    include/adm/MappingRules.h
+    include/adm/CartesianLoudspeakerLayouts.h
+    include/adm/DirectSpeakerGainCalc.h
+    include/RendererMetadata.h
     include/Renderer.h
-    include/AllocentricPannerGainCalc.h
-    include/AllocentricExtent.h
+    include/adm/AllocentricPannerGainCalc.h
+    include/adm/AllocentricExtent.h
     include/AmbisonicAllRAD.h
     include/AmbisonicBase.h
     include/AmbisonicBinauralizer.h
@@ -46,13 +47,14 @@ list(APPEND headers
     include/AmbisonicZoomer.h
     include/BFormat.h
     include/Coordinates.h
-    include/Decorrelate.h
-    include/GainCalculator.h
+    include/Decorrelator.h
+    include/adm/GainCalculator.h
     include/GainInterp.h
     include/hrtf/hrtf.h
     include/hrtf/mit_hrtf.h
     include/hrtf/sofa_hrtf.h
     include/LoudspeakerLayouts.h
+    include/LoudspeakerLayoutHulls.h
     include/mit_hrtf_filter.h
     include/mit_hrtf_lib.h
     include/normal/mit_hrtf_normal_44100.h
@@ -60,7 +62,7 @@ list(APPEND headers
     include/normal/mit_hrtf_normal_88200.h
     include/normal/mit_hrtf_normal_96000.h
     include/PointSourcePannerGainCalc.h
-    include/PolarExtent.h
+    include/adm/PolarExtent.h
     include/RegionHandlers.h
     include/Screen.h
     include/ScreenCommon.h
@@ -96,16 +98,15 @@ list(APPEND sources
     source/AmbisonicSpeaker.cpp
     source/AmbisonicEncoderDist.cpp
     source/AmbisonicZoomer.cpp
-    source/Decorrelate.cpp
-    source/AdmDirectSpeakerGainCalc.cpp
+    source/Decorrelator.cpp
+    source/adm/DirectSpeakerGainCalc.cpp
     source/Renderer.cpp
-    source/AllocentricPannerGainCalc.cpp
-    source/AllocentricExtent.cpp
-    source/Decorrelate.cpp
-    source/GainCalculator.cpp
+    source/adm/AllocentricPannerGainCalc.cpp
+    source/adm/AllocentricExtent.cpp
+    source/adm/GainCalculator.cpp
     source/GainInterp.cpp
     source/PointSourcePannerGainCalc.cpp
-    source/PolarExtent.cpp
+    source/adm/PolarExtent.cpp
     source/RegionHandlers.cpp
     source/Screen.cpp
     source/dsp/IIRFilter.cpp
@@ -118,7 +119,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 find_package(MySofa QUIET)
 set(HAVE_MYSOFA ${MYSOFA_FOUND})
 
-include_directories(include include/dsp include/hrtf source source/kiss_fft ${PROJECT_BINARY_DIR})
+include_directories(include include/adm include/dsp include/hrtf source source/kiss_fft ${PROJECT_BINARY_DIR})
 
 if(MYSOFA_FOUND)
     include_directories(${MYSOFA_INCLUDE_DIRS})

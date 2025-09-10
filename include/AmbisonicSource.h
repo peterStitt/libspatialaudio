@@ -21,95 +21,99 @@
 
 #include <vector>
 
-/// Base class for encoder and speaker
+namespace spaudio {
 
-/** This acts as a base class for single point 3D objects such as encoding a
-    mono stream into a 3D soundfield, or a single speaker for decoding a 3D
-    soundfield. */
+    /// Base class for encoder and speaker
 
-class AmbisonicSource : public AmbisonicBase
-{
-public:
-    AmbisonicSource();
+    /** This acts as a base class for single point 3D objects such as encoding a
+        mono stream into a 3D soundfield, or a single speaker for decoding a 3D
+        soundfield. */
 
-    /** Re-create the object for the given configuration. Previous data is
-     *  lost. The last argument is not used, it is just there to match with
-     *  the base class's form. Returns true if successful.
-     * @param nOrder    Ambisonic order.
-     * @param b3D       Flag true if the signal is 3D.
-     * @param nMisc     Unused.
-     * @return          Returns true if successfully configured.
-     */
-    virtual bool Configure(unsigned nOrder, bool b3D, unsigned nMisc);
+    class AmbisonicSource : public AmbisonicBase
+    {
+    public:
+        AmbisonicSource();
 
-    /** Not implemented. */
-    virtual void Reset();
+        /** Re-create the object for the given configuration. Previous data is
+         *  lost. The last argument is not used, it is just there to match with
+         *  the base class's form. Returns true if successful.
+         * @param nOrder    Ambisonic order.
+         * @param b3D       Flag true if the signal is 3D.
+         * @param nMisc     Unused.
+         * @return          Returns true if successfully configured.
+         */
+        virtual bool Configure(unsigned nOrder, bool b3D, unsigned nMisc);
 
-    /** Recalculates coefficients. */
-    virtual void Refresh();
+        /** Not implemented. */
+        virtual void Reset();
 
-    /** Set azimuth, elevation, and distance settings.
-     * @param polPosition   Polar position of the source.
-     */
-    virtual void SetPosition(PolarPoint polPosition);
+        /** Recalculates coefficients. */
+        virtual void Refresh();
 
-    /** Get azimuth, elevation, and distance settings.
-     * @return  Returns source position in polar coordinates.
-     */
-    virtual PolarPoint GetPosition();
+        /** Set azimuth, elevation, and distance settings.
+         * @param polPosition   Polar position of the source.
+         */
+        virtual void SetPosition(PolarPoint polPosition);
 
-    /** Sets the weight for the spherical harmonics of the given order.
-     * @param nOrder    The order to set the weights for
-     * @param fWeight   Weight to be applied to all coefficients of the specified order.
-     */
-    virtual void SetOrderWeight(unsigned nOrder, float fWeight);
+        /** Get azimuth, elevation, and distance settings.
+         * @return  Returns source position in polar coordinates.
+         */
+        virtual PolarPoint GetPosition();
 
-    /** Sets the weight for the spherical harmonics of all orders.
-     * @param fWeight Weight to be applied to all coefficients.
-     */
-    virtual void SetOrderWeightAll(float fWeight);
+        /** Sets the weight for the spherical harmonics of the given order.
+         * @param nOrder    The order to set the weights for
+         * @param fWeight   Weight to be applied to all coefficients of the specified order.
+         */
+        virtual void SetOrderWeight(unsigned nOrder, float fWeight);
 
-    /** Sets the spherical harmonic coefficient for a given component
-     *  Can be used for preset decoders to non-regular arrays where a Sampling decoder is sub-optimal
-     * @param nChannel  Channel/coefficient index
-     * @param fCoeff    Coefficient value
-     */
-    virtual void SetCoefficient(unsigned nChannel, float fCoeff);
+        /** Sets the weight for the spherical harmonics of all orders.
+         * @param fWeight Weight to be applied to all coefficients.
+         */
+        virtual void SetOrderWeightAll(float fWeight);
 
-    /** Gets the weight for the spherical harmonics of the given order.
-     * @param nOrder    Order of coefficients
-     * @return          Weight applied to coefficients of the specified order.
-     */
-    virtual float GetOrderWeight(unsigned nOrder);
+        /** Sets the spherical harmonic coefficient for a given component
+         *  Can be used for preset decoders to non-regular arrays where a Sampling decoder is sub-optimal
+         * @param nChannel  Channel/coefficient index
+         * @param fCoeff    Coefficient value
+         */
+        virtual void SetCoefficient(unsigned nChannel, float fCoeff);
 
-    /** Gets the coefficient of the specified channel/component. Useful for the
-     *  Binauralizer.
-     *  This does not include any weights, only the raw coefficient.
-     * @param nChannel  Index of the channel/coefficient.
-     * @return          Value of the specified coefficient.
-     */
-    virtual float GetCoefficient(unsigned nChannel);
+        /** Gets the weight for the spherical harmonics of the given order.
+         * @param nOrder    Order of coefficients
+         * @return          Weight applied to coefficients of the specified order.
+         */
+        virtual float GetOrderWeight(unsigned nOrder);
 
-    /** Fill a vector with all the current HOA coefficients.
-     * @param hoaCoeffs Vector containing all coefficients.
-     */
-    virtual void GetCoefficients(std::vector<float>& hoaCoeffs);
+        /** Gets the coefficient of the specified channel/component. Useful for the
+         *  Binauralizer.
+         *  This does not include any weights, only the raw coefficient.
+         * @param nChannel  Index of the channel/coefficient.
+         * @return          Value of the specified coefficient.
+         */
+        virtual float GetCoefficient(unsigned nChannel);
 
-    /** Sets the source's gain.
-     * @param fGain   Gain to apply to the source.
-     */
-    virtual void SetGain(float fGain);
+        /** Fill a vector with all the current HOA coefficients.
+         * @param hoaCoeffs Vector containing all coefficients.
+         */
+        virtual void GetCoefficients(std::vector<float>& hoaCoeffs);
 
-    /** Gets the source's gain.
-     * @return  Gain applied to the source.
-     */
-    virtual float GetGain();
+        /** Sets the source's gain.
+         * @param fGain   Gain to apply to the source.
+         */
+        virtual void SetGain(float fGain);
 
-protected:
-    std::vector<float> m_pfCoeff;
-    std::vector<float> m_pfOrderWeights;
-    PolarPoint m_polPosition;
-    float m_fGain;
-};
+        /** Gets the source's gain.
+         * @return  Gain applied to the source.
+         */
+        virtual float GetGain();
+
+    protected:
+        std::vector<float> m_pfCoeff;
+        std::vector<float> m_pfOrderWeights;
+        PolarPoint m_polPosition;
+        float m_fGain;
+    };
+
+} // namespace spaudio
 
 #endif // _AMBISONIC_SOURCE_H

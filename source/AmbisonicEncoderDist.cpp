@@ -15,112 +15,116 @@
 
 #include "AmbisonicEncoderDist.h"
 
-AmbisonicEncoderDist::AmbisonicEncoderDist()
-{
-    m_nSampleRate = 0;
-    m_fDelay = 0.f;
-    m_nDelay = 0;
-    m_nDelayBufferLength = 0;
-    m_pfDelayBuffer = 0;
-    m_nIn = 0;
-    m_nOutA = 0;
-    m_nOutB = 0;
-    m_fRoomRadius = 5.f;
-    m_fInteriorGain = 0.f;
-    m_fExteriorGain = 0.f;
+namespace spaudio {
 
-    Configure(DEFAULT_ORDER, DEFAULT_HEIGHT, DEFAULT_SAMPLERATE);
-}
-
-AmbisonicEncoderDist::~AmbisonicEncoderDist()
-{
-    if(m_pfDelayBuffer)
-        delete [] m_pfDelayBuffer;
-}
-
-bool AmbisonicEncoderDist::Configure(unsigned nOrder, bool b3D, unsigned nSampleRate)
-{
-    bool success = AmbisonicEncoder::Configure(nOrder, b3D, nSampleRate, 0);
-    if(!success)
-        return false;
-    m_nSampleRate = nSampleRate;
-    m_nDelayBufferLength = (unsigned)((float)knMaxDistance / knSpeedOfSound * m_nSampleRate + 0.5f);
-    if(m_pfDelayBuffer)
-        delete [] m_pfDelayBuffer;
-    m_pfDelayBuffer = new float[m_nDelayBufferLength];
-    Reset();
-    
-    return true;
-}
-
-void AmbisonicEncoderDist::Reset()
-{
-    memset(m_pfDelayBuffer, 0, m_nDelayBufferLength * sizeof(float));
-    m_fDelay = m_polPosition.fDistance / knSpeedOfSound * (float)m_nSampleRate + 0.5f;
-    m_nDelay = (int)m_fDelay;
-    m_fDelay -= m_nDelay;
-    m_nIn = 0;
-    m_nOutA = (m_nIn - m_nDelay + m_nDelayBufferLength) % m_nDelayBufferLength;
-    m_nOutB = (m_nOutA + 1) % m_nDelayBufferLength;
-}
-
-void AmbisonicEncoderDist::Refresh()
-{
-    AmbisonicEncoder::Refresh();
-
-    m_fDelay = fabsf(m_polPosition.fDistance) / knSpeedOfSound * (float)m_nSampleRate; //TODO abs() sees float as int!
-    m_nDelay = (int)m_fDelay;
-    m_fDelay -= m_nDelay;
-    m_nOutA = (m_nIn - m_nDelay + m_nDelayBufferLength) % m_nDelayBufferLength;
-    m_nOutB = (m_nOutA + 1) % m_nDelayBufferLength;
-
-    //Source is outside speaker array
-    if(fabs(m_polPosition.fDistance) >= m_fRoomRadius)
+    AmbisonicEncoderDist::AmbisonicEncoderDist()
     {
-        m_fInteriorGain    = (m_fRoomRadius / fabsf(m_polPosition.fDistance)) / 2.f;
-        m_fExteriorGain    = m_fInteriorGain;
+        m_nSampleRate = 0;
+        m_fDelay = 0.f;
+        m_nDelay = 0;
+        m_nDelayBufferLength = 0;
+        m_pfDelayBuffer = 0;
+        m_nIn = 0;
+        m_nOutA = 0;
+        m_nOutB = 0;
+        m_fRoomRadius = 5.f;
+        m_fInteriorGain = 0.f;
+        m_fExteriorGain = 0.f;
+
+        Configure(DEFAULT_ORDER, DEFAULT_HEIGHT, DEFAULT_SAMPLERATE);
     }
-    else
+
+    AmbisonicEncoderDist::~AmbisonicEncoderDist()
     {
-        m_fInteriorGain = (2.f - fabsf(m_polPosition.fDistance) / m_fRoomRadius) / 2.f;
-        m_fExteriorGain = (fabsf(m_polPosition.fDistance) / m_fRoomRadius) / 2.f;
+        if (m_pfDelayBuffer)
+            delete[] m_pfDelayBuffer;
     }
-}
 
-void AmbisonicEncoderDist::Process(float* pfSrc, unsigned nSamples, BFormat* pfDst)
-{
-    unsigned niChannel = 0;
-    unsigned niSample = 0;
-    float fSrcSample = 0;
-
-    for(niSample = 0; niSample < nSamples; niSample++)
+    bool AmbisonicEncoderDist::Configure(unsigned nOrder, bool b3D, unsigned nSampleRate)
     {
-        //Store
-        m_pfDelayBuffer[m_nIn] = pfSrc[niSample];
-        //Read
-        fSrcSample = m_pfDelayBuffer[m_nOutA] * (1.f - m_fDelay)
-                    + m_pfDelayBuffer[m_nOutB] * m_fDelay;
+        bool success = AmbisonicEncoder::Configure(nOrder, b3D, nSampleRate, 0);
+        if (!success)
+            return false;
+        m_nSampleRate = nSampleRate;
+        m_nDelayBufferLength = (unsigned)((float)knMaxDistance / knSpeedOfSound * m_nSampleRate + 0.5f);
+        if (m_pfDelayBuffer)
+            delete[] m_pfDelayBuffer;
+        m_pfDelayBuffer = new float[m_nDelayBufferLength];
+        Reset();
 
-        pfDst->m_ppfChannels[kW][niSample] = fSrcSample * m_fInteriorGain * m_pfCoeff[kW];
+        return true;
+    }
 
-        fSrcSample *= m_fExteriorGain;
-        for(niChannel = 1; niChannel < m_nChannelCount; niChannel++)
+    void AmbisonicEncoderDist::Reset()
+    {
+        memset(m_pfDelayBuffer, 0, m_nDelayBufferLength * sizeof(float));
+        m_fDelay = m_polPosition.fDistance / knSpeedOfSound * (float)m_nSampleRate + 0.5f;
+        m_nDelay = (int)m_fDelay;
+        m_fDelay -= m_nDelay;
+        m_nIn = 0;
+        m_nOutA = (m_nIn - m_nDelay + m_nDelayBufferLength) % m_nDelayBufferLength;
+        m_nOutB = (m_nOutA + 1) % m_nDelayBufferLength;
+    }
+
+    void AmbisonicEncoderDist::Refresh()
+    {
+        AmbisonicEncoder::Refresh();
+
+        m_fDelay = fabsf(m_polPosition.fDistance) / knSpeedOfSound * (float)m_nSampleRate; //TODO abs() sees float as int!
+        m_nDelay = (int)m_fDelay;
+        m_fDelay -= m_nDelay;
+        m_nOutA = (m_nIn - m_nDelay + m_nDelayBufferLength) % m_nDelayBufferLength;
+        m_nOutB = (m_nOutA + 1) % m_nDelayBufferLength;
+
+        //Source is outside speaker array
+        if (fabs(m_polPosition.fDistance) >= m_fRoomRadius)
         {
-            pfDst->m_ppfChannels[niChannel][niSample] = fSrcSample * m_pfCoeff[niChannel];
+            m_fInteriorGain = (m_fRoomRadius / fabsf(m_polPosition.fDistance)) / 2.f;
+            m_fExteriorGain = m_fInteriorGain;
         }
-
-        m_nIn = (m_nIn + 1) % m_nDelayBufferLength;
-        m_nOutA = (m_nOutA + 1) % m_nDelayBufferLength;
-        m_nOutB = (m_nOutB + 1) % m_nDelayBufferLength;
+        else
+        {
+            m_fInteriorGain = (2.f - fabsf(m_polPosition.fDistance) / m_fRoomRadius) / 2.f;
+            m_fExteriorGain = (fabsf(m_polPosition.fDistance) / m_fRoomRadius) / 2.f;
+        }
     }
-}
 
-void AmbisonicEncoderDist::SetRoomRadius(float fRoomRadius)
-{
-    m_fRoomRadius = fRoomRadius;
-}
+    void AmbisonicEncoderDist::Process(float* pfSrc, unsigned nSamples, BFormat* pfDst)
+    {
+        unsigned niChannel = 0;
+        unsigned niSample = 0;
+        float fSrcSample = 0;
 
-float AmbisonicEncoderDist::GetRoomRadius()
-{
-    return m_fRoomRadius;
-}
+        for (niSample = 0; niSample < nSamples; niSample++)
+        {
+            //Store
+            m_pfDelayBuffer[m_nIn] = pfSrc[niSample];
+            //Read
+            fSrcSample = m_pfDelayBuffer[m_nOutA] * (1.f - m_fDelay)
+                + m_pfDelayBuffer[m_nOutB] * m_fDelay;
+
+            pfDst->m_ppfChannels[kW][niSample] = fSrcSample * m_fInteriorGain * m_pfCoeff[kW];
+
+            fSrcSample *= m_fExteriorGain;
+            for (niChannel = 1; niChannel < m_nChannelCount; niChannel++)
+            {
+                pfDst->m_ppfChannels[niChannel][niSample] = fSrcSample * m_pfCoeff[niChannel];
+            }
+
+            m_nIn = (m_nIn + 1) % m_nDelayBufferLength;
+            m_nOutA = (m_nOutA + 1) % m_nDelayBufferLength;
+            m_nOutB = (m_nOutB + 1) % m_nDelayBufferLength;
+        }
+    }
+
+    void AmbisonicEncoderDist::SetRoomRadius(float fRoomRadius)
+    {
+        m_fRoomRadius = fRoomRadius;
+    }
+
+    float AmbisonicEncoderDist::GetRoomRadius()
+    {
+        return m_fRoomRadius;
+    }
+
+} // namespace spaudio

@@ -20,60 +20,64 @@
 #include "BFormat.h"
 #include "LinkwitzRileyIIR.h"
 
-/** This class takes an ambisonic signal and applies shelf filtering that psychoacoustically
- *  optimise the high frequency band.
- */
-class AmbisonicOptimFilters : public AmbisonicBase
-{
-public:
-    AmbisonicOptimFilters();
-    ~AmbisonicOptimFilters();
+namespace spaudio {
 
-    /** Configure the object for the specified inputs
-     * @param nOrder        The ambisonic order of the signal to be processed
-     * @param b3D           Set true if the signal to process is 3D
-     * @param nBlockSize    The maximum number of samples to process in a block
-     * @param sampleRate    The sample rate of the signal to be processed
-     * @return              Returns true on successful configuration
+    /** This class takes an ambisonic signal and applies shelf filtering that psychoacoustically
+     *  optimise the high frequency band.
      */
-    bool Configure(unsigned nOrder, bool b3D, unsigned nBlockSize, unsigned sampleRate);
-    
-    /** Reset the internal state of the filters */
-    void Reset();
+    class AmbisonicOptimFilters : public AmbisonicBase
+    {
+    public:
+        AmbisonicOptimFilters();
+        ~AmbisonicOptimFilters();
 
-    /** No implementation. Pure virtual base-class function. */
-    void Refresh();
+        /** Configure the object for the specified inputs
+         * @param nOrder        The ambisonic order of the signal to be processed
+         * @param b3D           Set true if the signal to process is 3D
+         * @param nBlockSize    The maximum number of samples to process in a block
+         * @param sampleRate    The sample rate of the signal to be processed
+         * @return              Returns true on successful configuration
+         */
+        bool Configure(unsigned nOrder, bool b3D, unsigned nBlockSize, unsigned sampleRate);
 
-    /** Set the gains to be applied the channels of each order.
-     * @param gHighFreq     Vector of nOrder + 1 gains.
-     */
-    void SetHighFrequencyGains(const std::vector<float>& gHighFreq);
+        /** Reset the internal state of the filters */
+        void Reset();
 
-    /** Get the max rE gains for each order for a 3D or 2D decoder.
-     * @param nOrder    Ambisonic order.
-     * @param b3D       If the gains are 3D or 2D.
-     * @return          Vector containing the nOrder + 1 max rE gains
-     */
-    static std::vector<float> GetMaxReGains(unsigned nOrder, bool b3D);
+        /** No implementation. Pure virtual base-class function. */
+        void Refresh();
 
-    /** Apply shelf filters to the B-format stream to apply psychoacoustic optimisation in the high frequency band
-     * @param pBFSrcDst     The B-format stream to process
-     * @param nSamples      The number of samples to process
-     */
-    void Process(BFormat* pBFSrcDst, unsigned int nSamples);
+        /** Set the gains to be applied the channels of each order.
+         * @param gHighFreq     Vector of nOrder + 1 gains.
+         */
+        void SetHighFrequencyGains(const std::vector<float>& gHighFreq);
 
-protected:
-    // Filter the signal into low- and high-frequency bands
-    LinkwitzRileyIIR m_bandFilterIIR;
+        /** Get the max rE gains for each order for a 3D or 2D decoder.
+         * @param nOrder    Ambisonic order.
+         * @param b3D       If the gains are 3D or 2D.
+         * @return          Vector containing the nOrder + 1 max rE gains
+         */
+        static std::vector<float> GetMaxReGains(unsigned nOrder, bool b3D);
 
-    // The gains applied to each order in the high-frequency band
-    std::vector<float> m_gHighFreq;
+        /** Apply shelf filters to the B-format stream to apply psychoacoustic optimisation in the high frequency band
+         * @param pBFSrcDst     The B-format stream to process
+         * @param nSamples      The number of samples to process
+         */
+        void Process(BFormat* pBFSrcDst, unsigned int nSamples);
 
-    // A temp buffer holding the low-passed signal
-    BFormat m_lowPassOut;
+    protected:
+        // Filter the signal into low- and high-frequency bands
+        LinkwitzRileyIIR m_bandFilterIIR;
 
-    // The maximum number of samples the class can process at once
-    unsigned int m_nMaxBlockSize = 0;
-};
+        // The gains applied to each order in the high-frequency band
+        std::vector<float> m_gHighFreq;
+
+        // A temp buffer holding the low-passed signal
+        BFormat m_lowPassOut;
+
+        // The maximum number of samples the class can process at once
+        unsigned int m_nMaxBlockSize = 0;
+    };
+
+} // namespace spaudio
 
 #endif // _AMBISONIC_OPTIM_FILTERS_H

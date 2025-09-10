@@ -20,9 +20,7 @@
 #include <memory.h>
 
 #define DEFAULT_ORDER    1
-#define    DEFAULT_HEIGHT    true
+#define DEFAULT_HEIGHT    true
 #define DEFAULT_BFORMAT_SAMPLES    512
-
-
 
 #endif //_AMBISONICTYPEDEFINESCOMMONS_H

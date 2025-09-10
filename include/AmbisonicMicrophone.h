@@ -19,39 +19,43 @@
 #include "AmbisonicSource.h"
 #include "BFormat.h"
 
-/// Ambisonic microphone
+namespace spaudio {
 
-/** This is a microphone class. It is similar to ::AmbisonicSpeaker, with the
-    addition of having directivity control. */
+    /// Ambisonic microphone
 
-class AmbisonicMicrophone : public AmbisonicSource
-{
-public:
-    AmbisonicMicrophone();
-    ~AmbisonicMicrophone();
+    /** This is a microphone class. It is similar to ::AmbisonicSpeaker, with the
+        addition of having directivity control. */
 
-    /** Recalculate coefficients, and apply normalisation factors. */
-    void Refresh();
+    class AmbisonicMicrophone : public AmbisonicSource
+    {
+    public:
+        AmbisonicMicrophone();
+        ~AmbisonicMicrophone();
 
-    /** Decode B-Format to microphone feed.
-     * @param pBFSrc    BFormat scene to be sampled by the microphone directivity.
-     * @param nSamples  Number of samples to process.
-     * @param pfDst     Mono microphone signal.
-     */
-    void Process(BFormat* pBFSrc, unsigned nSamples, float* pfDst);
+        /** Recalculate coefficients, and apply normalisation factors. */
+        void Refresh();
 
-    /** Set the microphone's directivity.
-     * @param fDirectivity  Microphone directivity.
-     */
-    void SetDirectivity(float fDirectivity);
+        /** Decode B-Format to microphone feed.
+         * @param pBFSrc    BFormat scene to be sampled by the microphone directivity.
+         * @param nSamples  Number of samples to process.
+         * @param pfDst     Mono microphone signal.
+         */
+        void Process(BFormat* pBFSrc, unsigned nSamples, float* pfDst);
 
-    /** Get the microphone's directivity.
-     * @return  Microphone directivity.
-     */
-    float GetDirectivity();
+        /** Set the microphone's directivity.
+         * @param fDirectivity  Microphone directivity.
+         */
+        void SetDirectivity(float fDirectivity);
 
-protected:
-    float m_fDirectivity;
-};
+        /** Get the microphone's directivity.
+         * @return  Microphone directivity.
+         */
+        float GetDirectivity();
+
+    protected:
+        float m_fDirectivity;
+    };
+
+} // namespace spaudio
 
 #endif // _AMBISONIC_MICROPHONE_H

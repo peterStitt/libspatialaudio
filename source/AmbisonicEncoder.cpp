@@ -17,57 +17,63 @@
 #include <assert.h>
 #include <cmath>
 
-AmbisonicEncoder::AmbisonicEncoder() : m_coeffInterp(0)
-{ }
+namespace spaudio {
 
-AmbisonicEncoder::~AmbisonicEncoder()
-{ }
+    AmbisonicEncoder::AmbisonicEncoder() : m_coeffInterp(0)
+    {
+    }
 
-bool AmbisonicEncoder::Configure(unsigned nOrder, bool b3D, unsigned sampleRate, float fadeTimeMilliSec)
-{
-    bool success = AmbisonicSource::Configure(nOrder, b3D, sampleRate);
-    if(!success || fadeTimeMilliSec < 0.f)
-        return false;
+    AmbisonicEncoder::~AmbisonicEncoder()
+    {
+    }
 
-    m_pfCoeffCurrent.resize(m_nChannelCount);
-    m_coeffInterp = GainInterp<float>(m_nChannelCount);
+    bool AmbisonicEncoder::Configure(unsigned nOrder, bool b3D, unsigned sampleRate, float fadeTimeMilliSec)
+    {
+        bool success = AmbisonicSource::Configure(nOrder, b3D, sampleRate);
+        if (!success || fadeTimeMilliSec < 0.f)
+            return false;
 
-    m_fadingTimeMilliSec = fadeTimeMilliSec;
-    m_fadingSamples = (unsigned)std::round(0.001f * m_fadingTimeMilliSec * (float)sampleRate);
+        m_pfCoeffCurrent.resize(m_nChannelCount);
+        m_coeffInterp = GainInterp<float>(m_nChannelCount);
 
-    return true;
-}
+        m_fadingTimeMilliSec = fadeTimeMilliSec;
+        m_fadingSamples = (unsigned)std::round(0.001f * m_fadingTimeMilliSec * (float)sampleRate);
 
-void AmbisonicEncoder::Refresh()
-{
-    AmbisonicSource::Refresh();
-}
+        return true;
+    }
 
-void AmbisonicEncoder::Reset()
-{
-    AmbisonicSource::Reset();
-    m_coeffInterp.Reset();
-}
+    void AmbisonicEncoder::Refresh()
+    {
+        AmbisonicSource::Refresh();
+    }
 
-void AmbisonicEncoder::SetPosition(PolarPoint polPosition)
-{
-    // Update the coefficients
-    AmbisonicSource::SetPosition(polPosition);
-    AmbisonicSource::Refresh();
-    AmbisonicSource::GetCoefficients(m_pfCoeffCurrent);
-    m_coeffInterp.SetGainVector(m_pfCoeffCurrent, m_fadingSamples);
-}
+    void AmbisonicEncoder::Reset()
+    {
+        AmbisonicSource::Reset();
+        m_coeffInterp.Reset();
+    }
 
-void AmbisonicEncoder::Process(float* pfSrc, unsigned nSamples, BFormat* pfDst, unsigned int nOffset)
-{
-    assert(nSamples + nOffset <= pfDst->GetSampleCount()); // Cannot write beyond the of the destination buffers!
+    void AmbisonicEncoder::SetPosition(PolarPoint polPosition)
+    {
+        // Update the coefficients
+        AmbisonicSource::SetPosition(polPosition);
+        AmbisonicSource::Refresh();
+        AmbisonicSource::GetCoefficients(m_pfCoeffCurrent);
+        m_coeffInterp.SetGainVector(m_pfCoeffCurrent, m_fadingSamples);
+    }
 
-    m_coeffInterp.Process(pfSrc, pfDst->m_ppfChannels.get(), nSamples, nOffset);
-}
+    void AmbisonicEncoder::Process(float* pfSrc, unsigned nSamples, BFormat* pfDst, unsigned int nOffset)
+    {
+        assert(nSamples + nOffset <= pfDst->GetSampleCount()); // Cannot write beyond the of the destination buffers!
 
-void AmbisonicEncoder::ProcessAccumul(float* pfSrc, unsigned nSamples, BFormat* pfDst, unsigned int nOffset, float fGain)
-{
-    assert(nSamples + nOffset <= pfDst->GetSampleCount()); // Cannot write beyond the of the destination buffers!
+        m_coeffInterp.Process(pfSrc, pfDst->m_ppfChannels.get(), nSamples, nOffset);
+    }
 
-    m_coeffInterp.ProcessAccumul(pfSrc, pfDst->m_ppfChannels.get(), nSamples, nOffset, fGain);
-}
+    void AmbisonicEncoder::ProcessAccumul(float* pfSrc, unsigned nSamples, BFormat* pfDst, unsigned int nOffset, float fGain)
+    {
+        assert(nSamples + nOffset <= pfDst->GetSampleCount()); // Cannot write beyond the of the destination buffers!
+
+        m_coeffInterp.ProcessAccumul(pfSrc, pfDst->m_ppfChannels.get(), nSamples, nOffset, fGain);
+    }
+
+} // namespace spaudio

@@ -19,35 +19,39 @@
 #include "AmbisonicSource.h"
 #include "BFormat.h"
 
-/// Ambisonic speaker
+namespace spaudio {
 
-/** This is a speaker class to be used in the decoder. */
+    /// Ambisonic speaker
 
-class AmbisonicSpeaker : public AmbisonicSource
-{
-public:
-    AmbisonicSpeaker();
-    ~AmbisonicSpeaker();
+    /** This is a speaker class to be used in the decoder. */
 
-    /** Re-create the object for the given configuration. Previous data is
-     *  lost. The last argument is not used, it is just there to match with
-     *  the base class's form. Returns true if successful.
-     * @param nOrder    Order of the signal to process.
-     * @param b3D       True if the signal is 3D.
-     * @param nMisc     Unused.
-     * @return          Returns true if successfully configured.
-     */
-    virtual bool Configure(unsigned nOrder, bool b3D, unsigned nMisc);
+    class AmbisonicSpeaker : public AmbisonicSource
+    {
+    public:
+        AmbisonicSpeaker();
+        ~AmbisonicSpeaker();
 
-    /** Recalculate coefficients, and apply normalisation factors. */
-    void Refresh();
+        /** Re-create the object for the given configuration. Previous data is
+         *  lost. The last argument is not used, it is just there to match with
+         *  the base class's form. Returns true if successful.
+         * @param nOrder    Order of the signal to process.
+         * @param b3D       True if the signal is 3D.
+         * @param nMisc     Unused.
+         * @return          Returns true if successfully configured.
+         */
+        virtual bool Configure(unsigned nOrder, bool b3D, unsigned nMisc);
 
-    /** Decode B-Format to speaker feed.
-     * @param pBFSrc    B-Format signal to decode.
-     * @param nSamples  Number of samples to decode.
-     * @param pfDst     Mono speaker signal output.
-     */
-    void Process(BFormat* pBFSrc, unsigned nSamples, float* pfDst);
-};
+        /** Recalculate coefficients, and apply normalisation factors. */
+        void Refresh();
+
+        /** Decode B-Format to speaker feed.
+         * @param pBFSrc    B-Format signal to decode.
+         * @param nSamples  Number of samples to decode.
+         * @param pfDst     Mono speaker signal output.
+         */
+        void Process(BFormat* pBFSrc, unsigned nSamples, float* pfDst);
+    };
+
+} // namespace spaudio
 
 #endif // _AMBISONIC_SPEAKER_H
