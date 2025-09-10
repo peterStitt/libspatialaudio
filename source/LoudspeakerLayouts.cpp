@@ -62,37 +62,26 @@ namespace spaudio {
     {
         name = channelName;
 
-        if (stringContains(channelName, "ACN")) // HOA channel so set position to default
+        // Find the channel in the labels vector
+        auto it = std::find(bs2094::channelLabels.begin(), bs2094::channelLabels.end(), channelName);
+
+        if (it != bs2094::channelLabels.end())
         {
-            polarPosition = PolarPosition{ 0., 0., 1. };
-            polarPositionNominal = PolarPosition{ 0., 0., 1. };
-            isLFE = false;
+            auto index = std::distance(bs2094::channelLabels.begin(), it);
+            channelType = static_cast<ChannelTypes>(index);
+            polarPosition = bs2094::positions[index];
+            polarPositionNominal = bs2094::positions[index];
+            isLFE = isChannelLFE();
         }
         else
         {
-            // Find the channel in the labels vector
-            auto it = std::find(bs2094::channelLabels.begin(),
-                bs2094::channelLabels.end(),
-                channelName);
-
-            if (it != bs2094::channelLabels.end())
-            {
-                auto index = std::distance(bs2094::channelLabels.begin(), it);
-                channelType = static_cast<ChannelTypes>(index);
-                polarPosition = bs2094::positions[index];
-                polarPositionNominal = bs2094::positions[index];
-                isLFE = isChannelLFE();
-            }
-            else
-            {
-                // Fallback to a Custom channel at the front
-                channelType = ChannelTypes::Custom;
-                int fallbackIndex = static_cast<int>(ChannelTypes::FrontCentre);
-                polarPosition = bs2094::positions[fallbackIndex];
-                polarPositionNominal = bs2094::positions[fallbackIndex];
-                isLFE = false;
-                throw std::runtime_error("Unknown channel: " + channelName);
-            }
+            // Fallback to a Custom channel at the front
+            channelType = ChannelTypes::Custom;
+            int fallbackIndex = static_cast<int>(ChannelTypes::FrontCentre);
+            polarPosition = bs2094::positions[fallbackIndex];
+            polarPositionNominal = bs2094::positions[fallbackIndex];
+            isLFE = false;
+            throw std::runtime_error("Unknown channel: " + channelName);
         }
     }
     Channel::~Channel() {};
@@ -108,8 +97,8 @@ namespace spaudio {
     {
     }
 
-    Layout::Layout(std::string layoutName, std::vector<Channel> layoutChannels, bool layoutHasLfe, bool layoutIsHoa, unsigned int layoutOrder)
-        : name(layoutName), channels(layoutChannels), hasLFE(layoutHasLfe), isHoa(layoutIsHoa), hoaOrder(layoutOrder)
+    Layout::Layout(std::string layoutName, std::vector<Channel> layoutChannels, bool layoutHasLfe)
+        : name(layoutName), channels(layoutChannels), hasLFE(layoutHasLfe)
     {
     }
 
@@ -261,13 +250,6 @@ namespace spaudio {
             Layout{"9+10+5",std::vector<Channel>{ Channel("M+060"),Channel("M-060"),Channel("M+000"),Channel("M+135"),Channel("M-135"),Channel("M+030"),Channel("M-030"),Channel("M+180"),
             Channel("M+090"),Channel("M-090"),Channel("U+045"),Channel("U-045"),Channel("U+000"),Channel("T+000"),Channel("U+135"),Channel("U-135"),Channel("U+090"),Channel("U-090"),
             Channel("U+180"),Channel("B+000"),Channel("B+045"),Channel("B-045"),Channel("B+135"),Channel("B-135")}, true },
-            // First order Ambisonics (AmbiX). Directions are meaningless so all set to front
-            Layout{"1OA",std::vector<Channel>{ Channel("ACN0"),Channel("ACN1"),Channel("ACN2"),Channel("ACN3")}, false, true, 1},
-            // Second order Ambisonics (AmbiX). Directions are meaningless so all set to front
-            Layout{"2OA",std::vector<Channel>{ Channel("ACN0"),Channel("ACN1"),Channel("ACN2"),Channel("ACN3"),Channel("ACN4"),Channel("ACN5"),Channel("ACN6"),Channel("ACN7"),Channel("ACN8")}, false, true, 2},
-            // Third order Ambisonics (AmbiX). Directions are meaningless so all set to front
-            Layout{"3OA",std::vector<Channel>{ Channel("ACN0"),Channel("ACN1"),Channel("ACN2"),Channel("ACN3"),Channel("ACN4"),Channel("ACN5"),Channel("ACN6"),Channel("ACN7"),
-            Channel("ACN8"),Channel("ACN9"),Channel("ACN10"),Channel("ACN11"),Channel("ACN12"),Channel("ACN13"),Channel("ACN14"),Channel("ACN15")}, false, true, 3},
         };
         return speakerLayouts;
     }

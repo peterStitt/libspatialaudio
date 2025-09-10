@@ -393,7 +393,6 @@ namespace spaudio {
             , m_cartPositions(positionsForLayout(outputLayout))
             , m_pspGainCalculator(Layout::getLayoutWithoutLFE(outputLayout))
             , m_extentPanner(m_pspGainCalculator)
-            , m_ambiExtentPanner(outputLayout.hoaOrder)
             , m_alloGainCalculator(Layout::getLayoutWithoutLFE(outputLayout))
             , m_alloExtentPanner(Layout::getLayoutWithoutLFE(outputLayout))
             , m_screenScale(outputLayout.reproductionScreen, Layout::getLayoutWithoutLFE(outputLayout))
@@ -422,7 +421,7 @@ namespace spaudio {
         {
             assert(directGains.size() == m_nCh && diffuseGains.size() == m_nCh); // Gain vectors must already be of the expected size
 
-            if ((metadata.cartesian && !m_cartesianLayout) || m_outputLayout.isHoa)
+            if (metadata.cartesian && !m_cartesianLayout)
                 toPolar(metadata, m_objMetadata);
             else
                 m_objMetadata = metadata;
@@ -460,52 +459,35 @@ namespace spaudio {
             auto& diverged_gains = m_divergedGains;
             unsigned int nDivergedGains = (unsigned int)diverged_gains.size();
 
-            if (m_outputLayout.isHoa)
+            if (cartesian)
             {
-                // Calculate the new gains to be applied
+                // Calculate the new gains to be m_alloExtentPanner
                 for (unsigned int iGain = 0; iGain < nDivergedGains; ++iGain)
-                    m_ambiExtentPanner.handle(diverged_positions[iGain], m_objMetadata.width, m_objMetadata.height, m_objMetadata.depth, m_gainsForEachPos[iGain]);
-
-                for (unsigned int i = 0; i < m_nCh; ++i)
-                {
-                    double g_tmp = 0.;
-                    for (unsigned int j = 0; j < nDivergedGains; ++j)
-                        g_tmp += diverged_gains[j] * m_gainsForEachPos[j][i];
-                    m_gains[i] = g_tmp;
-                }
+                    if (m_objMetadata.width == 0. && m_objMetadata.height == 0. && m_objMetadata.depth == 0)
+                        m_alloGainCalculator.CalculateGains(diverged_positions[iGain], m_excluded, m_gainsForEachPos[iGain]);
+                    else
+                        m_alloExtentPanner.handle(diverged_positions[iGain], m_objMetadata.width, m_objMetadata.height, m_objMetadata.depth, m_excluded, m_gainsForEachPos[iGain]);
             }
             else
             {
-                if (cartesian)
-                {
-                    // Calculate the new gains to be m_alloExtentPanner
-                    for (unsigned int iGain = 0; iGain < nDivergedGains; ++iGain)
-                        if (m_objMetadata.width == 0. && m_objMetadata.height == 0. && m_objMetadata.depth == 0)
-                            m_alloGainCalculator.CalculateGains(diverged_positions[iGain], m_excluded, m_gainsForEachPos[iGain]);
-                        else
-                            m_alloExtentPanner.handle(diverged_positions[iGain], m_objMetadata.width, m_objMetadata.height, m_objMetadata.depth, m_excluded, m_gainsForEachPos[iGain]);
-                }
-                else
-                {
-                    // Calculate the new gains to be applied
-                    for (unsigned int iGain = 0; iGain < nDivergedGains; ++iGain)
-                        m_extentPanner.handle(diverged_positions[iGain], m_objMetadata.width, m_objMetadata.height, m_objMetadata.depth, m_gainsForEachPos[iGain]);
-                }
-
-                // Power summation of the gains when playback is to loudspeakers,
-                for (unsigned int i = 0; i < m_nChNoLFE; ++i)
-                {
-                    double g_tmp = 0.;
-                    for (unsigned int j = 0; j < nDivergedGains; ++j)
-                        g_tmp += diverged_gains[j] * m_gainsForEachPos[j][i] * m_gainsForEachPos[j][i];
-                    m_gains[i] = sqrt(g_tmp);
-                }
-
-                // Zone exclusion downmix
-                // See Rec. ITU-R BS.2127-0 sec. 7.3.12, pg 60
-                if (!cartesian)
-                    m_zoneExclusionHandler.handle(m_objMetadata.zoneExclusion, m_gains);
+                // Calculate the new gains to be applied
+                for (unsigned int iGain = 0; iGain < nDivergedGains; ++iGain)
+                    m_extentPanner.handle(diverged_positions[iGain], m_objMetadata.width, m_objMetadata.height, m_objMetadata.depth, m_gainsForEachPos[iGain]);
             }
+
+            // Power summation of the gains when playback is to loudspeakers,
+            for (unsigned int i = 0; i < m_nChNoLFE; ++i)
+            {
+                double g_tmp = 0.;
+                for (unsigned int j = 0; j < nDivergedGains; ++j)
+                    g_tmp += diverged_gains[j] * m_gainsForEachPos[j][i] * m_gainsForEachPos[j][i];
+                m_gains[i] = sqrt(g_tmp);
+            }
+
+            // Zone exclusion downmix
+            // See Rec. ITU-R BS.2127-0 sec. 7.3.12, pg 60
+            if (!cartesian)
+                m_zoneExclusionHandler.handle(m_objMetadata.zoneExclusion, m_gains);
 
             // Apply the overall gain to the spatialisation gains
             for (auto& g : m_gains)

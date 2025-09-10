@@ -101,10 +101,6 @@ namespace spaudio {
         m_gainsTmp.resize(m_internalLayout.channels.size(), 0.);
         m_directionUnitVec.resize(3, 0.);
 
-        // if the layout is HOA then don't go any further because this panner is intended for loudspeaker arrays
-        if (layout.isHoa)
-            return;
-
         // Get the positions of all of the loudspeakers
         std::vector<PolarPosition> positions;
         for (unsigned i = 0; i < (unsigned)m_internalLayout.channels.size(); ++i)
