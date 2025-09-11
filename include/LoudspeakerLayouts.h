@@ -261,6 +261,12 @@ namespace spaudio {
          */
         static Layout getMatchingLayout(std::string layoutName);
 
+        /** Get the speakerLayout that matches the given name.
+         * @param layoutName	The type of the loudspeaker layout
+         * @return				The speaker layout matching the name.
+         */
+        static Layout getMatchingLayout(OutputLayout layoutType);
+
     private:
     };
 

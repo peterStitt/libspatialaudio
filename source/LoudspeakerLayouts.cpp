@@ -267,4 +267,11 @@ namespace spaudio {
         return {}; // if no matching channel names are found
     }
 
+    Layout Layout::getMatchingLayout(OutputLayout layoutType)
+    {
+        auto& speakerLayouts = getSpeakerLayouts();
+        int ind = static_cast<int>(layoutType);
+        return speakerLayouts[ind];
+    }
+
 } // namespace spaudio
