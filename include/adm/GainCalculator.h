@@ -38,7 +38,7 @@ namespace spaudio {
              * @param exlcuded		Flag if a loudspeaker is to be excluded from channel locking. If it has size = 0 then all loudspeaker are considered.
              * @return				The processed position. If position is not within the specified distance of for ChannelLocking then the original position is returned.
              */
-            CartesianPosition handle(const Optional<ChannelLock>& channelLock, CartesianPosition position, const std::vector<bool>& exlcuded);
+            CartesianPosition<double> handle(const Optional<ChannelLock>& channelLock, CartesianPosition<double> position, const std::vector<bool>& exlcuded);
 
         private:
             unsigned int m_nCh = 0;
@@ -52,11 +52,11 @@ namespace spaudio {
             int m_activeTuples = 0;
 
             /** Pure virtual function to override that defines how the distance between a position and a speaker are calculated. */
-            virtual double calculateDistance(const CartesianPosition& srcPos, const CartesianPosition& spkPos) = 0;
+            virtual double calculateDistance(const CartesianPosition<double>& srcPos, const CartesianPosition<double>& spkPos) = 0;
 
         protected:
             // Speaker positions: normalised for polar processing or else allocentric loudspeaker coordinates
-            std::vector<CartesianPosition> m_spkPos;
+            std::vector<CartesianPosition<double>> m_spkPos;
         };
 
         class PolarChannelLockHandler : public ChannelLockHandler
@@ -66,7 +66,7 @@ namespace spaudio {
             ~PolarChannelLockHandler();
 
         private:
-            double calculateDistance(const CartesianPosition& srcPos, const CartesianPosition& spkPos) override;
+            double calculateDistance(const CartesianPosition<double>& srcPos, const CartesianPosition<double>& spkPos) override;
         };
         class AlloChannelLockHandler : public ChannelLockHandler
         {
@@ -75,7 +75,7 @@ namespace spaudio {
             ~AlloChannelLockHandler();
 
         private:
-            double calculateDistance(const CartesianPosition& srcPos, const CartesianPosition& spkPos) override;
+            double calculateDistance(const CartesianPosition<double>& srcPos, const CartesianPosition<double>& spkPos) override;
         };
 
         /** A class to handle zone exclusion as described in Rec. ITU-R BS.2127-1 sec. 7.3.12 pg. 60. */
@@ -104,7 +104,7 @@ namespace spaudio {
             std::vector<std::vector<unsigned int>> m_downmixMatrix;
 
             // Conversion of the nominal polar positions to cartesian
-            std::vector<CartesianPosition> m_cartesianPositions;
+            std::vector<CartesianPosition<double>> m_cartesianPositions;
 
             // Indices of each of the loudspeaker in each row
             std::vector<std::vector<unsigned int>> m_rowInds;
@@ -165,7 +165,7 @@ namespace spaudio {
             unsigned int m_nChNoLFE;
 
             // The cartesian/allocentric positions for the speakers, if a valid array is selected
-            std::vector<CartesianPosition> m_cartPositions;
+            std::vector<CartesianPosition<double>> m_cartPositions;
 
             PointSourcePannerGainCalc m_pspGainCalculator;
             PolarExtentHandler m_extentPanner;
@@ -182,7 +182,7 @@ namespace spaudio {
 
             std::vector<double> m_gains;
 
-            std::vector<CartesianPosition> m_divergedPos;
+            std::vector<CartesianPosition<double>> m_divergedPos;
             std::vector<double> m_divergedGains;
             std::vector<std::vector<double>> m_gainsForEachPos;
 
@@ -200,7 +200,7 @@ namespace spaudio {
             * @param divergedPos			Output of the diverged position(s) with size 1 or 3.
             * @param divergedGains			Output of the diverged gain(s) with size 1 or 3.
             */
-            void divergedPositionsAndGains(const Optional<ObjectDivergence>& objectDivergence, CartesianPosition position, bool cartesian, std::vector<CartesianPosition>& divergedPos, std::vector<double>& divergedGains);
+            void divergedPositionsAndGains(const Optional<ObjectDivergence>& objectDivergence, CartesianPosition<double> position, bool cartesian, std::vector<CartesianPosition<double>>& divergedPos, std::vector<double>& divergedGains);
 
             /** Insert LFE entry with 0 gain in to a set of gains based on the supplied layout.
              * @param layout		Output layout.

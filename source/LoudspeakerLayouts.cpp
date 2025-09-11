@@ -23,7 +23,7 @@ namespace spaudio {
     {
     }
 
-    Channel::Channel(std::string& channelName, PolarPosition position, PolarPosition positionNominal, bool channelLfe)
+    Channel::Channel(std::string& channelName, PolarPosition<double> position, PolarPosition<double> positionNominal, bool channelLfe)
         : name(channelName), channelType(ChannelTypes::Custom), polarPosition(position), polarPositionNominal(positionNominal), isLFE(channelLfe)
     {
     }

@@ -205,7 +205,7 @@ namespace spaudio {
          * @param polar		The polar position to convert to cartesian coordinates
          * @return			Cartesian coordindate conversion of polar
          */
-        static inline CartesianPosition PointPolarToCart(PolarPosition polar)
+        static inline CartesianPosition<double> PointPolarToCart(PolarPosition<double> polar)
         {
             double az = polar.azimuth;
             double el = polar.elevation;
@@ -245,7 +245,7 @@ namespace spaudio {
             double x = r_xy * (x_l + p * (x_r - x_l));
             double y = r_xy * (y_l + p * (y_r - y_l));
 
-            return CartesianPosition{ x,y,z };
+            return CartesianPosition<double>{ x,y,z };
         }
 
         /** Convert a cartesian position to polar using the ADM convention.
@@ -258,7 +258,7 @@ namespace spaudio {
          * @param cart	The ADM cartesian coordinates to be converted to polar coordinates.
          * @return		The polar coordinate convertsion of the cartesian input.
          */
-        static inline PolarPosition PointCartToPolar(CartesianPosition cart)
+        static inline PolarPosition<double> PointCartToPolar(CartesianPosition<double> cart)
         {
             double x = cart.x;
             double y = cart.y;
@@ -272,9 +272,9 @@ namespace spaudio {
             if (std::abs(x) < tol && std::abs(y) < tol)
             {
                 if (std::abs(z) < tol)
-                    return PolarPosition{ 0.,0.,0. };
+                    return PolarPosition<double>{ 0.,0.,0. };
                 else
-                    return PolarPosition{ 0., 90. * Sgn(z), std::abs(z) };
+                    return PolarPosition<double>{ 0., 90. * Sgn(z), std::abs(z) };
             }
 
             double azDash = -RAD2DEG * atan2(x, y);
@@ -309,7 +309,7 @@ namespace spaudio {
                 d = r_xy;
             }
 
-            return PolarPosition{ az, el, d };
+            return PolarPosition<double>{ az, el, d };
         }
 
         /** Convert polar metadata extent to cartesian metadata extent
@@ -373,9 +373,9 @@ namespace spaudio {
          * @param whd				Return of the width, height and distance of the polar extent.
          */
         static inline void ExtentCartToPolar(double x, double y, double z, double s_x, double  s_y, double  s_z,
-            PolarPosition& polarPosition, double(&whd)[3])
+            PolarPosition<double>& polarPosition, double(&whd)[3])
         {
-            polarPosition = PointCartToPolar(CartesianPosition{ x,y,z });
+            polarPosition = PointCartToPolar(CartesianPosition<double>{ x,y,z });
             double diagS[3] = { s_x, s_y, s_z };
             double localCoordSystem[3][3];
             LocalCoordinateSystem(polarPosition.azimuth, polarPosition.elevation, localCoordSystem);
@@ -405,9 +405,9 @@ namespace spaudio {
          * @param whd				Return of the width, height and depth of the cartesian extent.
          */
         static inline void ExtentPolarToCart(double az, double el, double d, double s_x, double s_y, double s_z,
-            CartesianPosition& cartPosition, double(&whd)[3])
+            CartesianPosition<double>& cartPosition, double(&whd)[3])
         {
-            cartPosition = PointPolarToCart(PolarPosition{ az,el,d });
+            cartPosition = PointPolarToCart(PolarPosition<double>{ az,el,d });
             double sf[3] = { 0. };
             whd2xyz(s_x, s_y, s_z, sf[0], sf[1], sf[2]);
             double localCoordSystem[3][3];

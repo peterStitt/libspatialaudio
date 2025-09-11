@@ -37,7 +37,7 @@ namespace spaudio {
                 for (int iAz = 0; iAz < nAz; ++iAz)
                 {
                     double az = iAz * deltaAz;
-                    m_virtualSourcePositions.push_back(PolarToCartesian(PolarPosition{ az,el,1. }));
+                    m_virtualSourcePositions.push_back(PolarToCartesian(PolarPosition<double>{ az,el,1. }));
                 }
             }
             m_nVirtualSources = (int)m_virtualSourcePositions.size();
@@ -63,7 +63,7 @@ namespace spaudio {
         {
         }
 
-        void SpreadPanner::CalculateGains(CartesianPosition position, double width, double height, std::vector<double>& gains)
+        void SpreadPanner::CalculateGains(CartesianPosition<double> position, double width, double height, std::vector<double>& gains)
         {
             ConfigureWeightingFunction(position, width, height);
 
@@ -88,7 +88,7 @@ namespace spaudio {
                     g = 0.;
         }
 
-        double SpreadPanner::CalculateWeights(CartesianPosition position)
+        double SpreadPanner::CalculateWeights(CartesianPosition<double> position)
         {
             // Convert position to coordinate system of the weighting function
             m_posVec[0] = position.x;
@@ -122,7 +122,7 @@ namespace spaudio {
             return w;
         }
 
-        void SpreadPanner::ConfigureWeightingFunction(CartesianPosition position, double width, double height)
+        void SpreadPanner::ConfigureWeightingFunction(CartesianPosition<double> position, double width, double height)
         {
             m_width = width;
             m_height = height;
@@ -142,7 +142,7 @@ namespace spaudio {
 
             // Get the coordinates of the centre of the cap circles such that the edge of the circle is at width / 2 when width < 180deg
             m_circularCapAzimuth = m_width / 2. - m_height / 2.;
-            m_circularCapPosition = PolarToCartesian(PolarPosition{ m_circularCapAzimuth, 0, 1 });
+            m_circularCapPosition = PolarToCartesian(PolarPosition<double>{ m_circularCapAzimuth, 0, 1 });
         }
 
 
@@ -161,7 +161,7 @@ namespace spaudio {
         {
         }
 
-        void PolarExtentHandler::handle(CartesianPosition position, double width, double height, double depth, std::vector<double>& gains)
+        void PolarExtentHandler::handle(CartesianPosition<double> position, double width, double height, double depth, std::vector<double>& gains)
         {
             // Get the distance of the source
             double sourceDistance = norm(position);
@@ -210,7 +210,7 @@ namespace spaudio {
             return distance;
         }
 
-        void PolarExtentHandler::CalculatePolarExtentGains(CartesianPosition position, double width, double height, std::vector<double>& gains)
+        void PolarExtentHandler::CalculatePolarExtentGains(CartesianPosition<double> position, double width, double height, std::vector<double>& gains)
         {
             double p = clamp(std::max(width, height) / m_minExtent, 0., 1.);
 

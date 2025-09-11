@@ -53,12 +53,12 @@ namespace spaudio {
         /** Set azimuth, elevation, and distance settings.
          * @param polPosition   Polar position of the source.
          */
-        virtual void SetPosition(PolarPoint polPosition);
+        virtual void SetPosition(PolarPosition<float> polPosition);
 
         /** Get azimuth, elevation, and distance settings.
          * @return  Returns source position in polar coordinates.
          */
-        virtual PolarPoint GetPosition();
+        virtual PolarPosition<float> GetPosition();
 
         /** Sets the weight for the spherical harmonics of the given order.
          * @param nOrder    The order to set the weights for
@@ -110,7 +110,7 @@ namespace spaudio {
     protected:
         std::vector<float> m_pfCoeff;
         std::vector<float> m_pfOrderWeights;
-        PolarPoint m_polPosition;
+        PolarPosition<float> m_polPosition;
         float m_fGain;
     };
 

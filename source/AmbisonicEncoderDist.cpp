@@ -58,7 +58,7 @@ namespace spaudio {
     void AmbisonicEncoderDist::Reset()
     {
         memset(m_pfDelayBuffer, 0, m_nDelayBufferLength * sizeof(float));
-        m_fDelay = m_polPosition.fDistance / knSpeedOfSound * (float)m_nSampleRate + 0.5f;
+        m_fDelay = m_polPosition.distance / knSpeedOfSound * (float)m_nSampleRate + 0.5f;
         m_nDelay = (int)m_fDelay;
         m_fDelay -= m_nDelay;
         m_nIn = 0;
@@ -70,22 +70,22 @@ namespace spaudio {
     {
         AmbisonicEncoder::Refresh();
 
-        m_fDelay = fabsf(m_polPosition.fDistance) / knSpeedOfSound * (float)m_nSampleRate; //TODO abs() sees float as int!
+        m_fDelay = fabsf(m_polPosition.distance) / knSpeedOfSound * (float)m_nSampleRate; //TODO abs() sees float as int!
         m_nDelay = (int)m_fDelay;
         m_fDelay -= m_nDelay;
         m_nOutA = (m_nIn - m_nDelay + m_nDelayBufferLength) % m_nDelayBufferLength;
         m_nOutB = (m_nOutA + 1) % m_nDelayBufferLength;
 
         //Source is outside speaker array
-        if (fabs(m_polPosition.fDistance) >= m_fRoomRadius)
+        if (fabs(m_polPosition.distance) >= m_fRoomRadius)
         {
-            m_fInteriorGain = (m_fRoomRadius / fabsf(m_polPosition.fDistance)) / 2.f;
+            m_fInteriorGain = (m_fRoomRadius / fabsf(m_polPosition.distance)) / 2.f;
             m_fExteriorGain = m_fInteriorGain;
         }
         else
         {
-            m_fInteriorGain = (2.f - fabsf(m_polPosition.fDistance) / m_fRoomRadius) / 2.f;
-            m_fExteriorGain = (fabsf(m_polPosition.fDistance) / m_fRoomRadius) / 2.f;
+            m_fInteriorGain = (2.f - fabsf(m_polPosition.distance) / m_fRoomRadius) / 2.f;
+            m_fExteriorGain = (fabsf(m_polPosition.distance) / m_fRoomRadius) / 2.f;
         }
     }
 

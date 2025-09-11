@@ -21,6 +21,8 @@
 #include <cmath>
 #include <memory.h>
 
+#include "Coordinates.h"
+
 namespace spaudio {
 
 #define DEFAULT_ORDER    1
@@ -49,17 +51,6 @@ namespace spaudio {
         kP, kQ,
         kNumOfBformatChannels2D
     };*/
-
-    /** Struct for source positioning in soundfield. */
-    typedef struct PolarPoint
-    {
-        /** horizontal positioning */
-        float fAzimuth;
-        /** vertical positioning */
-        float fElevation;
-        /** distance from centre of soundfield (radius)*/
-        float fDistance;
-    } PolarPoint;
 
     /** Convert degrees to radians.
      * @param fDegrees  Input angle in degrees.

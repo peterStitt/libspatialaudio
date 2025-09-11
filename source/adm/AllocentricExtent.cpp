@@ -72,7 +72,7 @@ namespace spaudio {
         {
         }
 
-        void AllocentricExtent::handle(CartesianPosition position, double sizeX, double sizeY, double sizeZ, const std::vector<bool>& excluded, std::vector<double>& gains)
+        void AllocentricExtent::handle(CartesianPosition<double> position, double sizeX, double sizeY, double sizeZ, const std::vector<bool>& excluded, std::vector<double>& gains)
         {
             auto nLdspk = m_alloPanner.getNumChannels();
             assert(gains.capacity() >= nLdspk);
@@ -130,7 +130,7 @@ namespace spaudio {
                             auto wz = std::get<2>(w);
                             // Calculate the gains for the current grid position
                             // TODO: Store the gains. Only recompute when 'excluded' changes?
-                            CartesianPosition gridPosition = { m_xs[iX], m_ys[iY], m_zs[iZ] };
+                            CartesianPosition<double> gridPosition = { m_xs[iX], m_ys[iY], m_zs[iZ] };
                             m_alloPanner.CalculateIndividualGains(gridPosition, excluded, m_gx, m_gy, m_gz);
 
                             for (unsigned int iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
@@ -210,7 +210,7 @@ namespace spaudio {
             return m_alloPanner.getNumChannels();
         }
 
-        double AllocentricExtent::calculateSEff(const std::vector<CartesianPosition>& cartesianPositions, const std::vector<bool>& excluded, double sx, double sy, double sz)
+        double AllocentricExtent::calculateSEff(const std::vector<CartesianPosition<double>>& cartesianPositions, const std::vector<bool>& excluded, double sx, double sy, double sz)
         {
             // Find the first non-exlcuded speaker
             unsigned int iFirstLdspk = 0;

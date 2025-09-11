@@ -60,7 +60,7 @@ namespace spaudio {
 
             for (unsigned int iSpk = 0; iSpk < m_nCh; ++iSpk)
             {
-                PolarPosition spkDir = m_layout.channels[iSpk].polarPositionNominal;
+                PolarPosition<double> spkDir = m_layout.channels[iSpk].polarPositionNominal;
                 if ((insideAngleRange(spkDir.azimuth, minAz, maxAz, tol) || spkDir.elevation > 90. - tol) &&
                     (spkDir.elevation <= maxEl + tol && spkDir.elevation >= minEl - tol) &&
                     (spkDir.distance <= maxDist + tol && spkDir.distance >= minDist - tol))
@@ -75,10 +75,10 @@ namespace spaudio {
             else if (withinBounds.size() > 1)
             {
                 std::vector<double> distanceWithinBounds;
-                CartesianPosition cartDirection = PolarToCartesian(PolarPosition{ direction.azimuth,direction.elevation,direction.distance });
+                CartesianPosition<double> cartDirection = PolarToCartesian(PolarPosition<double>{ direction.azimuth,direction.elevation,direction.distance });
                 for (auto& t : withinBounds)
                 {
-                    CartesianPosition spkCart = PolarToCartesian(m_layout.channels[t].polarPositionNominal);
+                    CartesianPosition<double> spkCart = PolarToCartesian(m_layout.channels[t].polarPositionNominal);
                     double distance = norm(vecSubtract({ spkCart.x,spkCart.y,spkCart.z }, { cartDirection.x,cartDirection.y,cartDirection.z }));
                     distanceWithinBounds.push_back(distance);
                 }
@@ -153,9 +153,9 @@ namespace spaudio {
             DirectSpeakerPolarPosition direction = metadata.polarPosition;
 
             // Screen edge locking
-            CartesianPosition position = PolarToCartesian(PolarPosition{ direction.azimuth,direction.elevation,direction.distance });
+            CartesianPosition<double> position = PolarToCartesian(PolarPosition<double>{ direction.azimuth,direction.elevation,direction.distance });
             position = m_screenEdgeLock.HandleVector(position, metadata.screenEdgeLock);
-            PolarPosition polarPosition = CartesianToPolar(position);
+            PolarPosition<double> polarPosition = CartesianToPolar(position);
             direction.azimuth = polarPosition.azimuth;
             direction.elevation = polarPosition.elevation;
             direction.distance = polarPosition.distance;
@@ -179,7 +179,7 @@ namespace spaudio {
                     return;
                 }
 
-                m_pointSourcePannerGainCalc.CalculateGains(PolarPosition{ direction.azimuth,direction.elevation,direction.distance }, m_gainsPSP);
+                m_pointSourcePannerGainCalc.CalculateGains(PolarPosition<double>{ direction.azimuth,direction.elevation,direction.distance }, m_gainsPSP);
                 // fill in the gains on the non-LFE channels
                 int indNonLfe = 0;
                 for (unsigned int i = 0; i < gains.size(); ++i)

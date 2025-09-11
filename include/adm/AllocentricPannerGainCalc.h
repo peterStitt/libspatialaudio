@@ -31,7 +31,7 @@ namespace spaudio {
              * @excluded Vector of excluded loudspeakers.
              * @param gainsOut Output vector of the panning gains.
              */
-            void CalculateGains(CartesianPosition position, const std::vector<bool>& excluded, std::vector<double>& gainsOut);
+            void CalculateGains(CartesianPosition<double> position, const std::vector<bool>& excluded, std::vector<double>& gainsOut);
 
             /** Calculate the individual x-, y- and z-axis gains
              * @param position Source direction.
@@ -40,7 +40,7 @@ namespace spaudio {
              * @param gy Gains for each loudspeaker for the y-axis.
              * @param gz Gains for each loudspeaker for the z-axis.
              */
-            void CalculateIndividualGains(CartesianPosition position, const std::vector<bool>& excluded
+            void CalculateIndividualGains(CartesianPosition<double> position, const std::vector<bool>& excluded
                 , std::vector<double>& gx, std::vector<double>& gy, std::vector<double>& gz);
 
             /** Get the number of loudspeakers set in the targetLayout. */
@@ -48,7 +48,7 @@ namespace spaudio {
 
         private:
             // The cartesian positions of the loudspeaker layout
-            std::vector<CartesianPosition> m_cartesianPositions;
+            std::vector<CartesianPosition<double>> m_cartesianPositions;
             // Vectors holding the coordinates of the loudspeakers relative to the source position
             std::vector<double> m_positionsX, m_positionsY, m_positionsZ;
 

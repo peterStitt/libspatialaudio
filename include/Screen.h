@@ -36,7 +36,7 @@ namespace spaudio {
          * @param cartesian			Flag if the Cartesian rendering path is to be used.
          * @return					Returns the modified position.
          */
-        CartesianPosition handle(CartesianPosition position, bool screenRef, const Screen& referenceScreen, bool cartesian);
+        CartesianPosition<double> handle(CartesianPosition<double> position, bool screenRef, const Screen& referenceScreen, bool cartesian);
 
     private:
         Layout m_layout;
@@ -49,7 +49,7 @@ namespace spaudio {
          * @param position	The position to scale.
          * @return			The scaled postion.
          */
-        CartesianPosition ScalePosition(CartesianPosition position);
+        CartesianPosition<double> ScalePosition(CartesianPosition<double> position);
 
         /** Scale the azimuth and elevation based on the polar edges of the screen.
          * @param az	The azimuth to scale in degrees.
@@ -72,7 +72,7 @@ namespace spaudio {
          * @param cartesian			If true then uses cartesian/allocentric processing. Otherwise uses polar/egocentric method.
          * @return					The modified position.
          */
-        CartesianPosition HandleVector(CartesianPosition position, ScreenEdgeLock screenEdgeLock, bool cartesian = false);
+        CartesianPosition<double> HandleVector(CartesianPosition<double> position, ScreenEdgeLock screenEdgeLock, bool cartesian = false);
 
         /** Apply screen edge locking to an azimuth and elevation.
          * @param azimuth			The azimuth in degrees to process.

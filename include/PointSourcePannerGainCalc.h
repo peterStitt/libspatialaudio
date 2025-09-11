@@ -35,8 +35,8 @@ namespace spaudio {
          * @param directionUnitVec	Unit vector in the source direction (either cartesian or polar).
          * @param gainsOut			Output vector of the panning gains.
          */
-        void CalculateGains(CartesianPosition directionUnitVec, std::vector<double>& gainsOut);
-        void CalculateGains(PolarPosition directionUnitVec, std::vector<double>& gainsOut);
+        void CalculateGains(CartesianPosition<double> directionUnitVec, std::vector<double>& gainsOut);
+        void CalculateGains(PolarPosition<double> directionUnitVec, std::vector<double>& gainsOut);
 
         /** Get the number of loudspeakers set in the targetLayout. */
         unsigned int getNumChannels();
@@ -88,7 +88,7 @@ namespace spaudio {
          * @param directionUnitVec	Unit vector in the source direction.
          * @param gainsOut			Output vector of the panning gains.
          */
-        void CalculateGainsFromRegions(CartesianPosition directionUnitVec, std::vector<double>& gainsOut);
+        void CalculateGainsFromRegions(CartesianPosition<double> directionUnitVec, std::vector<double>& gainsOut);
 
         /** Check the layout for M+SC and M-SC speakers and checks if they are in the narrow (5 < az < 25)
          *  or wide (35 < az < 60) for each of the two speakers.

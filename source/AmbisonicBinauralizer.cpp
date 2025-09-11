@@ -101,9 +101,9 @@ namespace spaudio {
             for (niSpeaker = 0; niSpeaker < nSpeakers; niSpeaker++)
             {
                 //What is the position of the current speaker
-                PolarPoint position = m_AmbDecoder.GetPosition(niSpeaker);
+                PolarPosition<float> position = m_AmbDecoder.GetPosition(niSpeaker);
 
-                bool b_found = p_hrtf->get(position.fAzimuth, position.fElevation, pfHRTF);
+                bool b_found = p_hrtf->get(position.azimuth, position.elevation, pfHRTF);
                 if (!b_found)
                     return false;
 
@@ -134,10 +134,10 @@ namespace spaudio {
         AmbisonicEncoder myEncoder;
         myEncoder.Configure(m_nOrder, true, nSampleRate, 0);
 
-        PolarPoint position90;
-        position90.fAzimuth = DegreesToRadians(90.f);
-        position90.fElevation = 0.f;
-        position90.fDistance = 5.f;
+        PolarPosition<float> position90;
+        position90.azimuth = DegreesToRadians(90.f);
+        position90.elevation = 0.f;
+        position90.distance = 5.f;
         myEncoder.SetPosition(position90);
         myEncoder.Refresh();
 
