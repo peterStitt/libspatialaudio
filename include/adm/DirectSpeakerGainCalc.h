@@ -48,6 +48,8 @@ namespace spaudio {
 
             ScreenEdgeLockHandler m_screenEdgeLock;
 
+            std::vector<unsigned int> m_withinBounds;
+
             /** Find the closest speaker in the layout within the tolerance bounds set.
              *
              * @param direction	Polar position of the DirectSpeaker

@@ -26,6 +26,7 @@ namespace spaudio {
             m_layout = layoutWithLFE;
             m_nCh = (unsigned int)m_layout.channels.size();
             m_gainsPSP.resize(Layout::getLayoutWithoutLFE(layoutWithLFE).channels.size(), 0.);
+            m_withinBounds.resize(m_nCh);
         }
 
         DirectSpeakersGainCalc::~DirectSpeakersGainCalc()
@@ -35,7 +36,7 @@ namespace spaudio {
         int DirectSpeakersGainCalc::findClosestWithinBounds(const DirectSpeakerPolarPosition& direction, double tol)
         {
             // See Rec. ITU-R BS.2127-0 sec 8.5
-            std::vector<unsigned int> withinBounds;
+            m_withinBounds.clear();
 
             // speaker coordinates
             double az = direction.azimuth;
@@ -65,18 +66,18 @@ namespace spaudio {
                     (spkDir.elevation <= maxEl + tol && spkDir.elevation >= minEl - tol) &&
                     (spkDir.distance <= maxDist + tol && spkDir.distance >= minDist - tol))
                 {
-                    withinBounds.push_back(iSpk);
+                    m_withinBounds.push_back(iSpk);
                 }
             }
-            if (withinBounds.size() == 0.)
+            if (m_withinBounds.size() == 0.)
                 return -1; // No speakers found
-            else if (withinBounds.size() == 1)
-                return withinBounds[0];
-            else if (withinBounds.size() > 1)
+            else if (m_withinBounds.size() == 1)
+                return m_withinBounds[0];
+            else if (m_withinBounds.size() > 1)
             {
                 std::vector<double> distanceWithinBounds;
                 CartesianPosition<double> cartDirection = PolarToCartesian(PolarPosition<double>{ direction.azimuth,direction.elevation,direction.distance });
-                for (auto& t : withinBounds)
+                for (auto& t : m_withinBounds)
                 {
                     CartesianPosition<double> spkCart = PolarToCartesian(m_layout.channels[t].polarPositionNominal);
                     double distance = norm(vecSubtract({ spkCart.x,spkCart.y,spkCart.z }, { cartDirection.x,cartDirection.y,cartDirection.z }));
@@ -91,7 +92,7 @@ namespace spaudio {
                 for (unsigned int iDist = 0; iDist < distanceWithinBounds.size(); ++iDist)
                 {
                     if (distanceWithinBounds[iDist] == smallestDistance)
-                        closestSpeakers.push_back(withinBounds[iDist]);
+                        closestSpeakers.push_back(m_withinBounds[iDist]);
                 }
                 // If only one matches then return that index
                 if (closestSpeakers.size() == 1)
