@@ -30,7 +30,6 @@ spatialaudio_headers = [files(
     'AmbisonicOptimFilters.h',
     'AmbisonicSource.h',
     'AmbisonicSpeaker.h',
-    'AmbisonicTypesDefinesCommons.h',
     'AmbisonicZoomer.h',
     'BFormat.h',
     'Coordinates.h',

@@ -43,7 +43,6 @@ list(APPEND headers
     include/AmbisonicOptimFilters.h
     include/AmbisonicSource.h
     include/AmbisonicSpeaker.h
-    include/AmbisonicTypesDefinesCommons.h
     include/AmbisonicZoomer.h
     include/BFormat.h
     include/Coordinates.h
