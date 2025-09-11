@@ -36,6 +36,7 @@ spatialaudio_sources = files(
     'dsp/IIRFilter.cpp',
     'dsp/LinkwitzRileyIIR.cpp',
     'LoudspeakerLayouts.cpp',
+    'ObjectPanner.cpp',
 )
 
 spatialaudio_lib = library(

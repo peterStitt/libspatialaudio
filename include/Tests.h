@@ -17,6 +17,7 @@
 #include <iomanip>
 #include "LoudspeakerLayouts.h"
 #include "LinkwitzRileyIIR.h"
+#include "ObjectPanner.h"
 #include "Renderer.h"
 #include "AllocentricExtent.h"
 
@@ -857,6 +858,44 @@ void testAllRAD()
 		{
 			for (unsigned iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
 				std::cout << ldspkOut[iLdspk][iSamp] << ", ";
+			std::cout << std::endl;
+		}
+	}
+
+	for (unsigned iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
+		delete ldspkOut[iLdspk];
+	delete[] ldspkOut;
+}
+
+/** Test the AdmRenderer
+*/
+void testObjectPanner()
+{
+	unsigned nSamples = 1;
+	unsigned sampleRate = 48000;
+	auto layout = spaudio::OutputLayout::ThirteenPointOne;
+
+	spaudio::ObjectPanner objPanner;
+	objPanner.Configure(layout, sampleRate, (float)nSamples / (float)sampleRate);
+	auto nLdspk = objPanner.GetNumSpeakers();
+
+	std::vector<float> impulse(nSamples, 0.f);
+	impulse[0] = 1.f;
+
+	float** ldspkOut = new float* [nLdspk];
+	for (unsigned iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
+		ldspkOut[iLdspk] = new float[nSamples];
+
+	for (float az = 0.f; az < 360.f; az += 1.f)
+	{
+		auto position = PolarPosition<double>{ az, 0.f, 1.f };
+		objPanner.SetPosition(position);
+		objPanner.Process(impulse.data(), nSamples, ldspkOut, nSamples);
+
+		for (unsigned iSamp = 0; iSamp < nSamples; ++iSamp)
+		{
+			for (unsigned iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
+				std::cout << std::setprecision(12) << ldspkOut[iLdspk][iSamp] << ", ";
 			std::cout << std::endl;
 		}
 	}
