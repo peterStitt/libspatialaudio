@@ -42,6 +42,7 @@ spatialaudio_headers = [files(
     'hrtf/sofa_hrtf.h',
     'LoudspeakerLayouts.h',
     'LoudspeakerLayoutHulls.h',
+    'ObjectPanner.h',
     'mit_hrtf_filter.h',
     'mit_hrtf_lib.h',
     'normal/mit_hrtf_normal_44100.h',

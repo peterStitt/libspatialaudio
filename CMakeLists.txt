@@ -68,6 +68,7 @@ list(APPEND headers
     include/ScreenCommon.h
     include/SpeakersBinauralizer.h
     include/Tools.h
+    include/ObjectPanner.h
     include/t_design_5200.h
     source/kiss_fft/kiss_fft.h
     source/kiss_fft/kiss_fftr.h
@@ -109,6 +110,7 @@ list(APPEND sources
     source/adm/PolarExtent.cpp
     source/RegionHandlers.cpp
     source/Screen.cpp
+    source/ObjectPanner.cpp
     source/dsp/IIRFilter.cpp
     source/dsp/LinkwitzRileyIIR.cpp
     source/LoudspeakerLayouts.cpp
