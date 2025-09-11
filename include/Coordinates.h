@@ -16,35 +16,41 @@
 namespace spaudio {
 
     /** Structure holding a spherical-polar position. */
+    template<typename T>
     struct PolarPosition
     {
-        double azimuth = 0.0;
-        double elevation = 0.0;
-        double distance = 1.f;
+        T azimuth = 0.0;
+        T elevation = 0.0;
+        T distance = 1.0;
     };
-    inline bool operator==(const PolarPosition& lhs, const PolarPosition& rhs)
+    template<typename T>
+    inline bool operator==(const PolarPosition<T>& lhs, const PolarPosition<T>& rhs)
     {
         return lhs.azimuth == rhs.azimuth && lhs.elevation == rhs.elevation && lhs.distance == rhs.distance;
     }
 
     /** Structure holding a cartesian position. */
+    template<typename T>
     struct CartesianPosition
     {
-        double x = 1.0;
-        double y = 0.0;
-        double z = 0.0;
+        T x = 1.0;
+        T y = 0.0;
+        T z = 0.0;
     };
-    inline bool operator==(const CartesianPosition& lhs, const CartesianPosition& rhs)
+    template<typename T>
+    inline bool operator==(const CartesianPosition<T>& lhs, const CartesianPosition<T>& rhs)
     {
         return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
     }
-    inline CartesianPosition operator+(const CartesianPosition& lhs, const CartesianPosition& rhs)
+    template<typename T>
+    inline CartesianPosition<T> operator+(const CartesianPosition<T>& lhs, const CartesianPosition<T>& rhs)
     {
-        return CartesianPosition{ lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z };
+        return CartesianPosition<T>{ lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z };
     }
-    inline CartesianPosition operator-(const CartesianPosition& lhs, const CartesianPosition& rhs)
+    template<typename T>
+    inline CartesianPosition<T> operator-(const CartesianPosition<T>& lhs, const CartesianPosition<T>& rhs)
     {
-        return CartesianPosition{ lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z };
+        return CartesianPosition<T>{ lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z };
     }
 
 } // namespace spaudio

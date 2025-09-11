@@ -167,7 +167,7 @@ namespace spaudio {
                 y *= recipNumGrid;
 
             // Calculate the point source panning vectors for each source grid direction G
-            psp.CalculateGains(PolarPosition{ (double)RadiansToDegrees(azRad), (double)RadiansToDegrees(elRad), 1. }, pspGainsTmp);
+            psp.CalculateGains(PolarPosition<double>{ (double)RadiansToDegrees(azRad), (double)RadiansToDegrees(elRad), 1. }, pspGainsTmp);
 
             // Store the gain matrix
             for (size_t j = 0; j < nLdspk; ++j)

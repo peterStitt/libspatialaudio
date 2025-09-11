@@ -28,11 +28,11 @@ namespace spaudio {
         double aspectRatio = 1.78;
 
         // Polar screen properties
-        PolarPosition centrePolarPosition = PolarPosition{ 0.,0.,1. };
+        PolarPosition<double> centrePolarPosition = PolarPosition<double>{ 0.,0.,1. };
         double widthAzimuth = 58.0;
 
         // Cartesian screen properties
-        CartesianPosition centreCartesianPosition;
+        CartesianPosition<double> centreCartesianPosition;
         double widthX = 0.0;
     };
 
@@ -51,8 +51,8 @@ namespace spaudio {
          */
         void fromScreen(Screen screen)
         {
-            CartesianPosition centre;
-            CartesianPosition v_x, v_z;
+            CartesianPosition<double> centre;
+            CartesianPosition<double> v_x, v_z;
             if (screen.isCartesianScreen)
             {
                 double w = screen.widthAzimuth;
@@ -62,8 +62,8 @@ namespace spaudio {
                 double width = w / 2.;
                 double height = width / a;
 
-                v_x = CartesianPosition{ width,0.,0. };
-                v_z = CartesianPosition{ 0., 0., height };
+                v_x = CartesianPosition<double>{ width,0.,0. };
+                v_z = CartesianPosition<double>{ 0., 0., height };
             }
             else
             {
@@ -79,8 +79,8 @@ namespace spaudio {
 
                 double l_xyz[3][3];
                 LocalCoordinateSystem(az, el, l_xyz);
-                v_x = CartesianPosition{ l_xyz[0][0] * width,l_xyz[0][1] * width,l_xyz[0][2] * width };
-                v_z = CartesianPosition{ l_xyz[2][0] * height,l_xyz[2][1] * height,l_xyz[2][2] * height };
+                v_x = CartesianPosition<double>{ l_xyz[0][0] * width,l_xyz[0][1] * width,l_xyz[0][2] * width };
+                v_z = CartesianPosition<double>{ l_xyz[2][0] * height,l_xyz[2][1] * height,l_xyz[2][2] * height };
             }
 
             leftAzimuth = CartesianToPolar(centre - v_x).azimuth;

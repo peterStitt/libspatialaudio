@@ -26,9 +26,9 @@ namespace spaudio {
 
     AmbisonicSource::AmbisonicSource()
     {
-        m_polPosition.fAzimuth = 0.f;
-        m_polPosition.fElevation = 0.f;
-        m_polPosition.fDistance = 1.f;
+        m_polPosition.azimuth = 0.f;
+        m_polPosition.elevation = 0.f;
+        m_polPosition.distance = 1.f;
         m_fGain = 1.f;
     }
 
@@ -52,14 +52,14 @@ namespace spaudio {
 
     void AmbisonicSource::Refresh()
     {
-        float fCosAzim = cosf(m_polPosition.fAzimuth);
-        float fSinAzim = sinf(m_polPosition.fAzimuth);
-        float fCosElev = cosf(m_polPosition.fElevation);
-        float fSinElev = sinf(m_polPosition.fElevation);
+        float fCosAzim = cosf(m_polPosition.azimuth);
+        float fSinAzim = sinf(m_polPosition.azimuth);
+        float fCosElev = cosf(m_polPosition.elevation);
+        float fSinElev = sinf(m_polPosition.elevation);
 
-        float fCos2Azim = cosf(2.f * m_polPosition.fAzimuth);
-        float fSin2Azim = sinf(2.f * m_polPosition.fAzimuth);
-        float fSin2Elev = sinf(2.f * m_polPosition.fElevation);
+        float fCos2Azim = cosf(2.f * m_polPosition.azimuth);
+        float fSin2Azim = sinf(2.f * m_polPosition.azimuth);
+        float fSin2Elev = sinf(2.f * m_polPosition.elevation);
 
         if (m_b3D)
         {
@@ -83,13 +83,13 @@ namespace spaudio {
             }
             if (m_nOrder >= 3)
             {
-                m_pfCoeff[9] = fSqrt58 * (sinf(3.f * m_polPosition.fAzimuth) * powf(fCosElev, 3.f)) * m_pfOrderWeights[3]; // Q
+                m_pfCoeff[9] = fSqrt58 * (sinf(3.f * m_polPosition.azimuth) * powf(fCosElev, 3.f)) * m_pfOrderWeights[3]; // Q
                 m_pfCoeff[10] = fSqrt152 * (fSin2Azim * fSinElev * powf(fCosElev, 2.f)) * m_pfOrderWeights[3]; // O
                 m_pfCoeff[11] = fSqrt38 * (fSinAzim * fCosElev * (5.f * powf(fSinElev, 2.f) - 1.f)) * m_pfOrderWeights[3]; // M
                 m_pfCoeff[12] = (fSinElev * (5.f * powf(fSinElev, 2.f) - 3.f) * 0.5f) * m_pfOrderWeights[3]; // K
                 m_pfCoeff[13] = fSqrt38 * (fCosAzim * fCosElev * (5.f * powf(fSinElev, 2.f) - 1.f)) * m_pfOrderWeights[3]; // L
                 m_pfCoeff[14] = fSqrt152 * (fCos2Azim * fSinElev * powf(fCosElev, 2.f)) * m_pfOrderWeights[3]; // N
-                m_pfCoeff[15] = fSqrt58 * (cosf(3.f * m_polPosition.fAzimuth) * powf(fCosElev, 3.f)) * m_pfOrderWeights[3]; // P
+                m_pfCoeff[15] = fSqrt58 * (cosf(3.f * m_polPosition.azimuth) * powf(fCosElev, 3.f)) * m_pfOrderWeights[3]; // P
 
             }
         }
@@ -110,8 +110,8 @@ namespace spaudio {
             }
             if (m_nOrder >= 3)
             {
-                m_pfCoeff[5] = (cosf(3.f * m_polPosition.fAzimuth) * powf(fCosElev, 3.f)) * m_pfOrderWeights[3];
-                m_pfCoeff[6] = (sinf(3.f * m_polPosition.fAzimuth) * powf(fCosElev, 3.f)) * m_pfOrderWeights[3];
+                m_pfCoeff[5] = (cosf(3.f * m_polPosition.azimuth) * powf(fCosElev, 3.f)) * m_pfOrderWeights[3];
+                m_pfCoeff[6] = (sinf(3.f * m_polPosition.azimuth) * powf(fCosElev, 3.f)) * m_pfOrderWeights[3];
             }
         }
 
@@ -119,12 +119,12 @@ namespace spaudio {
             m_pfCoeff[ni] *= m_fGain;
     }
 
-    void AmbisonicSource::SetPosition(PolarPoint polPosition)
+    void AmbisonicSource::SetPosition(PolarPosition<float> polPosition)
     {
         m_polPosition = polPosition;
     }
 
-    PolarPoint AmbisonicSource::GetPosition()
+    PolarPosition<float> AmbisonicSource::GetPosition()
     {
         return m_polPosition;
     }

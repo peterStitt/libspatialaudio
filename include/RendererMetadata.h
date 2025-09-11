@@ -310,39 +310,39 @@ namespace spaudio {
     public:
         ObjectPosition() = default;
 
-        ObjectPosition(const PolarPosition& polarPos)
+        ObjectPosition(const PolarPosition<double>& polarPos)
             : m_polarPosition(polarPos), m_cartesianPosition()
         {
         }
 
-        ObjectPosition(const CartesianPosition& cartesianPos)
+        ObjectPosition(const CartesianPosition<double>& cartesianPos)
             : m_polarPosition(), m_cartesianPosition(cartesianPos)
         {
         }
 
-        PolarPosition& polarPosition()
+        PolarPosition<double>& polarPosition()
         {
             // On accessing make sure that there is a PolarPosition to modify
             if (!m_polarPosition.hasValue())
-                m_polarPosition = PolarPosition();
-            // Reset the CartesianPosition since only one can be set at a time
+                m_polarPosition = PolarPosition<double>();
+            // Reset the CartesianPosition<double> since only one can be set at a time
             m_cartesianPosition.reset();
             return m_polarPosition.value();
         }
 
-        const PolarPosition& polarPosition() const { return m_polarPosition.value(); }
+        const PolarPosition<double>& polarPosition() const { return m_polarPosition.value(); }
 
-        CartesianPosition& cartesianPosition()
+        CartesianPosition<double>& cartesianPosition()
         {
-            // On accessing make sure that there is a CartesianPosition to modify
+            // On accessing make sure that there is a CartesianPosition<double> to modify
             if (!m_cartesianPosition.hasValue())
-                m_cartesianPosition = CartesianPosition();
+                m_cartesianPosition = CartesianPosition<double>();
             // Reset the PolarPosition since only one can be set at a time
             m_polarPosition.reset();
             return m_cartesianPosition.value();
         }
 
-        const CartesianPosition& cartesianPosition() const { return m_cartesianPosition.value(); }
+        const CartesianPosition<double>& cartesianPosition() const { return m_cartesianPosition.value(); }
 
         bool isPolar() const
         {
@@ -350,14 +350,14 @@ namespace spaudio {
             return m_polarPosition.hasValue();
         }
 
-        ObjectPosition& operator=(const PolarPosition& polarPos)
+        ObjectPosition& operator=(const PolarPosition<double>& polarPos)
         {
             m_polarPosition = polarPos;
             m_cartesianPosition.reset();
             return *this;
         }
 
-        ObjectPosition& operator=(const CartesianPosition& cartesianPos)
+        ObjectPosition& operator=(const CartesianPosition<double>& cartesianPos)
         {
             m_cartesianPosition = cartesianPos;
             m_polarPosition.reset();
@@ -370,8 +370,8 @@ namespace spaudio {
         }
 
     private:
-        Optional<PolarPosition> m_polarPosition;
-        Optional<CartesianPosition> m_cartesianPosition;
+        Optional<PolarPosition<double>> m_polarPosition;
+        Optional<CartesianPosition<double>> m_cartesianPosition;
     };
 
     // Metadata for different objects. See Rec. ITU-R BS.2127-0 page 86.

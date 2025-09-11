@@ -20,7 +20,7 @@ namespace spaudio {
         /**
         Cartesian speaker coordinates defined in Rec. ITU-R BS.2127-1 Sec. 11.2
         */
-        const std::map<std::string, std::map<std::string, CartesianPosition>> alloPositions = {
+        const std::map<std::string, std::map<std::string, CartesianPosition<double>>> alloPositions = {
             // Stereo - BS.2051-3 System A 0+2+0
             {"0+2+0",{ {"M+030",{-1.,1.,0.}},
             {"M-030",{1.,1.,0.}} }},
@@ -180,9 +180,9 @@ namespace spaudio {
          * @return Positions of the speakers in cartesian/allocentric format. If the layout is not supported by (i.e. not defined
          * in the tables in section 11.2 then an empty vector is returned.
          */
-        static inline std::vector<CartesianPosition> positionsForLayout(const Layout& layout)
+        static inline std::vector<CartesianPosition<double>> positionsForLayout(const Layout& layout)
         {
-            std::vector<CartesianPosition> layoutPositions;
+            std::vector<CartesianPosition<double>> layoutPositions;
 
             auto it = alloPositions.find(layout.name);
             if (it != alloPositions.end())

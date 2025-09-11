@@ -54,7 +54,7 @@ namespace spaudio {
         /** Set the position of the source.
          * @param polPosition   New polar position to encode.
          */
-        void SetPosition(PolarPoint polPosition);
+        void SetPosition(PolarPosition<float> polPosition);
 
         /** Encode mono stream to B-Format.
          * @param pfSrc     Pointer to the signal to encode.

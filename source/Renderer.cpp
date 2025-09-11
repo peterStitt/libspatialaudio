@@ -33,7 +33,7 @@ namespace spaudio {
         DeallocateBuffers(m_binauralOut, 2);
     }
 
-    bool Renderer::Configure(OutputLayout outputTarget, unsigned int hoaOrder, unsigned int nSampleRate, unsigned int nSamples, const StreamInformation& channelInfo, std::string HRTFPath, bool useLfeBinaural, Optional<Screen> reproductionScreen, const std::vector<PolarPosition>& layoutPositions)
+    bool Renderer::Configure(OutputLayout outputTarget, unsigned int hoaOrder, unsigned int nSampleRate, unsigned int nSamples, const StreamInformation& channelInfo, std::string HRTFPath, bool useLfeBinaural, Optional<Screen> reproductionScreen, const std::vector<PolarPosition<double>>& layoutPositions)
     {
         // Set the output layout
         m_RenderLayout = outputTarget;
@@ -182,7 +182,7 @@ namespace spaudio {
                 auto& pos = m_outputLayout.channels[iLdspk].polarPosition;
                 m_hoaEncoders.push_back(AmbisonicEncoder());
                 m_hoaEncoders[iLdspk].Configure(hoaOrder, true, nSampleRate, 0);
-                m_hoaEncoders[iLdspk].SetPosition(PolarPoint{ DegreesToRadians((float)pos.azimuth), DegreesToRadians((float)pos.elevation), 1.f });
+                m_hoaEncoders[iLdspk].SetPosition(PolarPosition<float>{ DegreesToRadians((float)pos.azimuth), DegreesToRadians((float)pos.elevation), 1.f });
             }
 
             bool bBinRot = m_hoaRotate.Configure(hoaOrder, true, nSamples, nSampleRate, 50.f);

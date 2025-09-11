@@ -35,14 +35,14 @@ namespace spaudio {
              * @excluded Vector of excluded loudspeakers.
              * @param gainsOut Output vector of the panning gains.
              */
-            void handle(CartesianPosition sourcePosition, double sizeX, double sizeY, double sizeZ, const std::vector<bool>& excluded, std::vector<double>& gainsOut);
+            void handle(CartesianPosition<double> sourcePosition, double sizeX, double sizeY, double sizeZ, const std::vector<bool>& excluded, std::vector<double>& gainsOut);
 
             /** Get the number of loudspeakers set in the targetLayout. */
             unsigned int getNumChannels();
 
         private:
             Layout m_layout;
-            std::vector<CartesianPosition> m_cartesianPositions;
+            std::vector<CartesianPosition<double>> m_cartesianPositions;
             AllocentricPannerGainCalc m_alloPanner;
 
             unsigned int m_nMaxGridPoints = 40;
@@ -78,7 +78,7 @@ namespace spaudio {
             // Intermediate boundary gains
             std::vector<double> m_bFloor, m_bCeil, m_bLeft, m_bRight, m_bFront, m_bBack;
 
-            double calculateSEff(const std::vector<CartesianPosition>& cartesianPositions, const std::vector<bool>& excluded, double sx, double sy, double sz);
+            double calculateSEff(const std::vector<CartesianPosition<double>>& cartesianPositions, const std::vector<bool>& excluded, double sx, double sy, double sz);
 
             std::tuple<double, double, double> calculateWeights(double xs, double ys, double zs, double xo, double yo, double zo, double sx, double sy, double sz);
 

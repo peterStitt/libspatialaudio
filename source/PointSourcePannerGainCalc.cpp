@@ -102,7 +102,7 @@ namespace spaudio {
         m_directionUnitVec.resize(3, 0.);
 
         // Get the positions of all of the loudspeakers
-        std::vector<PolarPosition> positions;
+        std::vector<PolarPosition<double>> positions;
         for (unsigned i = 0; i < (unsigned)m_internalLayout.channels.size(); ++i)
         {
             m_downmixMapping.push_back(i); // one-to-one downmix mapping
@@ -143,14 +143,14 @@ namespace spaudio {
             {
                 if (nVertices == 4)
                 {
-                    std::vector<PolarPosition> facetPositions;
+                    std::vector<PolarPosition<double>> facetPositions;
                     for (size_t i = 0; i < 4; ++i)
                         facetPositions.push_back(positions[hull[iFacet][i]]);
                     m_regions.quadRegions.push_back(QuadRegion(hull[iFacet], facetPositions));
                 }
                 else if (nVertices == 3)
                 {
-                    std::vector<PolarPosition> facetPositions;
+                    std::vector<PolarPosition<double>> facetPositions;
                     for (size_t i = 0; i < 3; ++i)
                         facetPositions.push_back(positions[hull[iFacet][i]]);
                     m_regions.triplets.push_back(Triplet(hull[iFacet], facetPositions));
@@ -178,7 +178,7 @@ namespace spaudio {
             }
             // Remove the virtual speaker from the set
             virtualNgonVertInds.erase(virtualSpkInd[iVirt]);
-            std::vector<PolarPosition> ngonPositions;
+            std::vector<PolarPosition<double>> ngonPositions;
             std::vector<unsigned int> ngonInds(virtualNgonVertInds.begin(), virtualNgonVertInds.end());
             for (size_t i = 0; i < ngonInds.size(); ++i)
             {
@@ -201,12 +201,12 @@ namespace spaudio {
     {
     }
 
-    void PointSourcePannerGainCalc::CalculateGains(PolarPosition direction, std::vector<double>& gains)
+    void PointSourcePannerGainCalc::CalculateGains(PolarPosition<double> direction, std::vector<double>& gains)
     {
         return CalculateGains(PolarToCartesian(direction), gains);
     }
 
-    void PointSourcePannerGainCalc::CalculateGains(CartesianPosition position, std::vector<double>& gains)
+    void PointSourcePannerGainCalc::CalculateGains(CartesianPosition<double> position, std::vector<double>& gains)
     {
         if (m_downmixOutput == DownmixOutput::Downmix_0_2_0) // then downmix from 0+5+0 to 0+2+0
         {
@@ -276,7 +276,7 @@ namespace spaudio {
         return (unsigned int)m_outputLayout.channels.size();
     }
 
-    void PointSourcePannerGainCalc::CalculateGainsFromRegions(CartesianPosition position, std::vector<double>& gains)
+    void PointSourcePannerGainCalc::CalculateGainsFromRegions(CartesianPosition<double> position, std::vector<double>& gains)
     {
         double tol = 1e-6;
 
@@ -380,7 +380,7 @@ namespace spaudio {
         meanMidEl = meanMidEl / (double)midLayerSet.size();
         meanLowerEl = lowerLayerSet.size() > 0 ? meanLowerEl / (double)lowerLayerSet.size() : -30.;
 
-        PolarPosition position, positionNominal;
+        PolarPosition<double> position, positionNominal;
         for (unsigned iMid = 0; iMid < (unsigned)midLayerSet.size(); ++iMid)
         {
             auto name = layout.channels[midLayerSet[iMid]].name;

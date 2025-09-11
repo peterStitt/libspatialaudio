@@ -24,7 +24,7 @@ namespace spaudio {
         Returns the order of a set of points in an anti-clockwise direction.
         The points should be form a Quad or Ngon and be roughly co-planar
     */
-    static inline std::vector<unsigned int> getNgonVectexOrder(const std::vector<PolarPosition>& polarPositions, PolarPosition centrePosition)
+    static inline std::vector<unsigned int> getNgonVectexOrder(const std::vector<PolarPosition<double>>& polarPositions, PolarPosition<double> centrePosition)
     {
         unsigned int nVertices = (unsigned int)polarPositions.size();
         double rotMat[9] = { 0. };
@@ -37,7 +37,7 @@ namespace spaudio {
         {
             vertInds.push_back(iVert);
             // Rotate the centre position to check it is to the front (0,1,0)
-            CartesianPosition cartesianPositions = PolarToCartesian(polarPositions[iVert]);
+            CartesianPosition<double> cartesianPositions = PolarToCartesian(polarPositions[iVert]);
             // Unit vector in coordinate system with x-axis to the front and y-axis to the left
             std::vector<double> vertexVector = { cartesianPositions.y,-cartesianPositions.x,cartesianPositions.z };
             std::vector<double> vertexRotatedVector(3, 0.);
@@ -58,14 +58,14 @@ namespace spaudio {
     class RegionHandler
     {
     public:
-        RegionHandler(std::vector<unsigned int> chanInds, std::vector<PolarPosition> polPos)
+        RegionHandler(std::vector<unsigned int> chanInds, std::vector<PolarPosition<double>> polPos)
             : m_channelInds(chanInds), m_polarPositions(polPos)
         {
 
         }
 
         std::vector<unsigned int> m_channelInds;
-        std::vector<PolarPosition> m_polarPositions;
+        std::vector<PolarPosition<double>> m_polarPositions;
         // Tolerance value used to check near zero values
         double m_tol = 1e-6;
     };
@@ -76,7 +76,7 @@ namespace spaudio {
     class Triplet : public RegionHandler
     {
     public:
-        Triplet(std::vector<unsigned int> chanInds, std::vector<PolarPosition> polPos);
+        Triplet(std::vector<unsigned int> chanInds, std::vector<PolarPosition<double>> polPos);
 
         void CalculateGains(const std::vector<double>& directionUnitVec, std::vector<double>& gainsOut);
 
@@ -93,7 +93,7 @@ namespace spaudio {
     class VirtualNgon : public RegionHandler
     {
     public:
-        VirtualNgon(std::vector<unsigned int> chanInds, std::vector<PolarPosition> polPos, PolarPosition centrePosition);
+        VirtualNgon(std::vector<unsigned int> chanInds, std::vector<PolarPosition<double>> polPos, PolarPosition<double> centrePosition);
 
         void CalculateGains(const std::vector<double>& directionUnitVec, std::vector<double>& gainsOut);
 
@@ -113,17 +113,17 @@ namespace spaudio {
     class QuadRegion : public RegionHandler
     {
     public:
-        QuadRegion(std::vector<unsigned int> chanInds, std::vector<PolarPosition> polPos);
+        QuadRegion(std::vector<unsigned int> chanInds, std::vector<PolarPosition<double>> polPos);
 
         double GetPanningValue(const std::vector<double>& directionUnitVec, std::vector<std::vector<double>>& xprodTerms);
 
         void CalculateGains(const std::vector<double>& directionUnitVec, std::vector<double>& gainsOut);
 
     private:
-        std::vector<std::vector<double>> CalculatePolyXProdTerms(const std::vector<CartesianPosition>& quadVertices);
+        std::vector<std::vector<double>> CalculatePolyXProdTerms(const std::vector<CartesianPosition<double>>& quadVertices);
 
         // The coordinates of the vertices in anti-clockwise order start from the bottom left.
-        std::vector<CartesianPosition> m_quadVertices;
+        std::vector<CartesianPosition<double>> m_quadVertices;
         // The ordering of the input speaker coordinates needed to put them in the right order
         std::vector<unsigned int> m_vertOrder;
         // The cross product terms from the final equation in section 6.1.2.3.2 (pg 24)

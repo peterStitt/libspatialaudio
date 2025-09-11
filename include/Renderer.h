@@ -65,7 +65,7 @@ namespace spaudio {
          * @return						Returns true if the class is correctly configured and ready to use.
          */
         bool Configure(OutputLayout outputTarget, unsigned int hoaOrder, unsigned int nSampleRate, unsigned int nSamples,const StreamInformation& channelInfo,
-            std::string HRTFPath = "", bool useLfeBinaural = true, Optional<Screen> reproductionScreen = Optional<Screen>(), const std::vector<PolarPosition>& layoutPositions = std::vector<PolarPosition>());
+            std::string HRTFPath = "", bool useLfeBinaural = true, Optional<Screen> reproductionScreen = Optional<Screen>(), const std::vector<PolarPosition<double>>& layoutPositions = std::vector<PolarPosition<double>>());
 
         /** Add an audio Object to be rendered.
          *

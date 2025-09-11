@@ -27,7 +27,7 @@ namespace spaudio {
 
     }
 
-    CartesianPosition ScreenScaleHandler::handle(CartesianPosition position, bool screenRef, const Screen& referenceScreen, bool cartesian)
+    CartesianPosition<double> ScreenScaleHandler::handle(CartesianPosition<double> position, bool screenRef, const Screen& referenceScreen, bool cartesian)
     {
         if (screenRef && m_repScreen.hasValue())
         {
@@ -47,11 +47,11 @@ namespace spaudio {
             return position; // return unmodified
     }
 
-    CartesianPosition ScreenScaleHandler::ScalePosition(CartesianPosition position)
+    CartesianPosition<double> ScreenScaleHandler::ScalePosition(CartesianPosition<double> position)
     {
-        PolarPosition polarPosition = CartesianToPolar(position);
+        PolarPosition<double> polarPosition = CartesianToPolar(position);
         auto AzEl_s = ScaleAzEl(polarPosition.azimuth, polarPosition.elevation);
-        return PolarToCartesian(PolarPosition{ AzEl_s.first,AzEl_s.second,polarPosition.distance });
+        return PolarToCartesian(PolarPosition<double>{ AzEl_s.first,AzEl_s.second,polarPosition.distance });
     }
 
     std::pair<double, double> ScreenScaleHandler::ScaleAzEl(double az, double el)
@@ -78,7 +78,7 @@ namespace spaudio {
 
     }
 
-    CartesianPosition ScreenEdgeLockHandler::HandleVector(CartesianPosition position, ScreenEdgeLock screenEdgeLock, bool cartesian)
+    CartesianPosition<double> ScreenEdgeLockHandler::HandleVector(CartesianPosition<double> position, ScreenEdgeLock screenEdgeLock, bool cartesian)
     {
         if (m_reproductionScreen.hasValue())
         {
@@ -91,9 +91,9 @@ namespace spaudio {
             }
             else
             {
-                PolarPosition polarPosition = CartesianToPolar(position);
+                PolarPosition<double> polarPosition = CartesianToPolar(position);
                 auto AzEl_s = HandleAzEl(polarPosition.azimuth, polarPosition.elevation, screenEdgeLock);
-                return PolarToCartesian(PolarPosition{ AzEl_s.first,AzEl_s.second,polarPosition.distance });
+                return PolarToCartesian(PolarPosition<double>{ AzEl_s.first,AzEl_s.second,polarPosition.distance });
             }
         }
         else

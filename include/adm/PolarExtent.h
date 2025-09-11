@@ -46,13 +46,13 @@ namespace spaudio {
              * @param height	The source height in degrees.
              * @param gainsOut	Output vector of speaker gains.
              */
-            void CalculateGains(CartesianPosition position, double width, double height, std::vector<double>& gainsOut);
+            void CalculateGains(CartesianPosition<double> position, double width, double height, std::vector<double>& gainsOut);
 
         private:
             PointSourcePannerGainCalc& m_pointSourcePannerGainCalc;
             unsigned int m_nCh = 0;
 
-            std::vector<CartesianPosition> m_virtualSourcePositions;
+            std::vector<CartesianPosition<double>> m_virtualSourcePositions;
             std::vector<std::vector<double>> m_virtualSourcePanningVectors;
 
             // The number of virtual source positions
@@ -66,11 +66,11 @@ namespace spaudio {
             // The fade out marge around the "stadium" in degrees
             double m_fadeOut = 10.;
             // The direction of the source used for the weighting function
-            CartesianPosition m_weightPosition;
+            CartesianPosition<double> m_weightPosition;
             // The rotation matrix to convert the virtual source position basis
             std::vector<std::vector<double>> m_rotMat;
             // The coordinates of the circular caps used to define the stadium
-            CartesianPosition m_circularCapPosition;
+            CartesianPosition<double> m_circularCapPosition;
             double m_circularCapAzimuth = 0.;
 
             // The polar coordinates of the position when converted to the coordinate system of the weighting function
@@ -89,7 +89,7 @@ namespace spaudio {
              * @param position	The unit vector of the grid point.
              * @return			The weight corresponding to the direction.
              */
-            double CalculateWeights(CartesianPosition position);
+            double CalculateWeights(CartesianPosition<double> position);
 
             /** Calculate the rotation matrix and "stadium" for the weighting function for a source
              *  a direction specified by position and the defined width and height.
@@ -97,7 +97,7 @@ namespace spaudio {
              * @param width		The angular width of the "stadium".
              * @param height	The angular height of the "stadium".
              */
-            void ConfigureWeightingFunction(CartesianPosition position, double width, double height);
+            void ConfigureWeightingFunction(CartesianPosition<double> position, double width, double height);
         };
 
 
@@ -117,7 +117,7 @@ namespace spaudio {
              * @param depth		Source depth.
              * @param gainsOut	Output vector of panning gains.
              */
-            void handle(CartesianPosition position, double width, double height, double depth, std::vector<double>& gainsOut);
+            void handle(CartesianPosition<double> position, double width, double height, double depth, std::vector<double>& gainsOut);
 
         private:
             PointSourcePannerGainCalc m_pointSourcePannerGainGalc;
@@ -146,7 +146,7 @@ namespace spaudio {
              * @param height	Source height in degrees.
              * @param gainsOut	Output vector of panning gains.
              */
-            void CalculatePolarExtentGains(CartesianPosition position, double width, double height, std::vector<double>& gainsOut);
+            void CalculatePolarExtentGains(CartesianPosition<double> position, double width, double height, std::vector<double>& gainsOut);
         };
 
     } // namespace adm

@@ -33,7 +33,7 @@ namespace spaudio {
         {
         }
 
-        CartesianPosition ChannelLockHandler::handle(const Optional<ChannelLock>& channelLock, CartesianPosition position, const std::vector<bool>& exlcuded)
+        CartesianPosition<double> ChannelLockHandler::handle(const Optional<ChannelLock>& channelLock, CartesianPosition<double> position, const std::vector<bool>& exlcuded)
         {
             // If channelLock has not been set then just return the original value
             if (!channelLock.hasValue())
@@ -121,7 +121,7 @@ namespace spaudio {
         {
         }
 
-        double PolarChannelLockHandler::calculateDistance(const CartesianPosition& srcPos, const CartesianPosition& spkPos)
+        double PolarChannelLockHandler::calculateDistance(const CartesianPosition<double>& srcPos, const CartesianPosition<double>& spkPos)
         {
             auto deltaPos = spkPos - srcPos;
             return norm(deltaPos);
@@ -137,7 +137,7 @@ namespace spaudio {
         {
         }
 
-        double AlloChannelLockHandler::calculateDistance(const CartesianPosition& srcPos, const CartesianPosition& spkPos)
+        double AlloChannelLockHandler::calculateDistance(const CartesianPosition<double>& srcPos, const CartesianPosition<double>& spkPos)
         {
             auto deltaPos = spkPos - srcPos;
             double wx = 1. / 16.;
@@ -163,11 +163,11 @@ namespace spaudio {
             for (unsigned int iSpk = 0; iSpk < m_nCh; ++iSpk)
             {
                 std::vector<std::vector<double>> tuples;
-                CartesianPosition cartIn = m_cartesianPositions[iSpk];
+                CartesianPosition<double> cartIn = m_cartesianPositions[iSpk];
                 std::vector<std::string> channelNames = m_layout.channelNames();
                 for (unsigned int iOutSpk = 0; iOutSpk < m_nCh; ++iOutSpk)
                 {
-                    CartesianPosition cartOut = m_cartesianPositions[iOutSpk];
+                    CartesianPosition<double> cartOut = m_cartesianPositions[iOutSpk];
                     // key 1 - layer priority
                     int layerPriority = GetLayerPriority(channelNames[iSpk], channelNames[iOutSpk]);
                     // key 2 - front/back priority
@@ -426,7 +426,7 @@ namespace spaudio {
             else
                 m_objMetadata = metadata;
 
-            CartesianPosition position;
+            CartesianPosition<double> position;
             bool cartesian = metadata.cartesian;
 
             if (m_objMetadata.cartesian && !m_objMetadata.position.isPolar())
@@ -508,7 +508,7 @@ namespace spaudio {
                 g *= diffuseCoefficient;
         }
 
-        void ObjectGainCalculator::divergedPositionsAndGains(const Optional<ObjectDivergence>& objectDivergence, CartesianPosition position, bool cartesian, std::vector<CartesianPosition>& divergedPos, std::vector<double>& divergedGains)
+        void ObjectGainCalculator::divergedPositionsAndGains(const Optional<ObjectDivergence>& objectDivergence, CartesianPosition<double> position, bool cartesian, std::vector<CartesianPosition<double>>& divergedPos, std::vector<double>& divergedGains)
         {
             assert(divergedPos.capacity() == 3 && divergedGains.capacity() == 3); // Must be able to hold up to 3 positions/gains
 
@@ -550,7 +550,7 @@ namespace spaudio {
             {
                 assert(!objectDivergence->positionRange.hasValue()); // Position range is set for polar processing!
 
-                PolarPosition polarDirection = CartesianToPolar(position);
+                PolarPosition<double> polarDirection = CartesianToPolar(position);
                 double d = polarDirection.distance;
 
                 auto azimuthRange = objectDivergence->azimuthRange.hasValue() ? objectDivergence->azimuthRange.value() : 0.;
@@ -559,11 +559,11 @@ namespace spaudio {
                 cartPositions[0][0] = d;
                 cartPositions[0][1] = 0.;
                 cartPositions[0][2] = 0.;
-                auto cartesianTmp = PolarToCartesian(PolarPosition{ x * azimuthRange,0.,d });
+                auto cartesianTmp = PolarToCartesian(PolarPosition<double>{ x * azimuthRange,0.,d });
                 cartPositions[1][0] = cartesianTmp.y;
                 cartPositions[1][1] = -cartesianTmp.x;
                 cartPositions[1][2] = cartesianTmp.z;
-                cartesianTmp = PolarToCartesian(PolarPosition{ -x * azimuthRange,0.,d });
+                cartesianTmp = PolarToCartesian(PolarPosition<double>{ -x * azimuthRange,0.,d });
                 cartPositions[2][0] = cartesianTmp.y;
                 cartPositions[2][1] = -cartesianTmp.x;
                 cartPositions[2][2] = cartesianTmp.z;
@@ -577,7 +577,7 @@ namespace spaudio {
                     for (int i = 0; i < 3; ++i)
                         for (int j = 0; j < 3; ++j)
                             directionRotated[i] += rotMat[3 * i + j] * cartPositions[iDiverge][j];
-                    divergedPos[iDiverge] = CartesianPosition{ -directionRotated[1],directionRotated[0],directionRotated[2] };
+                    divergedPos[iDiverge] = CartesianPosition<double>{ -directionRotated[1],directionRotated[0],directionRotated[2] };
                 }
             }
         }

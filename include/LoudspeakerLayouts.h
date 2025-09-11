@@ -114,51 +114,51 @@ namespace spaudio {
         };
 
         /** Directions of audio channels from Rec. ITU-R BS.2094-2 Table 1A. */
-        static const std::vector<PolarPosition> positions = {
-            PolarPosition{30.,0.,1.}, // FrontLeft - M+030
-            PolarPosition{-30.,0.,1.}, // FrontRight - M-030
-            PolarPosition{0.,0.,1.}, // FrontCentre - M+000
-            PolarPosition{0.,-30.,1.}, // LFE - LFE
-            PolarPosition{110.,0.,1.}, // SurroundLeft - M+110
-            PolarPosition{-110.,0.,1.}, // SurroundRight - M-110
-            PolarPosition{22.5,0.,1.}, // FrontLeftOfCentre - M+022
-            PolarPosition{-22.5,0.,1.}, // FrontRightOfCentre - M-022
-            PolarPosition{180.,0.,1.}, // BackCentre - M+180
-            PolarPosition{90.,0.,1.}, // SideLeft - M+090
-            PolarPosition{-90.,0.,1.}, // SideRight - M-090
-            PolarPosition{0.,90.,1.}, // TopCentre - T+000
-            PolarPosition{30.,30.,1.}, // TopFrontLeft - U+030
-            PolarPosition{0.,30.,1.}, // TopFrontCentre - U+000
-            PolarPosition{-30.,30.,1.}, // TopFrontRight - U-030
-            PolarPosition{110.,30.,1.}, // TopSurroundLeft - U+110
-            PolarPosition{180.,30.,1.}, // TopBackCentre - U+180
-            PolarPosition{-110.,30.,1.}, // TopSurroundRight - U-110
-            PolarPosition{90.,30.,1.}, // TopSideLeft - U+090
-            PolarPosition{-90.,30.,1.}, // TopSideRight - U-090
-            PolarPosition{0.,-30.,1.}, // BottomFrontCentre - B+000
-            PolarPosition{45.,-30.,1.}, // BottonFrontLeftMid - B+045
-            PolarPosition{-45.,-30.,1.}, // BottomFrontRightMid - B-045
-            PolarPosition{60.,0.,1.}, // FrontLeftWide - M+060
-            PolarPosition{-60.,0.,1.}, // FrontRightWide - M-060
-            PolarPosition{135.,0.,1.}, // BackLeftMid - M+135
-            PolarPosition{-135.,0.,1.}, // BackRightMid - M-135
-            PolarPosition{135.,30.,1.}, // TopBackLeftMid - U+135
-            PolarPosition{-135.,30.,1.}, // TopBackRightMid - U-135
-            PolarPosition{45.,-30.,1.}, // LFE1 - LFE1
-            PolarPosition{-45.,-30.,1.}, // LFE2 - LFE2
-            PolarPosition{45.,30.,1.}, // TopFrontLeftMid - U+045
-            PolarPosition{-45.,30.,1.}, // TopFrontRightMid - U-045
-            PolarPosition{25.,0.,1.}, // FrontLeftScreen - M+SC
-            PolarPosition{-25.,0.,1.}, // FrontRightScreen - M-SC
-            PolarPosition{45.,0.,1.}, // FrontLeftMid - M+045
-            PolarPosition{-45.,0.,1.}, // FrontRightMid - M-045
-            PolarPosition{180.,45.,1.}, // UpperTopBackCentre - UH+180
-            PolarPosition{150.,0.,1.}, // BackLeft - M+150
-            PolarPosition{-150.,0.,1.}, // BackRight - M-150
-            PolarPosition{30.,-30.,1.}, // BottomFrontLeft - B+030
-            PolarPosition{-30.,-30.,1.}, // BottomFrontRight - B-030
-            PolarPosition{135.,-30.,1.}, // BottomBackLeft - B+135
-            PolarPosition{-135.,-30.,1.} // BottomBackRight - B-135
+        static const std::vector<PolarPosition<double>> positions = {
+            PolarPosition<double>{30.,0.,1.}, // FrontLeft - M+030
+            PolarPosition<double>{-30.,0.,1.}, // FrontRight - M-030
+            PolarPosition<double>{0.,0.,1.}, // FrontCentre - M+000
+            PolarPosition<double>{0.,-30.,1.}, // LFE - LFE
+            PolarPosition<double>{110.,0.,1.}, // SurroundLeft - M+110
+            PolarPosition<double>{-110.,0.,1.}, // SurroundRight - M-110
+            PolarPosition<double>{22.5,0.,1.}, // FrontLeftOfCentre - M+022
+            PolarPosition<double>{-22.5,0.,1.}, // FrontRightOfCentre - M-022
+            PolarPosition<double>{180.,0.,1.}, // BackCentre - M+180
+            PolarPosition<double>{90.,0.,1.}, // SideLeft - M+090
+            PolarPosition<double>{-90.,0.,1.}, // SideRight - M-090
+            PolarPosition<double>{0.,90.,1.}, // TopCentre - T+000
+            PolarPosition<double>{30.,30.,1.}, // TopFrontLeft - U+030
+            PolarPosition<double>{0.,30.,1.}, // TopFrontCentre - U+000
+            PolarPosition<double>{-30.,30.,1.}, // TopFrontRight - U-030
+            PolarPosition<double>{110.,30.,1.}, // TopSurroundLeft - U+110
+            PolarPosition<double>{180.,30.,1.}, // TopBackCentre - U+180
+            PolarPosition<double>{-110.,30.,1.}, // TopSurroundRight - U-110
+            PolarPosition<double>{90.,30.,1.}, // TopSideLeft - U+090
+            PolarPosition<double>{-90.,30.,1.}, // TopSideRight - U-090
+            PolarPosition<double>{0.,-30.,1.}, // BottomFrontCentre - B+000
+            PolarPosition<double>{45.,-30.,1.}, // BottonFrontLeftMid - B+045
+            PolarPosition<double>{-45.,-30.,1.}, // BottomFrontRightMid - B-045
+            PolarPosition<double>{60.,0.,1.}, // FrontLeftWide - M+060
+            PolarPosition<double>{-60.,0.,1.}, // FrontRightWide - M-060
+            PolarPosition<double>{135.,0.,1.}, // BackLeftMid - M+135
+            PolarPosition<double>{-135.,0.,1.}, // BackRightMid - M-135
+            PolarPosition<double>{135.,30.,1.}, // TopBackLeftMid - U+135
+            PolarPosition<double>{-135.,30.,1.}, // TopBackRightMid - U-135
+            PolarPosition<double>{45.,-30.,1.}, // LFE1 - LFE1
+            PolarPosition<double>{-45.,-30.,1.}, // LFE2 - LFE2
+            PolarPosition<double>{45.,30.,1.}, // TopFrontLeftMid - U+045
+            PolarPosition<double>{-45.,30.,1.}, // TopFrontRightMid - U-045
+            PolarPosition<double>{25.,0.,1.}, // FrontLeftScreen - M+SC
+            PolarPosition<double>{-25.,0.,1.}, // FrontRightScreen - M-SC
+            PolarPosition<double>{45.,0.,1.}, // FrontLeftMid - M+045
+            PolarPosition<double>{-45.,0.,1.}, // FrontRightMid - M-045
+            PolarPosition<double>{180.,45.,1.}, // UpperTopBackCentre - UH+180
+            PolarPosition<double>{150.,0.,1.}, // BackLeft - M+150
+            PolarPosition<double>{-150.,0.,1.}, // BackRight - M-150
+            PolarPosition<double>{30.,-30.,1.}, // BottomFrontLeft - B+030
+            PolarPosition<double>{-30.,-30.,1.}, // BottomFrontRight - B-030
+            PolarPosition<double>{135.,-30.,1.}, // BottomBackLeft - B+135
+            PolarPosition<double>{-135.,-30.,1.} // BottomBackRight - B-135
         };
     } // namespace bs2094
 
@@ -192,7 +192,7 @@ namespace spaudio {
         Channel();
 
         /** Constructor for a custom channel type */
-        Channel(std::string& channelName, PolarPosition position, PolarPosition positionNominal, bool channelLfe);
+        Channel(std::string& channelName, PolarPosition<double> position, PolarPosition<double> positionNominal, bool channelLfe);
 
         /** Constructor to initialise from a specific channel type */
         Channel(ChannelTypes channelType);
@@ -207,9 +207,9 @@ namespace spaudio {
         std::string name;
         ChannelTypes channelType = ChannelTypes::Custom;
         // Real loudspeaker position
-        PolarPosition polarPosition;
+        PolarPosition<double> polarPosition;
         // Nominal loudspeaker position from ITU-R BS.2051-2
-        PolarPosition polarPositionNominal;
+        PolarPosition<double> polarPositionNominal;
         bool isLFE = false;
 
     private:

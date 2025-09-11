@@ -97,7 +97,7 @@ namespace spaudio {
          * @param nSpeaker      Index of the speaker to reposition.
          * @param polPosition   Position of the speaker.
          */
-        void SetPosition(unsigned nSpeaker, PolarPoint polPosition);
+        void SetPosition(unsigned nSpeaker, PolarPosition<float> polPosition);
 
         /** Used when current speaker setup is ::kCustomSpeakerSetUp, it returns
          *  the position of the speaker of index nSpeaker, in the current speaker
@@ -105,7 +105,7 @@ namespace spaudio {
          * @param nSpeaker  Speaker index.
          * @return          Position of the desired speaker.
          */
-        PolarPoint GetPosition(unsigned nSpeaker);
+        PolarPosition<float> GetPosition(unsigned nSpeaker);
 
         /** Sets the weight for the spherical harmonics of the given order,
          *  at the given speaker.

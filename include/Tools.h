@@ -41,21 +41,23 @@ namespace spaudio {
      * @param cartesian		Cartesian position to be converted to ADM polar.
      * @return				The ADM-convention polar coordinates.
      */
-    static inline PolarPosition CartesianToPolar(CartesianPosition cartesian)
+    template<typename T>
+    static inline PolarPosition<T> CartesianToPolar(CartesianPosition<T> cartesian)
     {
-        PolarPosition sphCoords;
-        double x = cartesian.x;
-        double y = cartesian.y;
-        double z = cartesian.z;
+        PolarPosition<T> sphCoords;
+        T x = cartesian.x;
+        T y = cartesian.y;
+        T z = cartesian.z;
         sphCoords.azimuth = -RAD2DEG * std::atan2(x, y);
         sphCoords.elevation = RAD2DEG * std::atan2(z, std::sqrt(x * x + y * y));
         sphCoords.distance = std::sqrt(x * x + y * y + z * z);
 
         return sphCoords;
     };
-    static inline void CartesianToPolar(const std::vector<double>& cartVec, std::vector<double>& polVec)
+    template<typename T>
+    static inline void CartesianToPolar(const std::vector<T>& cartVec, std::vector<T>& polVec)
     {
-        CartesianPosition cartPos = { cartVec[0],cartVec[1],cartVec[2] };
+        CartesianPosition<T> cartPos = { cartVec[0],cartVec[1],cartVec[2] };
         auto sphPos = CartesianToPolar(cartPos);
         polVec[0] = sphPos.azimuth;
         polVec[1] = sphPos.elevation;
@@ -69,9 +71,10 @@ namespace spaudio {
      * @param polar		The polar angle to be converted to ADM-convention cartesian.
      * @return			ADM-convention cartesian coordinates.
      */
-    static inline CartesianPosition PolarToCartesian(PolarPosition polar)
+    template<typename T>
+    static inline CartesianPosition<T> PolarToCartesian(PolarPosition<T> polar)
     {
-        CartesianPosition cartCoords;
+        CartesianPosition<T> cartCoords;
 
         double az = DEG2RAD * polar.azimuth;
         double el = DEG2RAD * polar.elevation;
@@ -82,11 +85,12 @@ namespace spaudio {
 
         return cartCoords;
     };
-    static inline void PolarToCartesian(const std::vector<double>& polar, std::vector<double>& cartesian)
+    template<typename T>
+    static inline void PolarToCartesian(const std::vector<T>& polar, std::vector<T>& cartesian)
     {
-        double az = DEG2RAD * polar[0];
-        double el = DEG2RAD * polar[1];
-        double d = polar[2];
+        T az = DEG2RAD * polar[0];
+        T el = DEG2RAD * polar[1];
+        T d = polar[2];
         cartesian[0] = std::sin(-az) * std::cos(el) * d;
         cartesian[1] = std::cos(-az) * std::cos(el) * d;
         cartesian[2] = std::sin(el) * d;
@@ -96,15 +100,17 @@ namespace spaudio {
      * @param vec	Vector to have its norm calculated.
      * @return		Norm of the input vector.
      */
-    static inline double norm(const std::vector<double>& vec)
+    template<typename T>
+    static inline double norm(const std::vector<T>& vec)
     {
-        double vecNorm = 0.;
+        auto vecNorm = 0.;
         for (size_t i = 0; i < vec.size(); ++i)
             vecNorm += vec[i] * vec[i];
         vecNorm = sqrt(vecNorm);
         return vecNorm;
     }
-    static inline double norm(CartesianPosition vec)
+    template<typename T>
+    static inline double norm(CartesianPosition<T> vec)
     {
         return sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
     }
@@ -419,10 +425,11 @@ namespace spaudio {
      * @param elInDegrees	The elevation of the desired coordinate system.
      * @param rotMat		The rotation matrix that will rotate a point to the desired coordinate system.
      */
-    static inline void LocalCoordinateSystem(double azInDegrees, double elInDegrees, double(&rotMat)[3][3])
+    template<typename T>
+    static inline void LocalCoordinateSystem(T azInDegrees, T elInDegrees, T(&rotMat)[3][3])
     {
-        CartesianPosition cartPos;
-        PolarPosition polPos;
+        CartesianPosition<T> cartPos;
+        PolarPosition<T> polPos;
 
         polPos.azimuth = azInDegrees - 90.;
         polPos.elevation = 0.;
@@ -446,9 +453,10 @@ namespace spaudio {
         rotMat[2][1] = cartPos.y;
         rotMat[2][2] = cartPos.z;
     }
-    static inline void LocalCoordinateSystem(double azInDegrees, double elInDegrees, std::vector<std::vector<double>>& rotMat)
+    template<typename T>
+    static inline void LocalCoordinateSystem(T azInDegrees, T elInDegrees, std::vector<std::vector<T>>& rotMat)
     {
-        double rotMatTmp[3][3] = { {rotMat[0][0],rotMat[0][1],rotMat[0][2]},
+        T rotMatTmp[3][3] = { {rotMat[0][0],rotMat[0][1],rotMat[0][2]},
             {rotMat[1][0],rotMat[1][1],rotMat[1][2]},
             {rotMat[2][0],rotMat[2][1],rotMat[2][2]} };
         LocalCoordinateSystem(azInDegrees, elInDegrees, rotMatTmp);

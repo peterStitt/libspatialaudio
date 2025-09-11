@@ -53,7 +53,7 @@ namespace spaudio {
         m_coeffInterp.Reset();
     }
 
-    void AmbisonicEncoder::SetPosition(PolarPoint polPosition)
+    void AmbisonicEncoder::SetPosition(PolarPosition<float> polPosition)
     {
         // Update the coefficients
         AmbisonicSource::SetPosition(polPosition);

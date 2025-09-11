@@ -75,9 +75,9 @@ namespace spaudio {
 
         for (unsigned niChannel = 0; niChannel < nSpeakers; niChannel++)
         {
-            PolarPoint position = speakers[niChannel].GetPosition();
+            PolarPosition<float> position = speakers[niChannel].GetPosition();
 
-            bool b_found = p_hrtf->get(position.fAzimuth, position.fElevation, pfHRTF);
+            bool b_found = p_hrtf->get(position.azimuth, position.elevation, pfHRTF);
             if (!b_found)
                 return false;
 

@@ -89,7 +89,7 @@ namespace spaudio {
         {
         }
 
-        void AllocentricPannerGainCalc::CalculateGains(CartesianPosition position, const std::vector<bool>& excluded, std::vector<double>& gains)
+        void AllocentricPannerGainCalc::CalculateGains(CartesianPosition<double> position, const std::vector<bool>& excluded, std::vector<double>& gains)
         {
             auto nLdspk = m_cartesianPositions.size();
             assert(gains.capacity() >= nLdspk);
@@ -134,7 +134,7 @@ namespace spaudio {
             }
         }
 
-        void AllocentricPannerGainCalc::CalculateIndividualGains(CartesianPosition position, const std::vector<bool>& excluded,
+        void AllocentricPannerGainCalc::CalculateIndividualGains(CartesianPosition<double> position, const std::vector<bool>& excluded,
             std::vector<double>& gx, std::vector<double>& gy, std::vector<double>& gz)
         {
             auto nLdspk = m_cartesianPositions.size();

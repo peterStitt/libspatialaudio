@@ -17,7 +17,7 @@
 
 namespace spaudio {
 
-    Triplet::Triplet(std::vector<unsigned int> chanInds, std::vector<PolarPosition> polPos)
+    Triplet::Triplet(std::vector<unsigned int> chanInds, std::vector<PolarPosition<double>> polPos)
         : RegionHandler(chanInds, polPos)
     {
         // calculate the unit vectors in each of the loudspeaker directions
@@ -25,7 +25,7 @@ namespace spaudio {
         for (int i = 0; i < 3; ++i)
         {
             polPos[i].distance = 1.;
-            CartesianPosition cartPos = PolarToCartesian(polPos[i]);
+            CartesianPosition<double> cartPos = PolarToCartesian(polPos[i]);
             unitVectors[i][0] = cartPos.x;
             unitVectors[i][1] = cartPos.y;
             unitVectors[i][2] = cartPos.z;
@@ -62,7 +62,7 @@ namespace spaudio {
     }
 
     //=======================================================================================
-    VirtualNgon::VirtualNgon(std::vector<unsigned int> chanInds, std::vector<PolarPosition> polPos, PolarPosition centrePosition)
+    VirtualNgon::VirtualNgon(std::vector<unsigned int> chanInds, std::vector<PolarPosition<double>> polPos, PolarPosition<double> centrePosition)
         : RegionHandler(chanInds, polPos)
     {
         m_nCh = (unsigned int)chanInds.size();
@@ -78,7 +78,7 @@ namespace spaudio {
             unsigned int spk1 = vertOrder[iCh];
             unsigned int spk2 = vertOrder[(iCh + 1) % m_nCh];
             std::vector<unsigned int>channelIndSubset = { spk1,spk2,m_nCh };// { orderCh[spk1], orderCh[spk2], centreInd };
-            std::vector<PolarPosition> tripletPositions(3);
+            std::vector<PolarPosition<double>> tripletPositions(3);
             tripletPositions[0] = polPos[spk1];
             tripletPositions[1] = polPos[spk2];
             tripletPositions[2] = centrePosition;
@@ -126,15 +126,15 @@ namespace spaudio {
     }
 
     //=======================================================================================
-    QuadRegion::QuadRegion(std::vector<unsigned int> chanInds, std::vector<PolarPosition> polPos)
+    QuadRegion::QuadRegion(std::vector<unsigned int> chanInds, std::vector<PolarPosition<double>> polPos)
         : RegionHandler(chanInds, polPos)
     {
         // Get the centre position of the four points
-        CartesianPosition centrePosition;
+        CartesianPosition<double> centrePosition;
         centrePosition.x = 0.;
         centrePosition.y = 0.;
         centrePosition.z = 0.;
-        std::vector<CartesianPosition> cartesianPositions;
+        std::vector<CartesianPosition<double>> cartesianPositions;
         for (int i = 0; i < 4; ++i)
         {
             cartesianPositions.push_back(PolarToCartesian(polPos[i]));
@@ -143,7 +143,7 @@ namespace spaudio {
             centrePosition.z += cartesianPositions[i].z / 4.;
         }
         // Get the order of the loudspeakers
-        PolarPosition centrePolarPosition = CartesianToPolar(centrePosition);
+        PolarPosition<double> centrePolarPosition = CartesianToPolar(centrePosition);
         m_vertOrder = getNgonVectexOrder(polPos, centrePolarPosition);
         for (int i = 0; i < 4; ++i)
         {
@@ -232,7 +232,7 @@ namespace spaudio {
             gains[m_vertOrder[i]] = m_gainsTmp[i];
     }
 
-    std::vector<std::vector<double>> QuadRegion::CalculatePolyXProdTerms(const std::vector<CartesianPosition>& quadVertices)
+    std::vector<std::vector<double>> QuadRegion::CalculatePolyXProdTerms(const std::vector<CartesianPosition<double>>& quadVertices)
     {
         // See ITU Rec. ITU-R BS.2127-0 pg 24 last equation
         std::vector<double> p1 = { quadVertices[0].x,quadVertices[0].y,quadVertices[0].z };
