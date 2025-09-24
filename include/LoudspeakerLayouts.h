@@ -176,10 +176,10 @@ namespace spaudio {
 
         // Rename the LFE channels, if requried.
         // See Rec. ITU-R BS.2127-0 sec 8.3
-        if (stringContains(label, "LFE") || stringContains(label, "LFEL"))
-            return channelLabels[31];
-        else if (stringContains(label, "LFER"))
-            return channelLabels[32];
+        if (stringContains(label, "LFER"))
+            return channelLabels[30];
+        else if (stringContains(label, "LFE") || stringContains(label, "LFEL"))
+            return channelLabels[29];
 
         return channelLabels.back();
     }
