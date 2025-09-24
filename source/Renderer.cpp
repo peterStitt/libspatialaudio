@@ -322,6 +322,7 @@ namespace spaudio {
         if (m_RenderLayout == OutputLayout::Binaural) // Modify metadata based on EBU Tech 3396 Sec. 3.7.1
         {
             // Keep the metadata that will only use screen locking and the point source panner in m_directSpeakerGainCalc->calculateGains()
+            m_dirSpkBinMetaDataTmp.speakerLabel = metadata.speakerLabel;
             m_dirSpkBinMetaDataTmp.channelFrequency = metadata.channelFrequency;
             m_dirSpkBinMetaDataTmp.polarPosition = metadata.polarPosition;
             m_dirSpkBinMetaDataTmp.screenEdgeLock = metadata.screenEdgeLock;
