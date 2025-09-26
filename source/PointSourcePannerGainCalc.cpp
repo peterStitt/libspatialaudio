@@ -28,7 +28,7 @@ namespace spaudio {
         m_outputLayout = Layout::getLayoutWithoutLFE(layout);
         // Internal layout that is used for processing then (if requried) downmixing to the output
         m_internalLayout = m_outputLayout;
-        std::string layoutName = m_internalLayout.name;
+        std::string layoutName = m_internalLayout.getLayoutName();
 
         // Check that the loudspeaker layout is supported
         assert(layoutName.compare("0+2+0") == 0 || layoutName.compare("0+4+0") == 0
@@ -74,8 +74,12 @@ namespace spaudio {
                 hull = HULL_4_9_0_wide;
 
             // Set nominal azimuth values depending on what azimuth range they fall in
-            m_internalLayout.channels[11].polarPositionNominal.azimuth = wideLeft ? 15 : 45;
-            m_internalLayout.channels[12].polarPositionNominal.azimuth = wideLeft ? 15 : 45;
+            auto chPosNom = m_internalLayout.getChannel(11).getPolarPositionNominal();
+            chPosNom.azimuth = wideLeft ? 15 : 45;
+            m_internalLayout.getChannel(11).setPolarPositionNominal(chPosNom);
+            chPosNom = m_internalLayout.getChannel(12).getPolarPositionNominal();
+            chPosNom.azimuth = wideLeft ? 15 : 45;
+            m_internalLayout.getChannel(12).setPolarPositionNominal(chPosNom);
         }
         else if (layoutName == "9+10+3")
             hull = HULL_9_10_3;
@@ -95,18 +99,18 @@ namespace spaudio {
         }
         else
             assert(false);
-        unsigned int nOutputCh = (unsigned int)m_internalLayout.channels.size();
+        unsigned int nOutputCh = (unsigned int)m_internalLayout.getNumChannels();
 
         // Allocate temp gains based on the size of the internal layout used (0+5+0 when outputting stereo)
-        m_gainsTmp.resize(m_internalLayout.channels.size(), 0.);
+        m_gainsTmp.resize(m_internalLayout.getNumChannels(), 0.);
         m_directionUnitVec.resize(3, 0.);
 
         // Get the positions of all of the loudspeakers
         std::vector<PolarPosition<double>> positions;
-        for (unsigned i = 0; i < (unsigned)m_internalLayout.channels.size(); ++i)
+        for (unsigned i = 0; i < (unsigned)m_internalLayout.getNumChannels(); ++i)
         {
             m_downmixMapping.push_back(i); // one-to-one downmix mapping
-            positions.push_back(m_internalLayout.channels[i].polarPosition);
+            positions.push_back(m_internalLayout.getChannel(i).getPolarPosition());
         }
 
         // get the extra speakers
@@ -116,17 +120,17 @@ namespace spaudio {
         // the top so do not assume that the last 2 entries are definitely virtual
         // speakers
         std::vector<unsigned int> virtualSpkInd;
-        unsigned int nExtraSpk = (unsigned int)m_extraSpeakersLayout.channels.size();
-        if (m_extraSpeakersLayout.channels[nExtraSpk - 2].name == "TOP" ||
-            m_extraSpeakersLayout.channels[nExtraSpk - 2].name == "BOTTOM")
+        unsigned int nExtraSpk = (unsigned int)m_extraSpeakersLayout.size();
+        if (m_extraSpeakersLayout[nExtraSpk - 2].getChannelName() == "TOP" ||
+            m_extraSpeakersLayout[nExtraSpk - 2].getChannelName() == "BOTTOM")
             virtualSpkInd.push_back(nOutputCh + nExtraSpk - 2);
-        if (m_extraSpeakersLayout.channels[nExtraSpk - 1].name == "TOP" ||
-            m_extraSpeakersLayout.channels[nExtraSpk - 1].name == "BOTTOM")
+        if (m_extraSpeakersLayout[nExtraSpk - 1].getChannelName() == "TOP" ||
+            m_extraSpeakersLayout[nExtraSpk - 1].getChannelName() == "BOTTOM")
             virtualSpkInd.push_back(nOutputCh + nExtraSpk - 1);
 
         // Add the extra speakers to the list of positions
-        for (size_t i = 0; i < m_extraSpeakersLayout.channels.size(); ++i)
-            positions.push_back(m_extraSpeakersLayout.channels[i].polarPosition);
+        for (int i = 0; i < (int)m_extraSpeakersLayout.size(); ++i)
+            positions.push_back(m_extraSpeakersLayout[i].getPolarPosition());
 
         // Go through all the facets of the hull to create the required RegionHandlers
         unsigned int nFacets = (unsigned int)hull.size();
@@ -273,15 +277,15 @@ namespace spaudio {
 
     unsigned int PointSourcePannerGainCalc::getNumChannels()
     {
-        return (unsigned int)m_outputLayout.channels.size();
+        return (unsigned int)m_outputLayout.getNumChannels();
     }
 
     void PointSourcePannerGainCalc::CalculateGainsFromRegions(CartesianPosition<double> position, std::vector<double>& gains)
     {
         double tol = 1e-6;
 
-        assert(gains.capacity() >= m_internalLayout.channels.size()); // Gains vector length must match the number of channels
-        gains.resize(m_internalLayout.channels.size());
+        assert(gains.capacity() >= m_internalLayout.getNumChannels()); // Gains vector length must match the number of channels
+        gains.resize(m_internalLayout.getNumChannels());
         for (auto& g : gains)
             g = 0.;
 
@@ -339,10 +343,10 @@ namespace spaudio {
         }
     }
 
-    Layout PointSourcePannerGainCalc::CalculateExtraSpeakersLayout(const Layout& layout)
+    std::vector<Channel> PointSourcePannerGainCalc::CalculateExtraSpeakersLayout(const Layout& layout)
     {
-        Layout extraSpeakers;
-        unsigned int nSpeakers = (unsigned int)layout.channels.size();
+        std::vector<Channel> extraSpeakers;
+        unsigned int nSpeakers = (unsigned int)layout.getNumChannels();
 
         // Find if speakers are present in each layer
         std::vector<unsigned int> upperLayerSet;
@@ -355,25 +359,25 @@ namespace spaudio {
         double meanLowerEl = 0.;
         for (unsigned int iSpk = 0; iSpk < nSpeakers; ++iSpk)
         {
-            double el = layout.channels[iSpk].polarPositionNominal.elevation;
+            double el = layout.getChannel(iSpk).getPolarPositionNominal().elevation;
             if (el >= 30 && el <= 70)
             {
                 upperLayerSet.push_back(iSpk);
                 // TODO: consider remapping azimuth to range -180 to 180
-                maxUpperAz = std::max(maxUpperAz, abs(layout.channels[iSpk].polarPositionNominal.azimuth));
-                meanUpperEl += layout.channels[iSpk].polarPosition.elevation;
+                maxUpperAz = std::max(maxUpperAz, abs(layout.getChannel(iSpk).getPolarPositionNominal().azimuth));
+                meanUpperEl += layout.getChannel(iSpk).getPolarPosition().elevation;
             }
             else if (el >= -10 && el <= 10)
             {
                 midLayerSet.push_back(iSpk);
-                meanMidEl += layout.channels[iSpk].polarPosition.elevation;
+                meanMidEl += layout.getChannel(iSpk).getPolarPosition().elevation;
             }
             else if (el >= -70 && el <= -30)
             {
                 lowerLayerSet.push_back(iSpk);
                 // TODO: consider remapping azimuth to range -180 to 180
-                maxLowerAz = std::max(maxLowerAz, abs(layout.channels[iSpk].polarPositionNominal.azimuth));
-                meanLowerEl += layout.channels[iSpk].polarPosition.elevation;
+                maxLowerAz = std::max(maxLowerAz, abs(layout.getChannel(iSpk).getPolarPositionNominal().azimuth));
+                meanLowerEl += layout.getChannel(iSpk).getPolarPosition().elevation;
             }
         }
         meanUpperEl = upperLayerSet.size() > 0 ? meanUpperEl / (double)upperLayerSet.size() : 30.;
@@ -383,8 +387,8 @@ namespace spaudio {
         PolarPosition<double> position, positionNominal;
         for (unsigned iMid = 0; iMid < (unsigned)midLayerSet.size(); ++iMid)
         {
-            auto name = layout.channels[midLayerSet[iMid]].name;
-            double azimuth = layout.channels[midLayerSet[iMid]].polarPosition.azimuth;
+            auto name = layout.getChannel(midLayerSet[iMid]).getChannelName();
+            double azimuth = layout.getChannel(midLayerSet[iMid]).getPolarPosition().azimuth;
             // Lower layer
             if ((lowerLayerSet.size() > 0 && abs(azimuth) > maxLowerAz + 40.) || lowerLayerSet.size() == 0)
             {
@@ -392,15 +396,15 @@ namespace spaudio {
                 name.at(0) = 'B';
                 position.azimuth = azimuth;
                 position.elevation = meanLowerEl;
-                positionNominal.azimuth = layout.channels[midLayerSet[iMid]].polarPositionNominal.azimuth;
+                positionNominal.azimuth = layout.getChannel(midLayerSet[iMid]).getPolarPositionNominal().azimuth;
                 positionNominal.elevation = -30.;
-                extraSpeakers.channels.push_back(Channel{ name,position,positionNominal,false });
+                extraSpeakers.push_back(Channel{ name,position,positionNominal,false });
             }
         }
         for (unsigned iMid = 0; iMid < (unsigned)midLayerSet.size(); ++iMid)
         {
-            auto name = layout.channels[midLayerSet[iMid]].name;
-            double azimuth = layout.channels[midLayerSet[iMid]].polarPosition.azimuth;
+            auto name = layout.getChannel(midLayerSet[iMid]).getChannelName();
+            double azimuth = layout.getChannel(midLayerSet[iMid]).getPolarPosition().azimuth;
             // Upper layer
             if ((upperLayerSet.size() > 0 && abs(azimuth) > maxUpperAz + 40.) || upperLayerSet.size() == 0)
             {
@@ -408,9 +412,9 @@ namespace spaudio {
                 name.at(0) = 'U';
                 position.azimuth = azimuth;
                 position.elevation = meanUpperEl;
-                positionNominal.azimuth = layout.channels[midLayerSet[iMid]].polarPositionNominal.azimuth;
+                positionNominal.azimuth = layout.getChannel(midLayerSet[iMid]).getPolarPositionNominal().azimuth;
                 positionNominal.elevation = 30.;
-                extraSpeakers.channels.push_back({ name,position,positionNominal,false });
+                extraSpeakers.push_back({ name,position,positionNominal,false });
             }
         }
 
@@ -419,11 +423,11 @@ namespace spaudio {
         std::string bottomString = "BOTTOM";
         position.azimuth = 0.;
         position.elevation = -90.;
-        extraSpeakers.channels.push_back({ bottomString,position,position,false });
+        extraSpeakers.push_back({ bottomString,position,position,false });
         if (!layout.containsChannel("T+000") && !layout.containsChannel("UH+180"))
         {
             position.elevation = 90.;
-            extraSpeakers.channels.push_back({ topString,position,position,false });
+            extraSpeakers.push_back({ topString,position,position,false });
         }
 
         return extraSpeakers;
@@ -432,22 +436,22 @@ namespace spaudio {
     bool PointSourcePannerGainCalc::CheckScreenSpeakerWidths(const Layout& layout, bool& wideLeft, bool& wideRight)
     {
         int chCount = 0;
-        for (auto& channel : layout.channels)
-            if (channel.name == "M+SC")
+        for (auto& channel : layout.getChannels())
+            if (channel.getChannelName() == "M+SC")
             {
-                if (channel.polarPosition.azimuth >= 5. && channel.polarPosition.azimuth <= 25.)
+                if (channel.getPolarPosition().azimuth >= 5. && channel.getPolarPosition().azimuth <= 25.)
                     wideLeft = false;
-                else if (channel.polarPosition.azimuth >= 35. && channel.polarPosition.azimuth <= 60.)
+                else if (channel.getPolarPosition().azimuth >= 35. && channel.getPolarPosition().azimuth <= 60.)
                     wideLeft = false;
                 else
                     return false; // M+SC is not in the valid range.
                 chCount++;
             }
-            else if (channel.name == "M-SC")
+            else if (channel.getChannelName() == "M-SC")
             {
-                if (channel.polarPosition.azimuth <= -5. && channel.polarPosition.azimuth >= -25.)
+                if (channel.getPolarPosition().azimuth <= -5. && channel.getPolarPosition().azimuth >= -25.)
                     wideRight = false;
-                else if (channel.polarPosition.azimuth <= -35. && channel.polarPosition.azimuth >= -60.)
+                else if (channel.getPolarPosition().azimuth <= -35. && channel.getPolarPosition().azimuth >= -60.)
                     wideRight = false;
                 else
                     return false; // M-SC is not in the valid range.

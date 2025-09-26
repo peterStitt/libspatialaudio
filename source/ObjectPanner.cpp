@@ -35,7 +35,7 @@ namespace spaudio {
         m_pspGainCalc = std::make_unique<PointSourcePannerGainCalc>(layout);
 
         m_gainsTmp.resize(m_pspGainCalc->getNumChannels());
-        m_gains.resize(m_layout.channels.size());
+        m_gains.resize(m_layout.getNumChannels());
         m_coeffInterp = GainInterp<double>(static_cast<int>(m_gains.size()));
 
         m_fadingTimeMilliSec = fadeTimeMilliSec;
@@ -51,7 +51,7 @@ namespace spaudio {
 
     int ObjectPanner::GetNumSpeakers()
     {
-        return static_cast<int>(m_layout.channels.size());
+        return static_cast<int>(m_layout.getNumChannels());
     }
 
     void ObjectPanner::SetPosition(const PolarPosition<double>& polPosition)
@@ -76,15 +76,15 @@ namespace spaudio {
     }
     void ObjectPanner::insertLFE(const std::vector<double>& inGains, std::vector<double>& outGains)
     {
-        if (!m_layout.hasLFE) // No LFE to insert so just copy the gain vector
+        if (!m_layout.hasLfe()) // No LFE to insert so just copy the gain vector
         {
             outGains = inGains;
             return;
         }
 
         int iCount = 0;
-        for (int i = 0; i < m_layout.channels.size(); ++i)
-            if (!m_layout.channels[i].isLFE)
+        for (int i = 0; i < m_layout.getNumChannels(); ++i)
+            if (!m_layout.getChannel(i).getIsLfe())
                 outGains[i] = inGains[iCount++];
             else
                 outGains[i] = 0.;

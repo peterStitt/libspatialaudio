@@ -21,11 +21,11 @@ namespace spaudio {
 
         //===================================================================================================================================
         DirectSpeakersGainCalc::DirectSpeakersGainCalc(Layout layoutWithLFE)
-            : m_pointSourcePannerGainCalc(Layout::getLayoutWithoutLFE(layoutWithLFE)), m_screenEdgeLock(layoutWithLFE.reproductionScreen, layoutWithLFE)
+            : m_pointSourcePannerGainCalc(Layout::getLayoutWithoutLFE(layoutWithLFE)), m_screenEdgeLock(layoutWithLFE.getReproductionScreen(), layoutWithLFE)
         {
             m_layout = layoutWithLFE;
-            m_nCh = (unsigned int)m_layout.channels.size();
-            m_gainsPSP.resize(Layout::getLayoutWithoutLFE(layoutWithLFE).channels.size(), 0.);
+            m_nCh = (unsigned int)m_layout.getNumChannels();
+            m_gainsPSP.resize(Layout::getLayoutWithoutLFE(layoutWithLFE).getNumChannels(), 0.);
             m_withinBounds.resize(m_nCh);
         }
 
@@ -61,7 +61,7 @@ namespace spaudio {
 
             for (unsigned int iSpk = 0; iSpk < m_nCh; ++iSpk)
             {
-                PolarPosition<double> spkDir = m_layout.channels[iSpk].polarPositionNominal;
+                PolarPosition<double> spkDir = m_layout.getChannel(iSpk).getPolarPositionNominal();
                 if ((insideAngleRange(spkDir.azimuth, minAz, maxAz, tol) || spkDir.elevation > 90. - tol) &&
                     (spkDir.elevation <= maxEl + tol && spkDir.elevation >= minEl - tol) &&
                     (spkDir.distance <= maxDist + tol && spkDir.distance >= minDist - tol))
@@ -79,7 +79,7 @@ namespace spaudio {
                 CartesianPosition<double> cartDirection = PolarToCartesian(PolarPosition<double>{ direction.azimuth,direction.elevation,direction.distance });
                 for (auto& t : m_withinBounds)
                 {
-                    CartesianPosition<double> spkCart = PolarToCartesian(m_layout.channels[t].polarPositionNominal);
+                    CartesianPosition<double> spkCart = PolarToCartesian(m_layout.getChannel(t).getPolarPositionNominal());
                     double distance = norm(vecSubtract({ spkCart.x,spkCart.y,spkCart.z }, { cartDirection.x,cartDirection.y,cartDirection.z }));
                     distanceWithinBounds.push_back(distance);
                 }
@@ -144,7 +144,7 @@ namespace spaudio {
             // Check if there are any speakers with the same label and LFE type
             const std::string& speakerLabel = GetNominalSpeakerLabel(metadata.speakerLabel);
             int idx = m_layout.getMatchingChannelIndex(speakerLabel);
-            if (idx >= 0 && (m_layout.channels[idx].isLFE == isLfeChannel))
+            if (idx >= 0 && (m_layout.getChannel(idx).getIsLfe() == isLfeChannel))
             {
                 gains[idx] = 1.;
 
@@ -184,7 +184,7 @@ namespace spaudio {
                 // fill in the gains on the non-LFE channels
                 int indNonLfe = 0;
                 for (unsigned int i = 0; i < gains.size(); ++i)
-                    if (!m_layout.channels[i].isLFE)
+                    if (!m_layout.getChannel(i).getIsLfe())
                         gains[i] = m_gainsPSP[indNonLfe++];
             }
         }
@@ -213,7 +213,7 @@ namespace spaudio {
             if (rule.outputLayouts.size() > 0)
             {
                 for (auto& layout : rule.outputLayouts)
-                    if (layout == outputLayout.name)
+                    if (layout == outputLayout.getLayoutName())
                         containsLayout = true;
                 if (!containsLayout)
                     return false;

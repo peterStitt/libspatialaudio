@@ -53,8 +53,8 @@ namespace spaudio {
         Layout m_outputLayout;
         // The loudspeaker layout used internally for the processing
         Layout m_internalLayout;
-        // The layout of the extra loudspeakers used to fill in any gaps in the array
-        Layout m_extraSpeakersLayout;
+        // The vector of the extra loudspeakers used to fill in any gaps in the array
+        std::vector<Channel> m_extraSpeakersLayout;
 
         // Flag if the output is a special case that uses a larger layout internally and downmixes to the target (e.g. 0+2+0 and 2+3+0)
         DownmixOutput m_downmixOutput = DownmixOutput::None;
@@ -79,9 +79,9 @@ namespace spaudio {
          *	This currently works for the supported arrays: 0+5+0, 0+4+0, 0+7+0
          *	See Rec. ITU-R BS.2127-0 pg. 27.
          * @param layout	The layout to be processed.
-         * @return			A new layout with speakers added to fill the gaps.
+         * @return			A vector of channels with speakers added to fill the gaps.
          */
-        Layout CalculateExtraSpeakersLayout(const Layout& layout);
+        std::vector<Channel> CalculateExtraSpeakersLayout(const Layout& layout);
 
         /** Calculate the gains for the panning layout. In most cases this will be the same
             as the output layout but in the case of 0+2+0 the panning layout is 0+5+0
