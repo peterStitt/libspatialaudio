@@ -47,6 +47,10 @@ namespace spaudio {
         if (!success)
             return false;
 
+        success = m_BFSrcTmp.Configure(nOrder, b3D, nBlockSize);
+        if (!success)
+            return false;
+
         m_nSampleRate = nSampleRate;
         m_useSymHead = lowCpuMode;
 
@@ -155,8 +159,7 @@ namespace spaudio {
         }
 
         // Optimisation filters to pre-process the FIR filters with basic/max-rE gains
-        AmbisonicOptimFilters shelfFilters;
-        bool bShelfConfig = shelfFilters.Configure(nOrder, b3D, m_nTaps, nSampleRate);
+        bool bShelfConfig = m_shelfFilters.Configure(nOrder, b3D, nBlockSize, nSampleRate);
         if (!bShelfConfig)
             return false;
 
@@ -166,23 +169,13 @@ namespace spaudio {
         fScaler *= 0.35f;
         for (niEar = 0; niEar < 2; niEar++)
         {
-            BFormat firOptim;
-            firOptim.Configure(nOrder, b3D, m_nTaps);
             for (niChannel = 0; niChannel < m_nChannelCount; niChannel++)
             {
                 for (niTap = 0; niTap < m_nTaps; niTap++)
                 {
                     ppfAccumulator[niEar][niChannel][niTap] *= fScaler;
                 }
-                // Make a copy of the FIR filter for optimisation filtering
-                firOptim.InsertStream(ppfAccumulator[niEar][niChannel], niChannel, m_nTaps);
             }
-
-            // Apply psychoacoustic optimisation to the binaural decoder filters
-            shelfFilters.Process(&firOptim, m_nTaps);
-            // Copy the optimised filters back to buffers
-            for (niChannel = 0; niChannel < m_nChannelCount; niChannel++)
-                firOptim.ExtractStream(ppfAccumulator[niEar][niChannel], niChannel, m_nTaps);
         }
 
         // Convert frequency domain filters
@@ -220,19 +213,22 @@ namespace spaudio {
     {
     }
 
-    void AmbisonicBinauralizer::Process(BFormat* pBFSrc,
+    void AmbisonicBinauralizer::Process(const BFormat* pBFSrc,
         float** ppfDst)
     {
         Process(pBFSrc, ppfDst, m_nBlockSize);
     }
 
-    void AmbisonicBinauralizer::Process(BFormat* pBFSrc,
+    void AmbisonicBinauralizer::Process(const BFormat* pBFSrc,
         float** ppfDst, unsigned int nSamples)
     {
         unsigned niEar = 0;
         unsigned niChannel = 0;
         unsigned ni = 0;
         kiss_fft_cpx cpTemp;
+
+        m_BFSrcTmp = *pBFSrc;
+        m_shelfFilters.Process(&m_BFSrcTmp, nSamples);
 
         /* If CPU load needs to be reduced then perform the convolution for each of the Ambisonics/spherical harmonic
         decompositions of the loudspeakers HRTFs for the left ear. For the left ear the results of these convolutions
@@ -254,7 +250,7 @@ namespace spaudio {
             for (niChannel = 0; niChannel < m_nChannelCount; niChannel++)
             {
 
-                memcpy(m_pfScratchBufferB.data(), pBFSrc->m_ppfChannels[niChannel], nSamples * sizeof(float));
+                memcpy(m_pfScratchBufferB.data(), m_BFSrcTmp.m_ppfChannels[niChannel], nSamples * sizeof(float));
                 memset(&m_pfScratchBufferB[nSamples], 0, (m_nFFTSize - nSamples) * sizeof(float));
                 kiss_fftr(m_pFFT_cfg.get(), m_pfScratchBufferB.data(), m_pcpScratch.get());
                 for (ni = 0; ni < m_nFFTBins; ni++)
@@ -320,7 +316,7 @@ namespace spaudio {
                 memset(m_pfScratchBufferA.data(), 0, m_nFFTSize * sizeof(float));
                 for (niChannel = 0; niChannel < m_nChannelCount; niChannel++)
                 {
-                    memcpy(m_pfScratchBufferB.data(), pBFSrc->m_ppfChannels[niChannel], nSamples * sizeof(float));
+                    memcpy(m_pfScratchBufferB.data(), m_BFSrcTmp.m_ppfChannels[niChannel], nSamples * sizeof(float));
                     memset(&m_pfScratchBufferB[nSamples], 0, (m_nFFTSize - nSamples) * sizeof(float));
                     kiss_fftr(m_pFFT_cfg.get(), m_pfScratchBufferB.data(), m_pcpScratch.get());
                     for (ni = 0; ni < m_nFFTBins; ni++)
