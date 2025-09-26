@@ -105,23 +105,26 @@ namespace spaudio {
         }
 
         // If specified, set the layout positions
-        if (layoutPositions.size() > 0 && layoutPositions.size() != m_outputLayout.channels.size())
+        if (layoutPositions.size() > 0 && layoutPositions.size() != m_outputLayout.getNumChannels())
             return false; // If setting custom loudspeaker positions the sizes must match.
         else if (layoutPositions.size() > 0)
         {
-            for (size_t iLdspk = 0; iLdspk < m_outputLayout.channels.size(); ++iLdspk)
-                m_outputLayout.channels[iLdspk].polarPosition = layoutPositions[iLdspk];
+            for (int iLdspk = 0; iLdspk < (int)m_outputLayout.getNumChannels(); ++iLdspk)
+                m_outputLayout.getChannel(iLdspk).setPolarPosition(layoutPositions[iLdspk]);
         }
 
         // Check the layout coordinates are within range for the specified layout
         if (!checkLayoutAngles(m_outputLayout))
             return false; // At least one loudspeaker is out of range!
 
-        m_nChannelsToRender = (unsigned int)m_outputLayout.channels.size();
+        m_nChannelsToRender = (unsigned int)m_outputLayout.getNumChannels();
 
-        m_outputLayout.reproductionScreen = reproductionScreen;
         if (reproductionScreen.hasValue())
-            m_objMetaDataTmp.referenceScreen = reproductionScreen.value();
+        {
+            Screen screen = reproductionScreen.value();
+            m_outputLayout.setReproductionScreen(screen);
+            m_objMetaDataTmp.referenceScreen = screen;
+        }
 
         // Clear the vectors containing the HOA and panning objects so that if the renderer is
         // reconfigured the mappings will be correct
@@ -170,16 +173,16 @@ namespace spaudio {
             return false;
 
         // AllRAD decoder for HOA signals
-        bool bHoaDecoderConfig = m_hoaDecoder.Configure(hoaOrder, nSamples, nSampleRate, m_outputLayout.name, m_outputLayout.hasLFE);
+        bool bHoaDecoderConfig = m_hoaDecoder.Configure(hoaOrder, nSamples, nSampleRate, m_outputLayout.getLayoutName(), m_outputLayout.hasLfe());
         if (!bHoaDecoderConfig)
             return false;
 
         if (m_RenderLayout == OutputLayout::Binaural)
         {
             m_useLfeBinaural = useLfeBinaural;
-            for (size_t iLdspk = 0; iLdspk < m_outputLayout.channels.size(); ++iLdspk)
+            for (int iLdspk = 0; iLdspk < (int)m_outputLayout.getNumChannels(); ++iLdspk)
             {
-                auto& pos = m_outputLayout.channels[iLdspk].polarPosition;
+                auto pos = m_outputLayout.getChannel(iLdspk).getPolarPosition();
                 m_hoaEncoders.push_back(AmbisonicEncoder());
                 m_hoaEncoders[iLdspk].Configure(hoaOrder, true, nSampleRate, 0);
                 m_hoaEncoders[iLdspk].SetPosition(PolarPosition<float>{ DegreesToRadians((float)pos.azimuth), DegreesToRadians((float)pos.elevation), 1.f });
@@ -235,7 +238,7 @@ namespace spaudio {
 
     unsigned int Renderer::GetSpeakerCount()
     {
-        return m_RenderLayout == OutputLayout::Binaural ? 2 : (unsigned int)m_outputLayout.channels.size();
+        return m_RenderLayout == OutputLayout::Binaural ? 2 : (unsigned int)m_outputLayout.getNumChannels();
     }
 
     void Renderer::SetHeadOrientation(const RotationOrientation& newOrientation)
@@ -375,7 +378,7 @@ namespace spaudio {
                     m_virtualSpeakerOut[iSpk][iSample] += m_speakerOut[iSpk][iSample] + m_speakerOutDirect[iSpk][iSample] + m_speakerOutDiffuse[iSpk][iSample];
 
             // Encode speaker signals to HOA
-            for (size_t iSpk = 0; iSpk < m_outputLayout.channels.size(); ++iSpk)
+            for (size_t iSpk = 0; iSpk < m_outputLayout.getNumChannels(); ++iSpk)
                 m_hoaEncoders[iSpk].ProcessAccumul(m_virtualSpeakerOut[iSpk], nSamples, &m_hoaAudioOut);
 
             // Rotate the sound field to match the head orientation

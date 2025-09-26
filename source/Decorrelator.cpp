@@ -62,7 +62,7 @@ namespace spaudio {
         m_layout = layout;
 
         // Set the number fo channels
-        m_nCh = (unsigned int)layout.channels.size();
+        m_nCh = (unsigned int)layout.getNumChannels();
 
         // The decorrelation filters have the same length regardless of the input block size.
         // The length is 512 samples (Rec. ITU-R BS.2127-0, sec 7.4, pg 63)

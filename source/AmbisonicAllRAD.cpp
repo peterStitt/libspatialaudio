@@ -39,7 +39,7 @@ namespace spaudio {
         m_sampleRate = sampleRate;
 
         m_layout = Layout::getMatchingLayout(layoutName);
-        if (m_layout.channels.size() == 0)
+        if (m_layout.getNumChannels() == 0)
             return false; // No valid layout
 
         if (!useLFE)
@@ -52,8 +52,8 @@ namespace spaudio {
 
         // Set up the low pass IIR
         unsigned int nLFE = 0;
-        for (auto& c : m_layout.channels)
-            if (c.isLFE)
+        for (auto& c : m_layout.getChannels())
+            if (c.getIsLfe())
                 nLFE++;
         // Low-pass of 120 Hz as specified in Rec. ITU-R BS.2127-1 Sec. 6.3
         m_lowPassIIR.Configure(nLFE, sampleRate, 120.f, std::sqrt(0.5f), IIRFilter::FilterType::LowPass);
@@ -88,10 +88,10 @@ namespace spaudio {
         // Decode the input signal
         unsigned int ii = 0;
         unsigned int iLFE = 0;
-        size_t nLdspk = m_layout.channels.size();
-        for (size_t niSpeaker = 0; niSpeaker < nLdspk; niSpeaker++)
+        int nLdspk = (int)m_layout.getNumChannels();
+        for (int niSpeaker = 0; niSpeaker < nLdspk; niSpeaker++)
         {
-            if (m_layout.channels[niSpeaker].isLFE)
+            if (m_layout.getChannel(niSpeaker).getIsLfe())
             {
                 // Filter the W channel for the LFE and scale by -6 dB
                 m_lowPassIIR.Process(pBFSrc->m_ppfChannels[0], ppfDst[niSpeaker], nSamples, iLFE);
@@ -118,7 +118,7 @@ namespace spaudio {
 
     unsigned AmbisonicAllRAD::GetSpeakerCount()
     {
-        return (unsigned)m_layout.channels.size();
+        return (unsigned)m_layout.getNumChannels();
     }
 
     bool AmbisonicAllRAD::GetUseOptimFilters()

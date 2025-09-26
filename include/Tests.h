@@ -28,7 +28,7 @@ using namespace spaudio;
 */
 static inline std::vector<double> getDirectGain(std::string speakerName, Layout layout)
 {
-	std::vector<double> g(layout.channels.size(), 0.);
+	std::vector<double> g(layout.getNumChannels(), 0.);
 	if (layout.getMatchingChannelIndex(speakerName) >= 0)
 		g[layout.getMatchingChannelIndex(speakerName)] = 1.;
 
@@ -40,10 +40,10 @@ static inline std::vector<double> getDirectGain(std::string speakerName, Layout 
 */
 static inline std::vector<double> insertLFE(std::vector<double> a, Layout layout)
 {
-	std::vector<double> g(layout.channels.size());
+	std::vector<double> g(layout.getNumChannels());
 	int iCount = 0;
-	for (int i = 0; i < layout.channels.size(); ++i)
-		if (!layout.channels[i].isLFE)
+	for (int i = 0; i < layout.getNumChannels(); ++i)
+		if (!layout.getChannel(i).getIsLfe())
 			g[i] = a[iCount++];
 
 	return g;
@@ -66,13 +66,14 @@ static inline bool testDirectSpeakers()
 
 	Layout layout = Layout::getMatchingLayout(ituPackNames.find("AP_00010004")->second);
 	// Need to set the reproduction screen in the layout for screen edge locking to work
-	layout.reproductionScreen = Screen();
+	Screen screen;
 	double screenWidth = 20.;
-	layout.reproductionScreen->widthAzimuth = screenWidth;
+	screen.widthAzimuth = screenWidth;
+	layout.setReproductionScreen(screen);
 	spaudio::adm::DirectSpeakersGainCalc gainCalc(layout);
 	PointSourcePannerGainCalc psp(layout);
-	size_t nCh = layout.channels.size();
-	size_t nChNoLfe = Layout::getLayoutWithoutLFE(layout).channels.size();
+	size_t nCh = layout.getNumChannels();
+	size_t nChNoLfe = Layout::getLayoutWithoutLFE(layout).getNumChannels();
 
 	std::vector<std::string> speakerNamePrefixes = { "", "urn:itu:bs:2051:0:speaker:", "urn:itu:bs:2051:1:speaker:" };
 
@@ -200,14 +201,11 @@ static inline bool testPointSourcePanner()
 	// Loop through all layouts
 	for (auto& layout : Layout::getSpeakerLayouts())
 	{
-		if (layout.name == "1OA" || layout.name == "2OA" || layout.name == "3OA")
-			continue;
-
 		auto layoutNoLFE = Layout::getLayoutWithoutLFE(layout);
 		PointSourcePannerGainCalc psp(layout);
 
-		auto nCh = layout.channels.size();
-		auto nChNoLfe = layoutNoLFE.channels.size();
+		auto nCh = layout.getNumChannels();
+		auto nChNoLfe = layoutNoLFE.getNumChannels();
 
 		for (double az = 0.; az <= 360.; az += 5.)
 		{
@@ -224,7 +222,7 @@ static inline bool testPointSourcePanner()
 			velVec.z = 0.;
 			for (unsigned int i = 0; i < numCh; ++i)
 			{
-				CartesianPosition<double> speakerDirections = PolarToCartesian(layoutNoLFE.channels[i].polarPosition);
+				CartesianPosition<double> speakerDirections = PolarToCartesian(layoutNoLFE.getChannel(i).getPolarPosition());
 				velVec = velVec + CartesianPosition<double>{ gains[i] * speakerDirections.x, gains[i] * speakerDirections.y,gains[i] * speakerDirections.z, };
 			}
 			velVec.x /= gainSum;
@@ -238,7 +236,7 @@ static inline bool testPointSourcePanner()
 			velVec.z /= velVecNorm;
 
 			// Check the direction matches with the input position
-			if ((layout.name != "0+2+0" && layout.name != "2+3+0") || std::abs(az) <= 30. || az >= 330.)
+			if ((layout.getLayoutName() != "0+2+0" && layout.getLayoutName() != "2+3+0") || std::abs(az) <= 30. || az >= 330.)
 				assert(norm(position - velVec) < 1e-5);
 		}
 	}
@@ -256,12 +254,13 @@ static inline bool testGainCalculator()
 
 	Layout layout = Layout::getMatchingLayout(ituPackNames.find("AP_00010004")->second);
 	// Need to set the reproduction screen in the layout for screen scaling and screen edge locking to work
-	layout.reproductionScreen = Screen();
+	Screen screen;
 	double screenWidth = 20.;
-	layout.reproductionScreen->widthAzimuth = screenWidth;
+	screen.widthAzimuth = screenWidth;
+	layout.setReproductionScreen(screen);
 	spaudio::adm::ObjectGainCalculator gainCalc(layout);
 	PointSourcePannerGainCalc psp(layout);
-	auto nCh = layout.channels.size();
+	auto nCh = layout.getNumChannels();
 
 	std::vector<double> directGains(nCh), diffuseGains(nCh);
 
@@ -296,9 +295,10 @@ static inline bool testGainCalculator()
 	metadata.referenceScreen = Screen(); // default reproduction screens
 	metadataPolarPos = { 0.,0.,1. };
 	Layout layoutScreenScaling = layout;
-	layoutScreenScaling.reproductionScreen = Screen();
-	layoutScreenScaling.reproductionScreen->widthAzimuth = 60.;
-	layoutScreenScaling.reproductionScreen->centrePolarPosition = { 30.,0.,1. };
+	screen = Screen();
+	screen.widthAzimuth = 60.;
+	screen.centrePolarPosition = { 30.,0.,1. };
+	layoutScreenScaling.setReproductionScreen(screen);
 	spaudio::adm::ObjectGainCalculator gainCalcScrnScale(layoutScreenScaling);
 	gainCalcScrnScale.CalculateGains(metadata, directGains, diffuseGains);
 	assert(compareGainVectors(directGains, getDirectGain("M+030", layout)));
@@ -324,7 +324,7 @@ static inline bool testGainCalculator()
 	// Test screen edge lock - top
 	metadata.screenEdgeLock.vertical = ScreenEdgeLock::TOP;
 	gainCalc.CalculateGains(metadata, directGains, diffuseGains);
-	double screenTopEdge = RAD2DEG * std::atan(std::tan(DEG2RAD * 0.5 * screenWidth) / layout.reproductionScreen->aspectRatio);
+	double screenTopEdge = RAD2DEG * std::atan(std::tan(DEG2RAD * 0.5 * screenWidth) / layout.getReproductionScreen()->aspectRatio);
 	psp.CalculateGains(PolarPosition<double>{ 0.,screenTopEdge,1. }, gainsEdge);
 	assert(compareGainVectors(directGains, insertLFE(gainsEdge, layout)));
 
@@ -877,7 +877,7 @@ void testObjectPanner()
 
 	spaudio::ObjectPanner objPanner;
 	objPanner.Configure(layout, sampleRate, (float)nSamples / (float)sampleRate);
-	auto nLdspk = objPanner.GetNumSpeakers();
+	unsigned nLdspk = (unsigned)objPanner.GetNumSpeakers();
 
 	std::vector<float> impulse(nSamples, 0.f);
 	impulse[0] = 1.f;
@@ -1024,7 +1024,7 @@ void testAdmRendererDirectSpeakerBinaural()
 	speakerMetadata.polarPosition = DirectSpeakerPolarPosition{ -90., 0.f, 1.f };
 	speakerMetadata.speakerLabel = "LFE";
 
-	renderer.AddDirectSpeaker(impulse.data(), nSamples, speakerMetadata);
+	//renderer.AddDirectSpeaker(impulse.data(), nSamples, speakerMetadata);
 
 	impulse[0] = 0.f;
 	impulse[64] = 1.f;
@@ -1033,7 +1033,7 @@ void testAdmRendererDirectSpeakerBinaural()
 	speakerMetadata.polarPosition = DirectSpeakerPolarPosition{ 90., 0.f, 1.f };
 	speakerMetadata.speakerLabel = "M+090";
 
-	//renderer.AddDirectSpeaker(impulse.data(), nSamples, speakerMetadata);
+	renderer.AddDirectSpeaker(impulse.data(), nSamples, speakerMetadata);
 
 	renderer.GetRenderedAudio(ldspkOut, nSamples);
 
@@ -1052,7 +1052,7 @@ void testAdmRendererDirectSpeakerBinaural()
 void testAlloPSP()
 {
 	Layout layout = Layout::getLayoutWithoutLFE(Layout::getMatchingLayout("4+5+0"));
-	assert(layout.channels.size() > 0);
+	assert(layout.getNumChannels() > 0);
 	spaudio::adm::AllocentricPannerGainCalc alloPSP(layout);
 
 	CartesianPosition<double> position = { 0.,1.,0. };
@@ -1067,7 +1067,7 @@ void testAlloPSP()
 void testAlloExtent()
 {
 	Layout layout = Layout::getLayoutWithoutLFE(Layout::getMatchingLayout("9+10+3"));
-	assert(layout.channels.size() > 0);
+	assert(layout.getNumChannels() > 0);
 	spaudio::adm::AllocentricExtent alloExtent(layout);
 
 	CartesianPosition<double> position = { 0.,1.,0. };
@@ -1112,15 +1112,14 @@ void testLayoutRangeCheck()
 {
 	for (auto& layout : Layout::getSpeakerLayouts())
 	{
-		if (layout.name != "1OA" && layout.name != "2OA" && layout.name != "3OA")
-		{
-			bool isValid = checkLayoutAngles(layout);
-			assert(isValid);
-		}
+		bool isValid = checkLayoutAngles(layout);
+		assert(isValid);
 	}
 
 	Layout layout = Layout::getMatchingLayout("9+10+3");
-	layout.channels[0].polarPosition.azimuth += 90.;
+	auto polPos = layout.getChannel(0).getPolarPosition();
+	polPos.azimuth += 90.;
+	layout.getChannel(0).setPolarPosition(polPos);
 	bool isValid = checkLayoutAngles(layout);
 	assert(!isValid);
 }
@@ -1137,9 +1136,9 @@ void testAdmRenderCustomPositions()
 	std::vector<PolarPosition<double>> customPositions;
 	spaudio::OutputLayout outputTarget = spaudio::OutputLayout::FivePointOne;
 	auto layout = Layout::getMatchingLayout("0+5+0");
-	customPositions.resize(layout.channels.size());
-	for (size_t i = 0; i < layout.channels.size(); ++i)
-		customPositions[i] = layout.channels[i].polarPosition;
+	customPositions.resize(layout.getNumChannels());
+	for (int i = 0; i < (int)layout.getNumChannels(); ++i)
+		customPositions[i] = layout.getChannel(i).getPolarPosition();
 
 	auto success = admRenderer.Configure(outputTarget, hoaOrder, sampleRate, nSamples, streamInfo, "", true, screen, customPositions);
 	assert(success);

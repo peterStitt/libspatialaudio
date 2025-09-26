@@ -197,12 +197,39 @@ namespace spaudio {
         /** Constructor to initialise from a specific channel type */
         Channel(ChannelTypes channelType);
 
+        /** Constructor to intialise froma specific channel type but with a custom position. */
+        Channel(ChannelTypes channelType, PolarPosition<double> position);
+
         /** Constructor to initialise from a one of the channel names in bs2094::channelLabels.
          * If an unknown string is passed then the channel will be set to a Custom type and its position
          * to 0deg azimuth and 0deg elevation (i.e. directly to the front).
          */
         Channel(const std::string& channelName);
         ~Channel();
+
+        /** Get the name of the channel. */
+        const std::string& getChannelName() const;
+
+        /** Get the channel's type. */
+        const ChannelTypes getChannelType() const;
+
+        /** Get the polar position of the channel. This is the actual position of the channel. */
+        const PolarPosition<double>& getPolarPosition() const;
+
+        /** Get the nominal position of the channel based on its type. */
+        const PolarPosition<double>& getPolarPositionNominal() const;
+
+        /** Set the Channel's polar position. */
+        void setPolarPosition(const PolarPosition<double>& polarPosition);
+
+        /** Set the Channels nominal polar position. */
+        void setPolarPositionNominal(const PolarPosition<double>& polarPosNominal);
+
+        /** Returns true if the channel is an LFE. */
+        bool getIsLfe() const;
+
+    private:
+        bool isChannelLFE();
 
         std::string name;
         ChannelTypes channelType = ChannelTypes::Custom;
@@ -211,9 +238,6 @@ namespace spaudio {
         // Nominal loudspeaker position from ITU-R BS.2051-2
         PolarPosition<double> polarPositionNominal;
         bool isLFE = false;
-
-    private:
-        bool isChannelLFE();
     };
 
     // Class used to store the layout information
@@ -222,14 +246,42 @@ namespace spaudio {
     public:
         Layout();
         Layout(std::string layoutName, std::vector<Channel> layoutChannels, bool layoutHasLfe);
+        Layout(std::string layoutName, std::vector<Channel> layoutChannels, bool layoutHasLfe, Screen screen);
         Layout(OutputLayout layoutType);
         Layout(std::string& layoutName);
 
-        std::string name;
-        std::vector<Channel> channels;
-        bool hasLFE = false;
+        /** Get the name of the layout.
+         * @return String containing the layout name.
+         */
+        const std::string& getLayoutName() const;
 
-        Optional<Screen> reproductionScreen = Optional<Screen>();
+        /** Get a vector of the channels in the layout.
+         * @return Vector of the Channels in the layout.
+         */
+        const std::vector<Channel>& getChannels() const;
+
+        /** Returns a reference to the specified channel.
+         * @param iCh Index of the channel.
+         * @return A reference to the channel.
+         */
+        const Channel& getChannel(int iCh) const;
+        Channel& getChannel(int iCh);
+
+        /** Returns the number of channels in the layout. */
+        size_t getNumChannels() const;
+
+        /** If the layout contains an LFE channel then this returns true.
+         * @return Returns true if the layout contains an LFE channel.
+         */
+        bool hasLfe() const;
+
+        /** Get the optionally set reproduction screen.
+         * @return Reference to the optional screen.
+         */
+        const Optional<Screen>& getReproductionScreen() const;
+
+        /** Set the Layout's reproduction screen. */
+        void setReproductionScreen(const Screen& screen);
 
         /** If the channel name matches one of the channels in the Layout then return
          *  its index. If not, return -1.
@@ -268,6 +320,11 @@ namespace spaudio {
         static Layout getMatchingLayout(OutputLayout layoutType);
 
     private:
+        std::string name;
+        std::vector<Channel> channels;
+        bool hasLFE = false;
+
+        Optional<Screen> reproductionScreen = Optional<Screen>();
     };
 
     /** Check if the input DirectSpeakerMetadata is for an LFE channel.
@@ -484,38 +541,38 @@ namespace spaudio {
             {"B-135",{{-135., -110.}, {-30.,-15.}}} }}
         };
 
-        auto it = speakerRanges.find(layout.name);
+        auto it = speakerRanges.find(layout.getLayoutName());
         double tol = 1e-6;
         if (it != speakerRanges.end())
         {
             const auto& layoutRanges = it->second;
 
-            for (auto& channel : layout.channels)
+            for (auto& channel : layout.getChannels())
             {
                 std::pair<double, double> azRange, elRange;
-                auto& nominalLabel = GetNominalSpeakerLabel(channel.name);
+                auto& nominalLabel = GetNominalSpeakerLabel(channel.getChannelName());
                 auto ranges = layoutRanges.find(nominalLabel);
                 if (ranges != layoutRanges.end())
                 {
                     elRange = ranges->second.elRange;
 
-                    if (channel.name == "M+SC" || channel.name == "M-SC")
+                    if (channel.getChannelName() == "M+SC" || channel.getChannelName() == "M-SC")
                     {
                         // "the absolute azimuth of both M+SC and M-SC loudspeakers must either be between 5 deg and 25 deg or
                         // between 35° or 60°"
                         std::pair<double, double> azRange1 = ranges->second.azRange;
                         std::pair<double, double> azRange2 = { 35., 60. };
                         elRange = { 0., 0. };
-                        double absAz = std::abs(channel.polarPosition.azimuth);
-                        if (!(insideAngleRange(channel.polarPosition.azimuth, azRange1.first, azRange1.second, tol) || insideAngleRange(absAz, azRange2.first, azRange2.second, tol)
-                            || !insideAngleRange(channel.polarPosition.elevation, elRange.first, elRange.second)))
+                        double absAz = std::abs(channel.getPolarPosition().azimuth);
+                        if (!(insideAngleRange(channel.getPolarPosition().azimuth, azRange1.first, azRange1.second, tol) || insideAngleRange(absAz, azRange2.first, azRange2.second, tol)
+                            || !insideAngleRange(channel.getPolarPosition().elevation, elRange.first, elRange.second)))
                             return false;
                     }
                     else
                     {
                         azRange = ranges->second.azRange;
-                        if (!insideAngleRange(channel.polarPosition.azimuth, azRange.first, azRange.second, tol)
-                            || !insideAngleRange(channel.polarPosition.elevation, elRange.first, elRange.second, tol))
+                        if (!insideAngleRange(channel.getPolarPosition().azimuth, azRange.first, azRange.second, tol)
+                            || !insideAngleRange(channel.getPolarPosition().elevation, elRange.first, elRange.second, tol))
                             return false;
                     }
                 }

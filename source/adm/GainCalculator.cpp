@@ -21,7 +21,7 @@ namespace spaudio {
         ChannelLockHandler::ChannelLockHandler(const Layout& layout)
         {
             m_layout = layout;
-            m_nCh = (unsigned int)layout.channels.size();
+            m_nCh = (unsigned int)layout.getNumChannels();
             m_distance.reserve(m_nCh);
             m_closestSpeakersInd.reserve(m_nCh);
             m_equalDistanceSpeakers.reserve(m_nCh);
@@ -64,7 +64,7 @@ namespace spaudio {
             if (nSpeakersInRange == 0)
                 return position;
             else if (nSpeakersInRange == 1) // if there is a unique speaker in range then return that direction
-                return PolarToCartesian(m_layout.channels[m_closestSpeakersInd[0]].polarPosition);
+                return PolarToCartesian(m_layout.getChannel(m_closestSpeakersInd[0]).getPolarPosition());
             else if (nSpeakersInRange > 1)
             {
                 // Find the minimum distance from the speakers within range
@@ -78,14 +78,14 @@ namespace spaudio {
                     }
                 // If only one of the speakers in range is within tol of the minimum then return that direction
                 if (m_equalDistanceSpeakers.size() == 1)
-                    return PolarToCartesian(m_layout.channels[m_equalDistanceSpeakers[0]].polarPosition);
+                    return PolarToCartesian(m_layout.getChannel(m_equalDistanceSpeakers[0]).getPolarPosition());
                 else // if not, find the closest by lexicographic comparison of the tuple {|az|,az,|el|,el}
                 {
                     m_activeTuples = 0;
                     for (auto& t : m_equalDistanceSpeakers)
                     {
-                        double az = m_layout.channels[t].polarPosition.azimuth;
-                        double el = m_layout.channels[t].polarPosition.elevation;
+                        double az = m_layout.getChannel(t).getPolarPosition().azimuth;
+                        double el = m_layout.getChannel(t).getPolarPosition().elevation;
                         m_tuple[m_activeTuples][0] = std::abs(az);
                         m_tuple[m_activeTuples][1] = az;
                         m_tuple[m_activeTuples][2] = std::abs(el);
@@ -96,7 +96,7 @@ namespace spaudio {
                     sort(m_tupleSorted.begin(), m_tupleSorted.begin() + m_activeTuples);
                     for (int iTuple = 0; iTuple < m_activeTuples; ++iTuple)
                         if (m_tuple[iTuple] == m_tupleSorted[0])
-                            return PolarToCartesian(m_layout.channels[m_equalDistanceSpeakers[iTuple]].polarPosition);
+                            return PolarToCartesian(m_layout.getChannel(m_equalDistanceSpeakers[iTuple]).getPolarPosition());
                 }
             }
 
@@ -107,9 +107,9 @@ namespace spaudio {
         //===================================================================================================================================
         PolarChannelLockHandler::PolarChannelLockHandler(const Layout& layout) : ChannelLockHandler(layout)
         {
-            for (const auto& ch : layout.channels)
+            for (const auto& ch : layout.getChannels())
             {
-                auto polPos = ch.polarPosition;
+                auto polPos = ch.getPolarPosition();
                 // Rec. ITU-R BS.2127-0 pg. 44 - "loudspeaker positions considered are the normalised real loudspeaker
                 // positions in layout" so normalise the distance
                 polPos.distance = 1.;
@@ -150,12 +150,12 @@ namespace spaudio {
         ZoneExclusionHandler::ZoneExclusionHandler(const Layout& layout)
         {
             m_layout = Layout::getLayoutWithoutLFE(layout);
-            m_nCh = (unsigned int)m_layout.channels.size();
+            m_nCh = (unsigned int)m_layout.getNumChannels();
 
             // Get the cartesian coordinates of all nominal positions
             for (unsigned int iSpk = 0; iSpk < m_nCh; ++iSpk)
             {
-                m_cartesianPositions.push_back(PolarToCartesian(m_layout.channels[iSpk].polarPositionNominal));
+                m_cartesianPositions.push_back(PolarToCartesian(m_layout.getChannel(iSpk).getPolarPositionNominal()));
             }
 
             // Determine the speaker groups. See Rec. ITU-R BS.2127-0 sec. 7.3.12.2.1 pg. 62
@@ -281,10 +281,11 @@ namespace spaudio {
                 if (zone.isPolarZone())
                 {
                     auto& polarZone = zone.polarZone();
+                    auto& channels = m_layout.getChannels();
                     for (unsigned int iSpk = 0; iSpk < m_nCh; ++iSpk)
                     {
-                        double az = m_layout.channels[iSpk].polarPositionNominal.azimuth;
-                        double el = m_layout.channels[iSpk].polarPositionNominal.elevation;
+                        double az = channels[iSpk].getPolarPositionNominal().azimuth;
+                        double el = channels[iSpk].getPolarPositionNominal().elevation;
                         if ((polarZone.minElevation - tol < el && el < polarZone.maxElevation + tol) && (el > 90 - tol || insideAngleRange(az, polarZone.minAzimuth, polarZone.maxAzimuth)))
                         {
                             m_isExcluded[iSpk] = true;
@@ -388,15 +389,15 @@ namespace spaudio {
         //===================================================================================================================================
         ObjectGainCalculator::ObjectGainCalculator(Layout outputLayout)
             : m_outputLayout(outputLayout)
-            , m_nCh((unsigned int)m_outputLayout.channels.size())
-            , m_nChNoLFE((unsigned int)Layout::getLayoutWithoutLFE(outputLayout).channels.size())
+            , m_nCh((unsigned int)m_outputLayout.getNumChannels())
+            , m_nChNoLFE((unsigned int)Layout::getLayoutWithoutLFE(outputLayout).getNumChannels())
             , m_cartPositions(positionsForLayout(outputLayout))
             , m_pspGainCalculator(Layout::getLayoutWithoutLFE(outputLayout))
             , m_extentPanner(m_pspGainCalculator)
             , m_alloGainCalculator(Layout::getLayoutWithoutLFE(outputLayout))
             , m_alloExtentPanner(Layout::getLayoutWithoutLFE(outputLayout))
-            , m_screenScale(outputLayout.reproductionScreen, Layout::getLayoutWithoutLFE(outputLayout))
-            , m_screenEdgeLock(outputLayout.reproductionScreen, Layout::getLayoutWithoutLFE(outputLayout))
+            , m_screenScale(outputLayout.getReproductionScreen(), Layout::getLayoutWithoutLFE(outputLayout))
+            , m_screenEdgeLock(outputLayout.getReproductionScreen(), Layout::getLayoutWithoutLFE(outputLayout))
             , m_polarChannelLockHandler(Layout::getLayoutWithoutLFE(outputLayout))
             , m_alloChannelLockHandler(Layout::getLayoutWithoutLFE(outputLayout))
             , m_zoneExclusionHandler(Layout::getLayoutWithoutLFE(outputLayout))
@@ -584,18 +585,18 @@ namespace spaudio {
 
         void ObjectGainCalculator::insertLFE(const Layout& layout, const std::vector<double>& gainsNoLFE, std::vector<double>& gainsWithLFE)
         {
-            assert(gainsWithLFE.capacity() >= layout.channels.size());
-            gainsWithLFE.resize(layout.channels.size());
+            assert(gainsWithLFE.capacity() >= layout.getNumChannels());
+            gainsWithLFE.resize(layout.getNumChannels());
 
-            if (!layout.hasLFE) // No LFE to insert so just copy the gain vector
+            if (!layout.hasLfe()) // No LFE to insert so just copy the gain vector
             {
                 gainsWithLFE = gainsNoLFE;
                 return;
             }
 
             int iCount = 0;
-            for (int i = 0; i < layout.channels.size(); ++i)
-                if (!layout.channels[i].isLFE)
+            for (int i = 0; i < layout.getNumChannels(); ++i)
+                if (!layout.getChannel(i).getIsLfe())
                     gainsWithLFE[i] = gainsNoLFE[iCount++];
                 else
                     gainsWithLFE[i] = 0.;

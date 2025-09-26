@@ -268,12 +268,12 @@ namespace spaudio {
 
         int AllocentricExtent::countDimensions(const Layout& layout, const std::vector<bool>& excluded)
         {
-            auto nLdspk = layout.channels.size();
+            auto nLdspk = layout.getNumChannels();
             // Count non-excluded loudspeakers
             m_elLdspk.resize(0);
-            for (size_t i = 0; i < excluded.size(); ++i)
+            for (int i = 0; i < (int)excluded.size(); ++i)
                 if (!excluded[i])
-                    m_elLdspk.push_back(layout.channels[i].polarPositionNominal.elevation);
+                    m_elLdspk.push_back(layout.getChannel(i).getPolarPositionNominal().elevation);
 
             // Calculate the unique number of z-coordinates
             std::sort(m_elLdspk.begin(), m_elLdspk.end());
@@ -308,9 +308,9 @@ namespace spaudio {
 
             // Check if there are more than 2 height layers
             m_elLdspk.resize(0);
-            for (size_t i = 0; i < excluded.size(); ++i)
-                if (!excluded[i] && layout.channels[i].polarPositionNominal.elevation > 0.)
-                    m_elLdspk.push_back(layout.channels[i].polarPositionNominal.elevation);
+            for (int i = 0; i < (int)excluded.size(); ++i)
+                if (!excluded[i] && layout.getChannel(i).getPolarPositionNominal().elevation > 0.)
+                    m_elLdspk.push_back(layout.getChannel(i).getPolarPositionNominal().elevation);
 
             // Calculate the unique number of z-coordinates above the horizontal
             std::sort(m_elLdspk.begin(), m_elLdspk.end());

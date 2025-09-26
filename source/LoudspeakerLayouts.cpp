@@ -58,6 +58,12 @@ namespace spaudio {
         }
     }
 
+    Channel::Channel(ChannelTypes channelType, PolarPosition<double> position) : Channel(channelType)
+    {
+        // Set the polar position to the custom value
+        polarPosition = position;
+    }
+
     Channel::Channel(const std::string& channelName)
     {
         name = channelName;
@@ -92,6 +98,41 @@ namespace spaudio {
         return (stringContains(nominalLabel, "LFE1") || stringContains(nominalLabel, "LFE2"));
     };
 
+    const std::string& Channel::getChannelName() const
+    {
+        return name;
+    }
+
+    const ChannelTypes Channel::getChannelType() const
+    {
+        return channelType;
+    }
+
+    const PolarPosition<double>& Channel::getPolarPosition() const
+    {
+        return polarPosition;
+    }
+
+    const PolarPosition<double>& Channel::getPolarPositionNominal() const
+    {
+        return polarPositionNominal;
+    }
+
+    void Channel::setPolarPosition(const PolarPosition<double>& polarPos)
+    {
+        polarPosition = polarPos;
+    }
+
+    void Channel::setPolarPositionNominal(const PolarPosition<double>& polarPosNominal)
+    {
+        polarPositionNominal = polarPosNominal;
+    }
+
+    bool Channel::getIsLfe() const
+    {
+        return isLFE;
+    }
+
 
     Layout::Layout()
     {
@@ -99,6 +140,11 @@ namespace spaudio {
 
     Layout::Layout(std::string layoutName, std::vector<Channel> layoutChannels, bool layoutHasLfe)
         : name(layoutName), channels(layoutChannels), hasLFE(layoutHasLfe)
+    {
+    }
+
+    Layout::Layout(std::string layoutName, std::vector<Channel> layoutChannels, bool layoutHasLfe, Screen screen)
+        : name(layoutName), channels(layoutChannels), hasLFE(layoutHasLfe), reproductionScreen(screen)
     {
     }
 
@@ -166,12 +212,54 @@ namespace spaudio {
         *this = getMatchingLayout(layoutName);
     }
 
+    const std::string& Layout::getLayoutName() const
+    {
+        return name;
+    }
+
+    const std::vector<Channel>& Layout::getChannels() const
+    {
+        return channels;
+    }
+
+    const Channel& Layout::getChannel(int iCh) const
+    {
+        assert(iCh < channels.size());
+        return channels[iCh];
+    }
+
+    Channel& Layout::getChannel(int iCh)
+    {
+        assert(iCh < channels.size());
+        return channels[iCh];
+    }
+
+    size_t Layout::getNumChannels() const
+    {
+        return channels.size();
+    }
+
+    bool Layout::hasLfe() const
+    {
+        return hasLFE;
+    }
+
+    const Optional<Screen>& Layout::getReproductionScreen() const
+    {
+        return reproductionScreen;
+    }
+
+    void Layout::setReproductionScreen(const Screen& screen)
+    {
+        reproductionScreen = screen;
+    }
+
     int Layout::getMatchingChannelIndex(const std::string& channelName)
     {
-        unsigned int nChannels = (unsigned int)channels.size();
+        unsigned int nChannels = (unsigned int)getNumChannels();
         for (unsigned int iCh = 0; iCh < nChannels; ++iCh)
         {
-            if (channelName.compare(channels[iCh].name) == 0)
+            if (channelName.compare(channels[iCh].getChannelName()) == 0)
                 return iCh;
         }
         return -1; // if no matching channel names are found
@@ -180,16 +268,16 @@ namespace spaudio {
     std::vector<std::string> Layout::channelNames() const
     {
         std::vector<std::string> channelNames;
-        for (unsigned int iCh = 0; iCh < channels.size(); ++iCh)
-            channelNames.push_back(channels[iCh].name);
+        for (unsigned int iCh = 0; iCh < getNumChannels(); ++iCh)
+            channelNames.push_back(channels[iCh].getChannelName());
 
         return channelNames;
     }
 
     bool Layout::containsChannel(const std::string& channelName) const
     {
-        for (unsigned int iCh = 0; iCh < channels.size(); ++iCh)
-            if (channels[iCh].name == channelName)
+        for (unsigned int iCh = 0; iCh < getNumChannels(); ++iCh)
+            if (channels[iCh].getChannelName() == channelName)
                 return true;
         return false;
     }
@@ -197,10 +285,10 @@ namespace spaudio {
     Layout Layout::getLayoutWithoutLFE(Layout layout)
     {
         Layout layoutNoLFE = layout;
-        unsigned int nCh = (unsigned int)layout.channels.size();
+        unsigned int nCh = (unsigned int)layout.getNumChannels();
         layoutNoLFE.channels.resize(0);
         for (unsigned int iCh = 0; iCh < nCh; ++iCh)
-            if (!layout.channels[iCh].isLFE)
+            if (!layout.channels[iCh].getIsLfe())
                 layoutNoLFE.channels.push_back(layout.channels[iCh]);
         layoutNoLFE.hasLFE = false;
 

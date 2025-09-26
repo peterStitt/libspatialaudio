@@ -184,16 +184,16 @@ namespace spaudio {
         {
             std::vector<CartesianPosition<double>> layoutPositions;
 
-            auto it = alloPositions.find(layout.name);
+            auto it = alloPositions.find(layout.getLayoutName());
             if (it != alloPositions.end())
             {
                 const auto& positions = it->second;
 
-                for (auto& channel : layout.channels)
-                    if (channel.name == "M+SC" || channel.name == "M-SC")
-                        layoutPositions.push_back(PointPolarToCart(channel.polarPosition));
+                for (auto& channel : layout.getChannels())
+                    if (channel.getChannelName() == "M+SC" || channel.getChannelName() == "M-SC")
+                        layoutPositions.push_back(PointPolarToCart(channel.getPolarPosition()));
                     else
-                        layoutPositions.push_back(positions.at(channel.name));
+                        layoutPositions.push_back(positions.at(channel.getChannelName()));
             }
             return layoutPositions;
         }
