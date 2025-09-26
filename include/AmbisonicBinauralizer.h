@@ -75,11 +75,14 @@ namespace spaudio {
          *  working with variable sizes of buffers. Must be less than the max size
          *  set at Configure
          */
-        void Process(BFormat* pBFSrc, float** ppfDst);
-        void Process(BFormat* pBFSrc, float** ppfDst, unsigned int nSamples);
+        void Process(const BFormat* pBFSrc, float** ppfDst);
+        void Process(const BFormat* pBFSrc, float** ppfDst, unsigned int nSamples);
 
     protected:
         AmbisonicDecoder m_AmbDecoder;
+
+        AmbisonicOptimFilters m_shelfFilters;
+        BFormat m_BFSrcTmp;
 
         bool m_useSymHead = true;
 
