@@ -68,9 +68,6 @@ namespace spaudio {
          * @param gain      Optional gain to apply to the signal before adding it to the stream
          */
         void AddStream(float* pfData, unsigned nChannel, unsigned nSamples, unsigned nOffset = 0, float gain = 1.f);
-        /**
-            Copy a number of samples from a specific channel of the BFormat.
-        */
 
         /** Copy a number of samples from a specific channel of the BFormat.
          * @param pfData    Output holding the specified data.
@@ -78,6 +75,12 @@ namespace spaudio {
          * @param nSamples  Number of samples to copy.
          */
         void ExtractStream(float* pfData, unsigned nChannel, unsigned nSamples);
+
+        /** Get a pointer to the specified channel pointer
+         * @param nChannel Index of the desired HOA channel. Must be < the number of channels for the configured HOA order.
+         * @return Pointer to the desired channel.
+         */
+        float* GetChannelPointer(unsigned nChannel);
 
         /** Copy the content of the buffer. It is assumed that the two objects are
             of the same configuration.

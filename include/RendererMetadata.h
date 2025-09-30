@@ -430,11 +430,14 @@ namespace spaudio {
         // The normalization scheme of the HOA signal
         std::string normalization = "SN3D";
         std::vector<unsigned int> trackInds;
+        // Gain to apply to the whole HOA stream
+        double gain = 1.0;
     };
     inline bool operator==(const HoaMetadata& lhs, const HoaMetadata& rhs)
     {
         return lhs.orders == rhs.orders && lhs.degrees == rhs.degrees
-            && lhs.normalization == rhs.normalization && lhs.trackInds == rhs.trackInds;
+            && lhs.normalization == rhs.normalization && lhs.trackInds == rhs.trackInds
+            && lhs.gain == rhs.gain;
     }
 
     /** The metadata for DirectSpeaker. See See Rec. ITU-R BS.2127-0 page 63. */
@@ -452,6 +455,8 @@ namespace spaudio {
         Frequency channelFrequency;
         // Screen edge lock
         ScreenEdgeLock screenEdgeLock;
+        // Gain to apply to the signal for this speaker
+        double gain = 1.0;
     };
     inline bool operator==(const DirectSpeakerMetadata& lhs, const DirectSpeakerMetadata& rhs)
     {

@@ -19,7 +19,7 @@
 namespace spaudio {
 
     template<typename T>
-    GainInterp<T>::GainInterp(unsigned int nCh) : m_currentGainVec(nCh), m_targetGainVec(nCh), m_deltaGainVec(nCh)
+    GainInterp<T>::GainInterp(unsigned int nCh) : m_currentGainVec(nCh), m_targetGainVec(nCh), m_targetGainVecTmp(nCh), m_deltaGainVec(nCh)
     {
 
     }
@@ -27,6 +27,14 @@ namespace spaudio {
     template<typename T>
     GainInterp<T>::~GainInterp()
     {
+    }
+
+    template<typename T>
+    void GainInterp<T>::SetGainValue(T newGainVal, unsigned int interpTimeInSamples)
+    {
+        for (auto& g : m_targetGainVecTmp)
+            g = newGainVal;
+        SetGainVector(m_targetGainVecTmp, interpTimeInSamples);
     }
 
     template<typename T>
@@ -86,8 +94,14 @@ namespace spaudio {
         }
 
         for (unsigned int iCh = 0; iCh < nCh; ++iCh)
+        {
+            float gain = static_cast<float>(m_targetGainVec[iCh]);
+            if (std::abs(gain - 1.f) <= 1e-5f) // If gain is almost 1 then don't process this channel
+                continue;
+
             for (unsigned int i = nInterpSamples; i < nSamples; ++i)
-                ppOut[iCh][i + nOffset] = pIn[i] * static_cast<float>(m_targetGainVec[iCh]);
+                ppOut[iCh][i + nOffset] = pIn[i] * gain;
+        }
     }
 
     template<typename T>
@@ -116,9 +130,14 @@ namespace spaudio {
         }
 
         for (unsigned int iCh = 0; iCh < nCh; ++iCh)
-            if (std::abs(m_targetGainVec[iCh]) > static_cast<T>(1e-6))
-                for (unsigned int i = nInterpSamples; i < nSamples; ++i)
-                    ppOut[iCh][i + nOffset] += pIn[i] * static_cast<float>(m_targetGainVec[iCh]);
+        {
+            float gain = static_cast<float>(m_targetGainVec[iCh]);
+            if (std::abs(gain) < 1e-5f)
+                continue;
+
+            for (unsigned int i = nInterpSamples; i < nSamples; ++i)
+                ppOut[iCh][i + nOffset] += pIn[i] * gain;
+        }
     }
 
     template<typename T>
@@ -126,6 +145,7 @@ namespace spaudio {
     {
         m_iInterpCount = m_interpDurInSamples;
         m_currentGainVec = m_targetGainVec;
+        m_isFirstCall = true;
     }
 
     template class GainInterp<float>;

@@ -122,10 +122,17 @@ namespace spaudio {
          */
         void SetHeadOrientation(const RotationOrientation& orientation);
 
+        /** Set the linear gain to be applied to the signal obtained from GetRenderedAudio().
+         * @param outGain Linear gain to be applied to the rendered audio.
+         */
+        void SetOutputGain(double outGain);
+
     private:
         OutputLayout m_RenderLayout;
         // Number of channels in the array (use virtual speakers for binaural rendering)
         unsigned int m_nChannelsToRender = 2;
+        // Number of channels in the output
+        unsigned int m_nChannelsToOutput = 2;
         // Ambisonic order to be used for playback
         unsigned int m_HoaOrder = 3;
         // Number of ambisonic channels corresponding to the HOA order
@@ -160,7 +167,17 @@ namespace spaudio {
         std::unique_ptr<adm::ObjectGainCalculator> m_objectGainCalc;
         // The gain calculator for the DirectSpeaker channels
         std::unique_ptr<adm::DirectSpeakersGainCalc> m_directSpeakerGainCalc;
+        // Gain interpolators for DirectSpeaker streams
+        std::vector<GainInterp<double>> m_directSpeakerGainInterp;
+        // Time in samples to interpolate from one metadata or output gain to the next
+        unsigned int m_gainInterpTime = 0;
 
+        // A map from the channel index to the DirectSpeaker index in the order the DirectSpeakers were listed
+        // in the stream at configuration
+        std::map<int, int> m_channelToDirectSpeakerMap;
+
+        // Gain interpolators for HOA stream
+        std::vector<GainInterp<double>> m_hoaGainInterp;
         // Ambisonic Decoder
         AmbisonicAllRAD m_hoaDecoder;
         // Ambisonic encoders to use convert from speaker feeds to HOA for binaural decoding
@@ -189,6 +206,10 @@ namespace spaudio {
 
         // Decorrelator filter processor
         Decorrelator m_decorrelate;
+
+        // Output gain
+        double m_outGain = 1.0;
+        std::vector<GainInterp<double>> m_outGainInterp;
 
         // A buffer containing all zeros to use to clear the HOA data
         std::unique_ptr<float[]> m_pZeros;

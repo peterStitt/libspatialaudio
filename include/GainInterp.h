@@ -30,6 +30,13 @@ namespace spaudio {
         GainInterp(unsigned int nCh);
         ~GainInterp();
 
+        /** Set a gain target that is to be applied to all channgels and the time in samples to interpolate to it.
+         *
+         * @param newGainVec			Linear gain value to be applied to all channels.
+         * @param interpTimeInSamples	The number of channels over which to interpolate to the new gain value.
+         */
+        void SetGainValue(T newGainVal, unsigned int interpTimeInSamples);
+
         /** Set the gain vector target and the time in samples to interpolate to it.
          *
          * @param newGainVec			Vector of new gains. Must have the same length as number of channels set in the constructor.
@@ -61,7 +68,7 @@ namespace spaudio {
 
     private:
         // The gain vector, the target gain vector to interpolate towards, and a vector holding the change per sample
-        std::vector<T> m_currentGainVec, m_targetGainVec, m_deltaGainVec;
+        std::vector<T> m_currentGainVec, m_targetGainVec, m_targetGainVecTmp, m_deltaGainVec;
 
         // The interpolation duration in samples
         unsigned int m_interpDurInSamples = 0;
