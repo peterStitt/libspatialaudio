@@ -79,6 +79,11 @@ namespace spaudio {
         memcpy(pfData, m_ppfChannels[nChannel], nSamples * sizeof(float));
     }
 
+    float* BFormat::GetChannelPointer(unsigned nChannel)
+    {
+        return m_ppfChannels[nChannel];
+    }
+
     void BFormat::operator = (const BFormat& bf)
     {
         memcpy(m_pfData.data(), bf.m_pfData.data(), m_nDataLength * sizeof(float));

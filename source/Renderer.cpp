@@ -118,6 +118,7 @@ namespace spaudio {
             return false; // At least one loudspeaker is out of range!
 
         m_nChannelsToRender = (unsigned int)m_outputLayout.getNumChannels();
+        m_nChannelsToOutput = m_nChannelsToRender;
 
         if (reproductionScreen.hasValue())
         {
@@ -136,12 +137,16 @@ namespace spaudio {
         // Set up required processors based on channelInfo
         unsigned int nObject = 0;
         int iObj = 0;
+        int iDirSpk = 0;
+        int iHOA = 0;
         for (unsigned int iCh = 0; iCh < channelInfo.nChannels; ++iCh)
         {
             switch (channelInfo.typeDefinition[iCh])
             {
             case TypeDefinition::DirectSpeakers:
                 m_pannerTrackInd.push_back({ iCh,TypeDefinition::DirectSpeakers });
+                m_directSpeakerGainInterp.push_back(GainInterp<double>(m_nChannelsToRender));
+                m_channelToDirectSpeakerMap.insert(std::pair<int, int>(iCh, iDirSpk++));
                 break;
             case TypeDefinition::Matrix:
                 break;
@@ -155,6 +160,7 @@ namespace spaudio {
                 m_channelToObjMap.insert(std::pair<int, int>(iCh, iObj++));
                 break;
             case TypeDefinition::HOA:
+                ++iHOA;
                 break;
             case TypeDefinition::Binaural:
                 break;
@@ -162,6 +168,13 @@ namespace spaudio {
                 break;
             }
         }
+
+        if (iHOA > 0 && iHOA != m_nAmbiChannels)
+            return false; // Either the HOA stream in channelInfo is of an order that doesn't match hoaOrder or there is more than one HOA stream.
+
+        // Set the DirectSpeaker gain interpolation time for when the metadata gain varies.
+        // Smooth over a single full frame of audio.
+        m_gainInterpTime = nSamples;
 
         // Set up the gain calculator
         m_objectGainCalc = std::make_unique<adm::ObjectGainCalculator>(m_outputLayout);
@@ -197,6 +210,8 @@ namespace spaudio {
             if (!bBinConf)
                 return false;
 
+            m_nChannelsToOutput = 2;
+
             AllocateBuffers(m_binauralOut, 2, nSamples);
         }
 
@@ -214,6 +229,16 @@ namespace spaudio {
         m_directGains.resize(m_nChannelsToRender);
         m_diffuseGains.resize(m_nChannelsToRender);
         m_directSpeakerGains.resize(m_nChannelsToRender);
+
+        // Set up the HOA gain interpolator
+        m_hoaGainInterp.resize(m_nAmbiChannels, GainInterp<double>(1));
+        for (auto& hoaGainInterp : m_hoaGainInterp)
+            hoaGainInterp.SetGainValue(1.0, m_nSamples);
+
+        // Set up the output gain interpolator
+        m_outGainInterp.resize(m_nChannelsToOutput, GainInterp<double>(1));
+        for (auto& outGainInterp : m_outGainInterp)
+            outGainInterp.SetGainValue(1.0, 0);
 
         return true;
     }
@@ -234,6 +259,15 @@ namespace spaudio {
             m_gainInterpDiffuse[i].Reset();
             m_gainInterpDirect[i].Reset();
         }
+
+        for (auto& dirSpkGainInterp : m_directSpeakerGainInterp)
+            dirSpkGainInterp.Reset();
+
+        for (auto& hoaGainInterp : m_hoaGainInterp)
+            hoaGainInterp.Reset();
+
+        for (auto& outGainInterp : m_outGainInterp)
+            outGainInterp.Reset();
     }
 
     unsigned int Renderer::GetSpeakerCount()
@@ -245,6 +279,13 @@ namespace spaudio {
     {
         if (m_RenderLayout == OutputLayout::Binaural)
             m_hoaRotate.SetOrientation(newOrientation);
+    }
+
+    void Renderer::SetOutputGain(double outGain)
+    {
+        m_outGain = outGain;
+        for (auto& outGainInterp : m_outGainInterp)
+            outGainInterp.SetGainValue(m_outGain, m_nSamples);
     }
 
     void Renderer::AddObject(float* pIn, unsigned int nSamples, const ObjectMetadata& metadata, unsigned int nOffset)
@@ -312,7 +353,10 @@ namespace spaudio {
                 normConversionGain = N3dToSn3dFactor<float>(order);
             else if (compareCaseInsensitive(metadata.normalization, "FuMa"))
                 normConversionGain = FuMaToSn3dFactor<float>(order, degree);
+            m_hoaGainInterp[iHoaChWrite].SetGainValue(metadata.gain, m_gainInterpTime);
             m_hoaAudioOut.AddStream(pHoaIn[iHoaCh], iHoaChWrite, nSamples, nOffset, normConversionGain);
+            float* ppOut[1] = { m_hoaAudioOut.GetChannelPointer(iHoaChWrite) };
+            m_hoaGainInterp[iHoaChWrite].Process(m_hoaAudioOut.GetChannelPointer(iHoaChWrite), ppOut, nSamples, nOffset);
         }
     }
 
@@ -348,10 +392,22 @@ namespace spaudio {
             m_directSpeakerGainCalc->calculateGains(metadata, m_directSpeakerGains);
         }
 
-        for (int iSpk = 0; iSpk < (int)m_nChannelsToRender; ++iSpk)
-            if (m_directSpeakerGains[iSpk] != 0.)
-                for (int iSample = 0; iSample < (int)nSamples; ++iSample)
-                    m_speakerOut[iSpk][iSample + nOffset] += pDirSpkIn[iSample] * (float)m_directSpeakerGains[iSpk];
+        // Apply the metadata gain to the gain vector
+        for (auto& g : m_directSpeakerGains)
+            g *= metadata.gain;
+
+        // Map from the track index to the corresponding panner index
+        int nObjectInd = GetMatchingIndex(m_pannerTrackInd, metadata.trackInd, TypeDefinition::DirectSpeakers);
+
+        if (nObjectInd == -1) // this track was not declared at construction. Stopping here.
+        {
+            std::cerr << "AdmRender Warning: Expected a track index that was declared an Object in construction. Input will not be rendered." << std::endl;
+            return;
+        }
+        int iDirSpk = m_channelToDirectSpeakerMap[nObjectInd];
+
+        m_directSpeakerGainInterp[iDirSpk].SetGainVector(m_directSpeakerGains, m_gainInterpTime);
+        m_directSpeakerGainInterp[iDirSpk].ProcessAccumul(pDirSpkIn, m_speakerOut, nSamples, nOffset);
     }
 
     void Renderer::AddBinaural(float** pBinIn, unsigned int nSamples, unsigned int nOffset)
@@ -406,6 +462,13 @@ namespace spaudio {
             for (unsigned int iSpk = 0; iSpk < m_nChannelsToRender; ++iSpk)
                 for (unsigned int iSample = 0; iSample < nSamples; ++iSample)
                     pRender[iSpk][iSample] += m_speakerOut[iSpk][iSample] + m_speakerOutDirect[iSpk][iSample] + m_speakerOutDiffuse[iSpk][iSample];
+        }
+
+        // Apply the output gain
+        for (unsigned int iOut = 0; iOut < m_nChannelsToRender; ++iOut)
+        {
+            float* ppOut[1] = { pRender[iOut] };
+            m_outGainInterp[iOut].Process(pRender[iOut], ppOut, nSamples, 0);
         }
 
         // Clear the HOA data for the next frame

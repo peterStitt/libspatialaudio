@@ -1147,3 +1147,105 @@ void testAdmRenderCustomPositions()
 	auto failure = !admRenderer.Configure(outputTarget, hoaOrder, sampleRate, nSamples, streamInfo, "", true, screen, customPositions);
 	assert(failure);
 }
+
+void testRendererStreamAndOutputGains()
+{
+	unsigned int hoaOrder = 1;
+	unsigned int nHoa = (hoaOrder + 1) * (hoaOrder + 1);
+	unsigned int sampleRate = 48000;
+	unsigned int nSamples = 128;
+	double gain1 = 0.25f;
+	double gain2 = 0.5f;
+	double endGain = gain1 + (gain2 - gain1) / (double)nSamples * (nSamples - 1); // Gain the end of a smoothing frame
+	double outGain1 = 0.3f;
+	double outGain2 = 0.75;
+	double endOutGain = outGain1 + (outGain2 - outGain1) / (double)nSamples * (nSamples - 1); // Gain the end of a smoothing frame
+
+	std::vector<PolarPosition<double>> customPositions;
+	spaudio::OutputLayout outputTarget = spaudio::OutputLayout::FivePointOne;
+	auto layout = Layout::getMatchingLayout("0+5+0");
+	StreamInformation streamInfo;
+	streamInfo.typeDefinition = { TypeDefinition::DirectSpeakers };
+	for (auto i = 0; i < nHoa; ++i)
+		streamInfo.typeDefinition.push_back(TypeDefinition::HOA);
+	streamInfo.nChannels = streamInfo.typeDefinition.size();
+
+	spaudio::Renderer renderer;
+	bool success = renderer.Configure(outputTarget, hoaOrder, sampleRate, nSamples, streamInfo, "", true);
+	assert(success);
+
+	auto nLdspk = renderer.GetSpeakerCount();
+
+	std::vector<float> ones(nSamples, 1.f);
+
+	float** ldspkOut = new float* [nLdspk];
+	for (unsigned iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
+		ldspkOut[iLdspk] = new float[nSamples];
+
+	DirectSpeakerMetadata dirSpkMetadata;
+	dirSpkMetadata.trackInd = 0;
+	dirSpkMetadata.gain = gain1;
+	dirSpkMetadata.speakerLabel = "M+000";
+
+	// Process the DirectSpeaker first
+	renderer.AddDirectSpeaker(ones.data(), nSamples, dirSpkMetadata);
+	renderer.GetRenderedAudio(ldspkOut, nSamples);
+	// First call so first and last samples should be the target gain
+	assert(ldspkOut[2][0] == static_cast<float>(gain1) && ldspkOut[2][nSamples - 1] == static_cast<float>(gain1));
+	dirSpkMetadata.gain = gain2;
+	renderer.AddDirectSpeaker(ones.data(), nSamples, dirSpkMetadata);
+	renderer.GetRenderedAudio(ldspkOut, nSamples);
+	assert(ldspkOut[2][0] == static_cast<float>(gain1) && ldspkOut[2][nSamples - 1] == static_cast<float>(endGain));
+
+	HoaMetadata hoaMetadata;
+	hoaMetadata.normalization = "SN3D";
+	hoaMetadata.trackInds.resize(nHoa);
+	hoaMetadata.gain = gain1;
+
+	for (unsigned i = 0; i < nHoa; ++i)
+	{
+		hoaMetadata.trackInds[i] = i + 1; // Add 1 to account for DirectSpeaker stream
+	}
+
+	for (int iOrder = 0; iOrder < (int)hoaOrder + 1; ++iOrder)
+		for (int iDegree = -iOrder; iDegree < iOrder + 1; ++iDegree)
+		{
+			hoaMetadata.orders.push_back(iOrder);
+			hoaMetadata.degrees.push_back(iDegree);
+		}
+
+	float** hoaIn = new float* [nHoa];
+	for (unsigned iCh = 0; iCh < nHoa; ++iCh)
+	{
+		hoaIn[iCh] = new float[nSamples];
+		for (unsigned iSamp = 0; iSamp < nSamples; ++iSamp)
+			hoaIn[iCh][iSamp] = iCh == 0 ? 1.f : 0.f; // Set up as an omni (order zero) signal since we're only testing gain smoothing
+	}
+
+	// Process the HOA Channels
+	renderer.AddHoa(hoaIn, nSamples, hoaMetadata);
+	renderer.GetRenderedAudio(ldspkOut, nSamples);
+	// No smoothing so first and last samples should match
+	assert(ldspkOut[2][0] == ldspkOut[2][nSamples - 1]);
+	hoaMetadata.gain = gain2;
+	renderer.AddHoa(hoaIn, nSamples, hoaMetadata);
+	renderer.GetRenderedAudio(ldspkOut, nSamples);
+	assert(std::abs(ldspkOut[2][nSamples - 1] / ldspkOut[2][0] - static_cast<float>(endGain / gain1)) < 1e-6);
+
+	// Test the output gain
+	renderer.Reset();
+	renderer.SetOutputGain(outGain1);
+	dirSpkMetadata.gain = 1.;
+	renderer.AddDirectSpeaker(ones.data(), nSamples, dirSpkMetadata);
+	renderer.GetRenderedAudio(ldspkOut, nSamples);
+	// First call so first and last samples should be the target gain
+	assert(ldspkOut[2][0] == static_cast<float>(outGain1) && ldspkOut[2][nSamples - 1] == static_cast<float>(outGain1));
+	renderer.SetOutputGain(outGain2);
+	renderer.AddDirectSpeaker(ones.data(), nSamples, dirSpkMetadata);
+	renderer.GetRenderedAudio(ldspkOut, nSamples);
+	assert(ldspkOut[2][0] == static_cast<float>(outGain1) && ldspkOut[2][nSamples - 1] == static_cast<float>(endOutGain));
+
+	for (unsigned iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
+		delete ldspkOut[iLdspk];
+	delete[] ldspkOut;
+}
