@@ -155,6 +155,7 @@ configure_file(
 )
 
 if(MYSOFA_FOUND)
+    message("Found mysofa!")
     set(MYSOFA_LIB "-L${MYSOFA_LIBRARY_DIRS} -lmysofa")
     set(MYSOFA_INCLUDE "-I${MYSOFA_INCLUDE_DIRS}")
 endif(MYSOFA_FOUND)
