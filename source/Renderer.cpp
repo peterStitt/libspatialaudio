@@ -465,7 +465,7 @@ namespace spaudio {
         }
 
         // Apply the output gain
-        for (unsigned int iOut = 0; iOut < m_nChannelsToRender; ++iOut)
+        for (unsigned int iOut = 0; iOut < m_nChannelsToOutput; ++iOut)
         {
             float* ppOut[1] = { pRender[iOut] };
             m_outGainInterp[iOut].Process(pRender[iOut], ppOut, nSamples, 0);
