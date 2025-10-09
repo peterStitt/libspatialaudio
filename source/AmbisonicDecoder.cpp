@@ -745,14 +745,14 @@ namespace spaudio {
             else
             {
                 for (unsigned iSpk = 0; iSpk < m_nSpeakers; ++iSpk)
-                    for (unsigned i = 0; i < m_nOrder; ++i)
+                    for (unsigned i = 0; i <= m_nOrder; ++i)
                         m_pAmbSpeakers[iSpk].SetOrderWeight(i, 2.f * (float)i + 1.f);
             }
         }
         else
         {
             for (unsigned iSpk = 0; iSpk < m_nSpeakers; ++iSpk)
-                for (unsigned i = 0; i < m_nOrder; ++i)
+                for (unsigned i = 0; i <= m_nOrder; ++i)
                     m_pAmbSpeakers[iSpk].SetOrderWeight(i, 2.f);
         }
     }
