@@ -538,7 +538,7 @@ void testBinauralDecoder()
 		std::cout << binOut[0][iSamp] << ", " << binOut[1][iSamp] << std::endl;
 
 	for (int iEar = 0; iEar < 2; ++iEar)
-		delete binOut[iEar];
+		delete[] binOut[iEar];
 	delete[] binOut;
 }
 
@@ -686,7 +686,7 @@ void testDecoderPresets()
 	}
 
 	for (unsigned iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
-		delete ldspkOut[iLdspk];
+		delete[] ldspkOut[iLdspk];
 	delete[] ldspkOut;
 }
 
@@ -760,10 +760,10 @@ void testAdmHoaDecodingRouting()
 	}
 
 	for (unsigned iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
-		delete ldspkOut[iLdspk];
+		delete[] ldspkOut[iLdspk];
 	delete[] ldspkOut;
 	for (unsigned iCh = 0; iCh < channelInfo.nChannels; ++iCh)
-		delete hoaIn[iCh];
+		delete[] hoaIn[iCh];
 	delete[] hoaIn;
 }
 
@@ -812,7 +812,7 @@ void test2dHoaDecoding()
 	}
 
 	for (unsigned iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
-		delete ldspkOut[iLdspk];
+		delete[] ldspkOut[iLdspk];
 	delete[] ldspkOut;
 }
 
@@ -863,7 +863,7 @@ void testAllRAD()
 	}
 
 	for (unsigned iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
-		delete ldspkOut[iLdspk];
+		delete[] ldspkOut[iLdspk];
 	delete[] ldspkOut;
 }
 
@@ -901,7 +901,7 @@ void testObjectPanner()
 	}
 
 	for (unsigned iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
-		delete ldspkOut[iLdspk];
+		delete[] ldspkOut[iLdspk];
 	delete[] ldspkOut;
 }
 
@@ -948,7 +948,7 @@ void testAdmRenderer()
 	}
 
 	for (unsigned iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
-		delete ldspkOut[iLdspk];
+		delete[] ldspkOut[iLdspk];
 	delete[] ldspkOut;
 }
 
@@ -992,7 +992,7 @@ void testAdmRendererBinaural()
 	}
 
 	for (int iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
-		delete ldspkOut[iLdspk];
+		delete[] ldspkOut[iLdspk];
 	delete[] ldspkOut;
 }
 
@@ -1045,7 +1045,7 @@ void testAdmRendererDirectSpeakerBinaural()
 	}
 
 	for (int iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
-		delete ldspkOut[iLdspk];
+		delete[] ldspkOut[iLdspk];
 	delete[] ldspkOut;
 }
 
@@ -1246,6 +1246,6 @@ void testRendererStreamAndOutputGains()
 	assert(ldspkOut[2][0] == static_cast<float>(outGain1) && ldspkOut[2][nSamples - 1] == static_cast<float>(endOutGain));
 
 	for (unsigned iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
-		delete ldspkOut[iLdspk];
+		delete[] ldspkOut[iLdspk];
 	delete[] ldspkOut;
 }
