@@ -550,8 +550,9 @@ namespace spaudio {
         {
             for (unsigned int iCh = 0; iCh < nCh; ++iCh)
                 if (buffers[iCh])
-                    delete buffers[iCh];
+                    delete[] buffers[iCh];
             delete[] buffers;
+            buffers = nullptr;
         }
     }
 
