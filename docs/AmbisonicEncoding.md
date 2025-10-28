@@ -1,13 +1,13 @@
 # Ambisonic Encoding
 
-If you are not interested in the theory you can read about how to use `CAmbisonicEncoder` [here](#cambisonicencoder).
+If you are not interested in the theory you can read about how to use `AmbisonicEncoder` [here](#ambisonicencoder).
 
 ## Theory and Implementation Details
 
 Ambisonic encoding is the conversion of a mono signal to Ambisonics of a specified order.
 Ambisonic order governs the spatial resolution of the sound scene.
 Higher orders lead to higher resolution at the expense of increased processing requirements.
-The number of encoded channels is $1(N + 1)^{2}1$ meaning 1st, 2nd and 3rd order require 4, 9 and 16 channels respectively.
+The number of encoded channels is $`(N + 1)^{2}`$ meaning 1st, 2nd and 3rd order require 4, 9 and 16 channels respectively.
 
 A mono input signal is converted to Ambisonics through multiplication with a series of encoding gains.
 `libspatialaudio`uses the AmbiX specification [[1]](#ref1), which orders the channels in the ACN format and uses SN3D normalisation.
@@ -23,14 +23,14 @@ where $`s(t)`$ is the mono input signal at time $`t`$ and $`\textbf{y}_{N}(\thet
 
 ### Encoding Gain Interpolation
 
-In order to allow to real-time changes in source direction with minimal audio artefacts ("zipper" sounds) as the direction changes, `CAmbisonicEncoder` uses an instance of `CGainInterp` internally.
+In order to allow to real-time changes in source direction with minimal audio artefacts ("zipper" sounds) as the direction changes, `AmbisonicEncoder` uses an instance of `GainInterp` internally.
 Every time the direction of the source is changed the gain vector $`\textbf{y}_{N}(\theta,\phi)`$ is updated and a linear interpolation is applied going from the current to new values.
 This length of the interpolation can be specified by the user.
 Its ideal length will depend on the signals but 10 ms will reduce most "zipper" sounds.
 
-## CAmbisonicEncoder
+## AmbisonicEncoder
 
-The `CAmbisonicEncoder` class is used to convert a mono signal to Ambisonics. When the encoding position is modified it internally smooths the encoding gains $`\textbf{y}_{N}(\theta,\phi)`$ to avoid unwanted clicks in the output.
+The `AmbisonicEncoder` class is used to convert a mono signal to Ambisonics. When the encoding position is modified it internally smooths the encoding gains $`\textbf{y}_{N}(\theta,\phi)`$ to avoid unwanted clicks in the output.
 
 ### Configuration
 
@@ -45,7 +45,7 @@ The configuration parameters are:
 
 ### Set Encoding Direction
 
-The encoding direction is set as a polar direction in radians using the `SetPosition()` function. It takes a `PolarPoint` as an input.
+The encoding direction is set as a polar direction in radians using the `SetPosition()` function. It takes a `PolarPosition<float>` as an input.
 
 Note: the distance is ignored. Only the encoding direction is set.
 
@@ -68,6 +68,8 @@ This example shows how to convert a mono sine wave to an Ambisonics signal that 
 ```c++
 #include "Ambisonics.h"
 
+using namespace spaudio;
+
 const unsigned int sampleRate = 48000;
 const int nBlockLength = 512;
 const int nBlocks = 94;
@@ -84,26 +86,26 @@ for (int i = 0; i < nSigSamples; ++i)
     sinewave[i] = (float)std::sin((float)M_PI * 2.f * 440.f * (float)i / (float)sampleRate);
 
 // Destination B-format buffer
-CBFormat myBFormat;
+BFormat myBFormat;
 myBFormat.Configure(nOrder, true, nSigSamples);
 myBFormat.Reset();
 
 // Set up and configure the Ambisonics encoder
-CAmbisonicEncoder myEncoder;
+AmbisonicEncoder myEncoder;
 myEncoder.Configure(nOrder, true, sampleRate, fadeTimeInMilliSec);
 
 // Set test signal's initial direction in the sound field
-PolarPoint position;
-position.fAzimuth = 0;
-position.fElevation = 0;
-position.fDistance = 1.f;
+PolarPosition<float> position;
+position.azimuth = 0;
+position.elevation = 0;
+position.distance = 1.f;
 myEncoder.SetPosition(position);
 myEncoder.Reset();
 
 for (int iBlock = 0; iBlock < nBlocks; ++iBlock)
 {
     // Update the encoding position to reach by the end of the block
-    position.fAzimuth = (float)(iBlock + 1) / (float)nBlocks * 2.f * (float)M_PI;
+    position.azimuth = (float)(iBlock + 1) / (float)nBlocks * 2.f * (float)M_PI;
     myEncoder.SetPosition(position);
 
     // Encode the first block, writing to the appropriate point of the destination buffer
@@ -114,4 +116,4 @@ for (int iBlock = 0; iBlock < nBlocks; ++iBlock)
 
 ## References
 
-<a name="ref1">[1]</a> Christian Nachbar, Franz Zotter, Etienne Deleflie, and Alois Sontacchi. Ambix - A Suggested Ambisonics Format. In Ambisonics Symposium, volume 3, pages 1–11, Lexington, KY, 2011
+<a name="ref1">[1]</a> Christian Nachbar, Franz Zotter, Etienne Deleflie, and Alois Sontacchi. Ambix - A Suggested Ambisonics Format. In Ambisonics Symposium, volume 3, pages 1-11, Lexington, KY, 2011

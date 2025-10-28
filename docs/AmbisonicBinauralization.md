@@ -1,12 +1,12 @@
 # Ambisonic Decoding to Binaural
 
-If you are not interested in the theory you can read about how to use `CAmbisonicBinauralizer` [here](#cambisonicbinauralizer).
+If you are not interested in the theory you can read about how to use `AmbisonicBinauralizer` [here](#ambisonicbinauralizer).
 
 ## Theory and Implementation Details
 
-There are several methods for decoding from Ambisonics to binaural [[1]](#ref1)[[2]](#ref2)[[3]](#ref3).
+There are several methods for decoding from Ambisonics to binaural [[1](#ref1), [2](#ref2), [3](#ref3)].
 In general, decoding is performed by convolution of the ambisonic signal with a matrix of filters.
-`CAmbisonicBinauralizer` uses a virtual-speaker approach [[1]](#ref1).
+`AmbisonicBinauralizer` uses a virtual-speaker approach [[1]](#ref1).
 
 The virtual loudspeaker approach essentially decodes the signal to known loudspeaker layout and then applies an HRTF to each of the loudspeakers, which are summed to make the final 2-channel binaural output.
 This requires $2\times M$ convolutions, where $M$ is the number of virtual loudspeakers.
@@ -33,7 +33,7 @@ For the opposite ear the spherical harmonics that are left-right symmetric have 
 
 ### Virtual Loudspeaker Layout Choices
 
-For first-order signals `CAmbisonicBinauralizer` uses a virtual layout on the vertices of a cube (8 virtual loudspeakers).
+For first-order signals `AmbisonicBinauralizer` uses a virtual layout on the vertices of a cube (8 virtual loudspeakers).
 For second- and third-order a virtual layout on the vertices of a dodecahedron (20 virtual loudspeakers) is used.
 Therefore, in both cases, preprocessing the HRTFs reduces the number of convolutions required (from 8 to 4 for first-order and 20 to 9 or 16 for second- and third-order respectively).
 This meets a requirement of `libspatialaudio` to minimise its CPU use.
@@ -60,11 +60,7 @@ This may result in small variations in the perceived source width, but this effe
 
 As outlined [here](AmbisonicOptimisation.md) shelf filtering can be applied to Ambisonics signal so that they are decoded in a psychoacoustically optimised manner.
 
-In order to reduce the CPU use `CAmbisonicBinauralizer` pre-filters the spherical harmonic impulse responses in $`\mathbf{Z}_{N,ear}^{\mathrm{bin}}`$ rather than applying the shelf filtering at run-time.
-
-This allows the psychoacoustic optimisation to be applied for "free" at runtime, at the minor cost of performing the optimisation filtering during configuration.
-
-## CAmbisonicBinauralizer
+## AmbisonicBinauralizer
 
 ### Configuration
 
@@ -90,13 +86,14 @@ The inputs are:
 - **ppDst**: Array of pointers of size 2 x nSamples containing the binaurally decoded signal.
 - **nSamples**: (Optional) The length of the input signal in samples. If this is not supplied then `nBlockSize` samples are assumed.
 
-
 ### Code Example
 
 This example shows how to decode an Ambisonics signal to a binaural.
 
 ```c++
 #include "Ambisonics.h"
+
+using namespace spaudio;
 
 const unsigned int sampleRate = 48000;
 const int nBlockLength = 512;
@@ -110,23 +107,23 @@ for (int i = 0; i < nBlockLength; ++i)
     sinewave[i] = (float)std::sin((float)M_PI * 2.f * 440.f * (float)i / (float)sampleRate);
 
 // B-format buffer
-CBFormat myBFormat;
+BFormat myBFormat;
 myBFormat.Configure(nOrder, true, nBlockLength);
 myBFormat.Reset();
 
 // Encode the signal to Ambisonics
-CAmbisonicEncoder myEncoder;
+AmbisonicEncoder myEncoder;
 myEncoder.Configure(nOrder, true, sampleRate, 0);
-PolarPoint position;
-position.fAzimuth = (float)M_PI * 0.5f;
-position.fElevation = 0;
-position.fDistance = 1.f;
+PolarPosition<float> position;
+position.azimuth = (float)M_PI * 0.5f;
+position.elevation = 0;
+position.distance = 1.f;
 myEncoder.SetPosition(position);
 myEncoder.Reset();
 myEncoder.Process(sinewave.data(), nBlockLength, &myBFormat);
 
 // Set up the binaural decoder
-CAmbisonicBinauralizer myDecoder;
+AmbisonicBinauralizer myDecoder;
 unsigned int tailLength = 0;
 myDecoder.Configure(nOrder, true, sampleRate, nBlockLength, tailLength);
 
@@ -141,17 +138,17 @@ myDecoder.Process(&myBFormat, earOut, nBlockLength);
 
 // Cleanup
 for (unsigned iEar = 0; iEar < nEar; ++iEar)
-    delete earOut[iEar];
+    delete[] earOut[iEar];
 delete[] earOut;
 ```
 
 ## References
 
-<a name="ref1">[1]</a> Markus Noisternig, Alois Sontacchi, Thomas Musil, and Robert Höldrich. A 3D Ambisonic Based Binaural Sound Reproduction System. In 24th International Conference of the Audio Engineering Society, pages 1–5, June 2003.
+<a name="ref1">[1]</a> Markus Noisternig, Alois Sontacchi, Thomas Musil, and Robert Höldrich. A 3D Ambisonic Based Binaural Sound Reproduction System. In 24th International Conference of the Audio Engineering Society, pages 1-5, June 2003.
 
-<a name="ref2">[2]</a> Christian Schörkhuber, Markus Zaunschirm, and Robert Höldrich. Binaural rendering of ambisonic signals via magnitude least squares. In Proceedings of the DAGA, volume 44, pages 339–342, 2018.
+<a name="ref2">[2]</a> Christian Schörkhuber, Markus Zaunschirm, and Robert Höldrich. Binaural rendering of ambisonic signals via magnitude least squares. In Proceedings of the DAGA, volume 44, pages 339-342, 2018.
 
-<a name="ref3">[3]</a> Markus Zaunschirm, Christian Schörkhuber, and Robert Höldrich. Binaural rendering of Ambisonic signals by head-related impulse response time alignment and a diffuseness constraint. The Journal of the Acoustical Society of America, 143(6):3616–3627, 2018. ISSN 0001-4966. doi:10.1121/1.5040489.
+<a name="ref3">[3]</a> Markus Zaunschirm, Christian Schörkhuber, and Robert Höldrich. Binaural rendering of Ambisonic signals by head-related impulse response time alignment and a diffuseness constraint. The Journal of the Acoustical Society of America, 143(6):3616-3627, 2018. ISSN 0001-4966. doi:10.1121/1.5040489.
 
 <a name="ref3">[4]</a> Archontis Politis and David Poirier-Quinot. JSAmbisonics: A web audio library for interactive spatial sound processing on the web. In Interactive Audio Systems Symposium, 2016.
 
