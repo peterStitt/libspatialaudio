@@ -49,9 +49,9 @@
 \def\deg{$^{\circ}$ }
 \newcommand{\code}[1]{\texttt{#1}}
 
-\title{\libspataud: Spatial Audio Library with Audio Definition Model Renderer}
+\title{\libspataud: Spatial Audio Library for Ambisonic, Object, Speaker and Binaural Rendering}
 \author{Peter Stitt}
-\date{September 2024}
+\date{October 2025}
 
 \makeatletter
 \let\newtitle\@title
@@ -71,35 +71,44 @@
 % Summarise what it does and what is its intended purpose. What are the stages of its evolution?
 \libspataud\footnote{\href{https://github.com/videolabs/libspatialaudio}{https://github.com/videolabs/libspatialaudio}} is an open source library for rendering spatial audio.
 Originally it is a fork of ambisonic-lib from Aristotel Digenis.
-It was adopted and extended for spatial audio rendering in VLC Media Player 3.0\footnote{\href{https://www.videolan.org/vlc/releases/3.0.20.html}{https://www.videolan.org/vlc/releases/3.0.20.html} Last accessed 20/11/2023} in 2017 and further extended in 2020 to incorporate a renderer compatible with Audio Definition Model (ADM) streams \cite{ITU2076}, based on the ADM renderer specification ITU-R BS.2127 \cite{ITU2127}.
+It was adopted and extended for spatial audio rendering in VLC Media Player 3.0\footnote{\href{https://www.videolan.org/vlc/releases/3.0.20.html}{https://www.videolan.org/vlc/releases/3.0.20.html} Last accessed 20/11/2023} in 2017 and further extended in 2020 to incorporate a renderer compatible with Audio Definition Model (ADM) streams \cite{ITU2076}, based on the ADM renderer specification ITU-R BS.2127 \cite{ITU2127}. This extension added DirectSpeaker and Object rendering to the library.
 
 The library can be used to encode mono signals to Ambisonics, to decode Ambisonics to loudspeakers or to binaural.
 It can also perform sound field rotations, which allows it to be used with data from a head-tracker.
 The main spatialisation processors are outlined in \cref{Ambisonics}, along with the theoretical background on which they are based.
-\libspataud also includes a renderer that allows it to use ADM metadata to spatialise an audio stream.
-The ADM renderer can accept Object, HOA and DirectSpeaker streams and can render to loudspeakers or binaural.
-Chapter \ref{ADMRenderer} outlines the \libspataud ADM renderer (ITU-R BS.2127).
+\libspataud also includes a renderer that allows it to use metadata to spatialise an audio stream.
+The renderer can accept Object, HOA and DirectSpeaker streams and can render to loudspeakers or binaural.
+It can be used for rendering ADM or IAMF signals.
+Chapter \ref{Renderer} outlines the \libspataud Renderer (compatible with ADM ITU-R BS.2127 and IAMF).
 Code examples are given for those interested primarily in implementation of \libspataud.
 
 The library allows you to encode, decode, rotate, zoom HOA audio streams up to the 3rd order. It can output to standard and custom loudspeakers arrays. To playback with headphones, the binauralizer applies an HRTF (either a SOFA file or  the included MIT HRTF) to provide a spatial binaural rendering effect. The binauralization can also be used to render multichannel streams (5.1, 7.1...).
 
 \section{Features}
 
-The library has three main uses:
+The library has four main uses:
 \begin{itemize}
     \item Ambisonics: encoding, rotation, zooming, psychoacoustic optimisation and decoding of HOA signals is provided. These function up to 3rd order Ambisonics. For more details on the Ambisonics capabilities of \libspataud please see \cref{Ambisonics}.
     \item Loudspeaker Binauralization: convert loudspeaker signals to binaural, with the option to use custom HRTFs loaded via a SOFA file. Read more on how to binauralise loudspeaker signals \cref{Binauralization}.
-    \item ADM Renderer: render Object, DirectSpeaker, HOA and Binaural streams using their metadata based on Rec. ITU-R BS.2127-1. For a guide on how to use the ADM renderer see \cref{ADMRenderer}.
+    \item Object Spatialisation: convert mono signals to loudspeaker signals. The sound source is panned as a point source using amplitude panning. For a guide on how to spatialise objects please see \cref{ObjectSpatialisation}.
+    \item Metadata-based Renderering: render Object, DirectSpeaker, HOA and Binaural streams using their metadata based on Rec. ITU-R BS.2127-1. For a guide on how to use the Renderer see \cref{Renderer}.
 \end{itemize}
 
 \section{Learning About \libspataud}
 
-The documentation includes elements of background theory (mathematical, psychoacoustic, DSP), implementation details (layout out the choices made while writing the library) and code examples (overviews of the main classes and code examples).
-
-All background theory sections have been written such that it should be accessible to anyone with some mathematical background.
+The documentation includes
+\begin{itemize}
+\item background theory (mathematical, psychoacoustic, DSP).
+\begin{itemize}
+\item All background theory sections have been written such that it should be accessible to anyone with some mathematical background.
 However, even without a mathematical background you should still be able to follow what is going on.
+\end{itemize}
+\item implementation details (layout out the choices made while writing the library)
+\item code examples (overviews of the main classes and code examples).
+\end{itemize}
+
 To learn more about the Ambisonics processors start in \cref{Ambisonics}.
-To learn more about the ADM renderer start in \cref{ADMRenderer}.
+To learn more about the Renderer start in \cref{Renderer}.
 These two chapters provide full examples of both signal flows, as well as links to more details for those who want to learn more or get more specific details.
 
 For those who do not need to know the background theory, most sections contain details of the code, as well as an example of how to implement it separately from the theory.
@@ -141,20 +150,20 @@ under a commercial license. For full details see \href{https://github.com/videol
 
 The main Ambisonic processing classes are:
 \begin{itemize}
-\item \code{CAmbisonicEncoder}: Converts a mono signal to an Ambisonics signal of order 1 to 3. Read more in \cref{AmbiEncoding}.
-\item \code{CAmbisonicRotator}: Applies a user-specified rotation to the sound field. This is useful for head tracking or keeping the audio aligned with a 360 video. Read more in \cref{AmbiRotation}.
-\item \code{CAmbisonicZoomer}: An acoustical "zoom" that focuses on the front of the sound scene. Read more in \cref{AmbiZoomer}.
-\item \code{CAmbisonicDecoder}: A decoder that converts an Ambisonics signal to a set of loudspeaker signals. It contains optimised presets for 5.1 and 7.1 loudspeaker layouts. Custom layouts can also have their decoding matrix defined by the user, for additional flexibility. Read more in \cref{CAmbisonicDecoder}.
-\item \code{CAmbisonicBinauralizer}: A decoder that converts an Ambisonics signal to a binaural signal. This allows for immersive audio to be experienced over headphones. Custom HRTFs can be loaded using the .SOFA format, allowing for a customised listening experience. Read more in \cref{AmbiToBin}.
-\item \code{CAmbisonicAllRAD}: A decoder that converts an Ambisonics signal to a set of loudspeaker signals corresponding to the ITU layouts or IAMF specificiation layouts. It uses the AllRAD method to calculate the decoding matrix. Read more in \cref{CAmbisonicAllRAD}.
+\item \code{AmbisonicEncoder}: Converts a mono signal to an Ambisonics signal of order 1 to 3. Read more in \cref{AmbiEncoding}.
+\item \code{AmbisonicRotator}: Applies a user-specified rotation to the sound field. This is useful for head tracking or keeping the audio aligned with a 360 video. Read more in \cref{AmbiRotation}.
+\item \code{AmbisonicZoomer}: An acoustical "zoom" that focuses on the front of the sound scene. Read more in \cref{AmbiZoomer}.
+\item \code{AmbisonicDecoder}: A decoder that converts an Ambisonics signal to a set of loudspeaker signals. It contains optimised presets for 5.1 and 7.1 loudspeaker layouts. Custom layouts can also have their decoding matrix defined by the user, for additional flexibility. Read more in \cref{AmbisonicDecoder}.
+\item \code{AmbisonicBinauralizer}: A decoder that converts an Ambisonics signal to a binaural signal. This allows for immersive audio to be experienced over headphones. Custom HRTFs can be loaded using the .SOFA format, allowing for a customised listening experience. Read more in \cref{AmbiToBin}.
+\item \code{AmbisonicAllRAD}: A decoder that converts an Ambisonics signal to a set of loudspeaker signals corresponding to the ITU layouts or IAMF specificiation layouts. It uses the AllRAD method to calculate the decoding matrix. Read more in \cref{AmbisonicAllRAD}.
 \end{itemize}
 
 \subsection{Ambisonics Signal Flow}
 
-In general, unless your signal is already in Ambisonics format, the signal chain will begin with \code{CAmbisonicEncoder} to bring the audio in to the Ambisonics domain.
+In general, unless your signal is already in Ambisonics format, the signal chain will begin with \code{AmbisonicEncoder} to bring the audio in to the Ambisonics domain.
 The rotation and zooming processing elements are optional and will be context dependent. However, they should generally be applied to a summation of all the sound sources making up the scene, rather than applying to each one individually.
 
-Finally, the signal needs to be converted from a Ambisonics to the listener's particular layout. The choice of which decoder should be used is generally decided by the target output layout. ITU layouts could use \code{CAmbisonicAllRAD} or, if a custom decoder is available, \code{CAmbisonicDecoder}. Binauralisation over headphones uses \code{CAmbisonicBinauralization}.
+Finally, the signal needs to be converted from a Ambisonics to the listener's particular layout. The choice of which decoder should be used is generally decided by the target output layout. ITU layouts could use \code{AmbisonicAllRAD} or, if a custom decoder is available, \code{AmbisonicDecoder}. Binauralisation over headphones uses \code{AmbisonicBinauralization}.
 
 \begin{figure}
     \centering
@@ -163,17 +172,19 @@ Finally, the signal needs to be converted from a Ambisonics to the listener's pa
     \label{fig:ambi_signal_flow}
 \end{figure}
 
-The above figure shows the signal flow used to encode a mono input signal to HOA, perform rotation of the sound field (using \code{CAmbisonicRotator}) and then to acoustically zoom on the front of the sound field (using \code{CAmbisonicZoomer}).
+The above figure shows the signal flow used to encode a mono input signal to HOA, perform rotation of the sound field (using \code{AmbisonicRotator}) and then to acoustically zoom on the front of the sound field (using \code{AmbisonicZoomer}).
 Finally, it is decoded to the listener using one of the decoding methods.
 
 \subsection{Code Example}
 
 This example shows how to apply the entire signal chain described above and to convert the output to binaural.
 
-See [here](AmbisonicDecoding.md) for specific examples on how to decode using `CAmbisonicDecoder` or `CAmbisonicAllRAD`.
+See [here](AmbisonicDecoding.md) for specific examples on how to decode using `AmbisonicDecoder` or `AmbisonicAllRAD`.
 
 \begin{lstlisting}[language=C++]
 #include "Ambisonics.h"
+
+using namespace spaudio;
 
 const unsigned int sampleRate = 48000;
 const int nBlockLength = 512;
@@ -189,34 +200,34 @@ for (int i = 0; i < nBlockLength; ++i)
     sinewave[i] = (float)std::sin((float)M_PI * 2.f * 440.f * (float)i / (float)sampleRate);
 
 // B-format buffer
-CBFormat myBFormat;
+BFormat myBFormat;
 myBFormat.Configure(nOrder, true, nBlockLength);
 myBFormat.Reset();
 
 // Encode the signal to Ambisonics
-CAmbisonicEncoder myEncoder;
+AmbisonicEncoder myEncoder;
 myEncoder.Configure(nOrder, true, sampleRate, 0);
-PolarPoint position;
-position.fAzimuth = 0;
-position.fElevation = 0;
-position.fDistance = 1.f;
+PolarPosition<float> position;
+position.azimuth = 0;
+position.elevation = 0;
+position.distance = 1.f;
 myEncoder.SetPosition(position);
 myEncoder.Reset();
 
 // Set up the rotator
-CAmbisonicRotator myRotator;
+AmbisonicRotator myRotator;
 myRotator.Configure(nOrder, true, nBlockLength, sampleRate, fadeTimeInMilliSec);
 RotationOrientation rotOri;
 rotOri.yaw = 0.5 * M_PI;
 myRotator.SetOrientation(rotOri);
 
 // Set up the zoomer processor
-CAmbisonicZoomer myZoomer;
+AmbisonicZoomer myZoomer;
 myZoomer.Configure(nOrder, true, nBlockLength, 0);
 myZoomer.SetZoom(0.5f);
 
 // Set up the binaural decoder
-CAmbisonicBinauralizer myDecoder;
+AmbisonicBinauralizer myDecoder;
 unsigned int tailLength = 0;
 myDecoder.Configure(nOrder, true, sampleRate, nBlockLength, tailLength);
 // Configure buffers to hold the decoded signal
@@ -240,7 +251,7 @@ myDecoder.Process(&myBFormat, earOut, nBlockLength);
 
 // Cleanup
 for (unsigned iEar = 0; iEar < nEar; ++iEar)
-    delete earOut[iEar];
+    delete[] earOut[iEar];
 delete[] earOut;
 \end{lstlisting}
 
@@ -262,14 +273,14 @@ The encoded signal is thus calculated as
 
 \subsubsection{Encoding Gain Interpolation}
 
-In order to allow to real-time changes in source direction with minimal audio artefacts ("zipper" sounds) as the direction changes, \code{CAmbisonicEncoder} uses an instance of \code{CGainInterp} internally.
+In order to allow to real-time changes in source direction with minimal audio artefacts ("zipper" sounds) as the direction changes, \code{AmbisonicEncoder} uses an instance of \code{GainInterp} internally.
 Every time the direction of the source is changed the gain vector $\textbf{y}_{N}(\theta,\phi)$ is updated and a linear interpolation is applied going from the current to new values.
 This length of the interpolation can be specified by the user.
 Its ideal length will depend on the signals but 10 ms will reduce most "zipper" sounds.
 
-\subsection{\code{CAmbisonicEncoder}}
+\subsection{\code{AmbisonicEncoder}}
 
-The \code{CAmbisonicEncoder} class is used to convert a mono signal to Ambisonics. When the encoding position is modified it internally smooths the encoding gains $\textbf{y}_{N}(\theta,\phi)$ to avoid unwanted clicks in the output.
+The \code{AmbisonicEncoder} class is used to convert a mono signal to Ambisonics. When the encoding position is modified it internally smooths the encoding gains $\textbf{y}_{N}(\theta,\phi)$ to avoid unwanted clicks in the output.
 
 \subsubsection{Configuration}
 
@@ -285,7 +296,7 @@ The configuration parameters are:
 
 \subsubsection{Set Encoding Direction}
 
-The encoding direction is set as a polar direction in radians using the \code{SetPosition()} function. It takes a \code{PolarPoint} as an input.
+The encoding direction is set as a polar direction in radians using the \code{SetPosition()} function. It takes a \code{PolarPosition<float>} as an input.
 
 Note: the distance is ignored. Only the encoding direction is set.
 
@@ -309,6 +320,8 @@ This example shows how to convert a mono sine wave to an Ambisonics signal that 
 \begin{lstlisting}[language=C++]
 #include "Ambisonics.h"
 
+using namespace spaudio;
+
 const unsigned int sampleRate = 48000;
 const int nBlockLength = 512;
 const int nBlocks = 94;
@@ -325,26 +338,26 @@ for (int i = 0; i < nSigSamples; ++i)
     sinewave[i] = (float)std::sin((float)M_PI * 2.f * 440.f * (float)i / (float)sampleRate);
 
 // Destination B-format buffer
-CBFormat myBFormat;
+BFormat myBFormat;
 myBFormat.Configure(nOrder, true, nSigSamples);
 myBFormat.Reset();
 
 // Set up and configure the Ambisonics encoder
-CAmbisonicEncoder myEncoder;
+AmbisonicEncoder myEncoder;
 myEncoder.Configure(nOrder, true, sampleRate, fadeTimeInMilliSec);
 
 // Set test signal's initial direction in the sound field
-PolarPoint position;
-position.fAzimuth = 0;
-position.fElevation = 0;
-position.fDistance = 1.f;
+PolarPosition<float> position;
+position.azimuth = 0;
+position.elevation = 0;
+position.distance = 1.f;
 myEncoder.SetPosition(position);
 myEncoder.Reset();
 
 for (int iBlock = 0; iBlock < nBlocks; ++iBlock)
 {
     // Update the encoding position to reach by the end of the block
-    position.fAzimuth = (float)(iBlock + 1) / (float)nBlocks * 2.f * (float)M_PI;
+    position.azimuth = (float)(iBlock + 1) / (float)nBlocks * 2.f * (float)M_PI;
     myEncoder.SetPosition(position);
 
     // Encode the first block, writing to the appropriate point of the destination buffer
@@ -374,16 +387,16 @@ A positive pitch angle will cause a sound source to move above the listener. Fro
 A positive roll angle will rotate a sound from the left to the right underneath the listener. From the point-of-view of the listener this is as if they roll their head to the right.
 
 Rotations can be applied in any order but changing the order of the rotation will not result in the same output, so care must be taken.
-The yaw-pitch-roll order, where rotations around the z-axis are performed first, is common in Ambisonics, but \code{CAmbisonicRotator} gives the option for any combination to be used.
+The yaw-pitch-roll order, where rotations around the z-axis are performed first, is common in Ambisonics, but \code{AmbisonicRotator} gives the option for any combination to be used.
 
 Rotation of the sound field is particularly beneficial when working with a binaural renderer because it fixes the sound sources in space.
 This can help to reduce front-to-back confusions or with sound source externalisation.
 
-Note that \code{CAmbisonicRotator} uses hard-coded equations to generate the individual yaw, pitch and roll rotation matrices. However, for higher orders a recurrence relation based method can be used to compute $\textbf{R}_{N}(\alpha, \beta, \gamma)$ \cite{ivanic1996rotation}.
+Note that \code{AmbisonicRotator} uses hard-coded equations to generate the individual yaw, pitch and roll rotation matrices. However, for higher orders a recurrence relation based method can be used to compute $\textbf{R}_{N}(\alpha, \beta, \gamma)$ \cite{ivanic1996rotation}.
 
-\subsection{\code{CAmbisonicRotator}}
+\subsection{\code{AmbisonicRotator}}
 
-The \code{CAmbisonicRotator} class is used to change the orientation of a supplied Ambisonic signal in real-time. In order to avoid clicks while rotating the rotation matrices are interpolated over a specified length of time set during configuration of the object.
+The \code{AmbisonicRotator} class is used to change the orientation of a supplied Ambisonic signal in real-time. In order to avoid clicks while rotating the rotation matrices are interpolated over a specified length of time set during configuration of the object.
 
 \subsubsection{Configuration}
 
@@ -392,7 +405,7 @@ Before calling any other functions the object must first be configured by callin
 The configuration parameters are:
 
 - \textbf{nOrder}: The ambisonic order from 1 to 3.
-- \textbf{b3D}: \code{CAmbisonicRotator} only supports rotation of 3D sound scenes. This should be set to \code{true} or else configuration will fail.
+- \textbf{b3D}: \code{AmbisonicRotator} only supports rotation of 3D sound scenes. This should be set to \code{true} or else configuration will fail.
 - \textbf{nBlockSize}: The maximum block size \code{Process()} is expected to handle.
 - \textbf{sampleRate}: The sample rate of the audio being used e.g. 44100 Hz, 48000 Hz etc. This must be an integer value greater than zero.
 - \textbf{fadeTimeMilliSec}: The time in milliseconds to fade from an old matrix to another. Lower values will lead to lower latency at the expense of possible audio artefacts. Higher values will lead to increased latency before the source reaches the new orientation. A value of 10 ms is usually a good starting point.
@@ -417,6 +430,8 @@ This example shows how to rotate an Ambisonics signal by 90\deg ($\pi/2$ radians
 \begin{lstlisting}[language=C++]
 #include "Ambisonics.h"
 
+using namespace spaudio;
+
 const unsigned int sampleRate = 48000;
 const int nBlockLength = 512;
 
@@ -431,23 +446,23 @@ for (int i = 0; i < nBlockLength; ++i)
     sinewave[i] = (float)std::sin((float)M_PI * 2.f * 440.f * (float)i / (float)sampleRate);
 
 // B-format buffer
-CBFormat myBFormat;
+BFormat myBFormat;
 myBFormat.Configure(nOrder, true, nBlockLength);
 myBFormat.Reset();
 
 // Encode the signal to Ambisonics
-CAmbisonicEncoder myEncoder;
+AmbisonicEncoder myEncoder;
 myEncoder.Configure(nOrder, true, sampleRate, 0);
-PolarPoint position;
-position.fAzimuth = 0;
-position.fElevation = 0;
-position.fDistance = 1.f;
+PolarPosition<float> position;
+position.azimuth = 0;
+position.elevation = 0;
+position.distance = 1.f;
 myEncoder.SetPosition(position);
 myEncoder.Reset();
 myEncoder.Process(sinewave.data(), nBlockLength, &myBFormat);
 
 // Set up the rotator
-CAmbisonicRotator myRotator;
+AmbisonicRotator myRotator;
 myRotator.Configure(nOrder, true, nBlockLength, sampleRate, fadeTimeInMilliSec);
 RotationOrientation rotOri;
 rotOri.yaw = 0.5 * M_PI; // pi/2 radians = 90 degrees
@@ -460,18 +475,18 @@ myRotator.Process(&myBFormat, nBlockLength);
 \section{Ambisonic Zoomer}\label{AmbiZoomer}
 \subsection{Theory and Implementation Details}
 
-The \code{CAmbisonicZoomer} class allows for a kind of acoustic zoom to the front of the sound field.
+The \code{AmbisonicZoomer} class allows for a kind of acoustic zoom to the front of the sound field.
 It was implemented for use with the zoom function with 360-videos in VLC Media Player to place emphasis on sounds in the view direction.
 
 It samples the sound field to the front with a virtual cardioid microphone with order matching the order of the input signal.
-This mono virtual microphone signal is then re-encoded back to a signal at the front of the sound field and blended with the full sound field based on the zoom value set in \code{CAmbisonicZoomer::SetZoom}.
+This mono virtual microphone signal is then re-encoded back to a signal at the front of the sound field and blended with the full sound field based on the zoom value set in \code{AmbisonicZoomer::SetZoom}.
 
 A zoom value of 0 will perform no transformation to the ambisonic signal while a zoom of 1 will lead to an extreme zoom, which results in mono signal encoded to the front of the sound field.
 
 Another method for achieving a similar effect would be to decode the Ambisonics signal to a set of points regularly spaced on the sphere, applying a directional weight to these points, then re-encoding the points to Ambisonics.
 However, this requires a transformation from and to the Ambisonics domain over a large number of points. This makes it more CPU intensive than the simple method used here, and so it is not implemented in \code{libspatialaudio}.
 
-\subsection{\code{CAmbisonicZoomer}}
+\subsection{\code{AmbisonicZoomer}}
 
 \subsubsection{Configuration}
 
@@ -482,7 +497,7 @@ The configuration parameters are:
     \item \textbf{nOrder}: The ambisonic order from 1 to 3.
     \item \textbf{b3D}: A bool to indicate if the signal to be decoded is 2D (azimuth only) or 3D (azimuth and elevation).
     \item \textbf{nBlockSize}: The maximum block size \code{Process()} is expected to handle.
-    \item \textbf{nMisc}: Unused parameter to match base class's form.
+    \item \textbf{sampleRate}: The sample rate of the signal expected by `Process()`.
 \end{itemize}
 
 \subsubsection{Setting the Zoom Amount}
@@ -507,6 +522,8 @@ This example shows how to apply zooming to an Ambisonics signal.
 \begin{lstlisting}[language=C++]
 #include "Ambisonics.h"
 
+using namespace spaudio;
+
 const unsigned int sampleRate = 48000;
 const int nBlockLength = 512;
 
@@ -519,23 +536,23 @@ for (int i = 0; i < nBlockLength; ++i)
     sinewave[i] = (float)std::sin((float)M_PI * 2.f * 440.f * (float)i / (float)sampleRate);
 
 // B-format buffer
-CBFormat myBFormat;
+BFormat myBFormat;
 myBFormat.Configure(nOrder, true, nBlockLength);
 myBFormat.Reset();
 
 // Encode the signal to Ambisonics
-CAmbisonicEncoder myEncoder;
+AmbisonicEncoder myEncoder;
 myEncoder.Configure(nOrder, true, sampleRate, 0);
-PolarPoint position;
-position.fAzimuth = 0;
-position.fElevation = 0;
-position.fDistance = 1.f;
+PolarPosition<float> position;
+position.azimuth = 0;
+position.elevation = 0;
+position.distance = 1.f;
 myEncoder.SetPosition(position);
 myEncoder.Reset();
 myEncoder.Process(sinewave.data(), nBlockLength, &myBFormat);
 
 // Set up the zoomer processor
-CAmbisonicZoomer myZoomer;
+AmbisonicZoomer myZoomer;
 myZoomer.Configure(nOrder, true, nBlockLength, 0);
 myZoomer.SetZoom(0.5f);
 
@@ -551,12 +568,12 @@ This limit frequency increases with the ambisonic order as can be approximated u
     f_{\mathrm{lim}} = \frac{c N}{4 R (N + 1) \sin(\pi/(2N + 2))}
 \end{equation}
 where $c$ is the speed of sound in m/s, and $R$ is the radius of the reproduction area in metres.
-For a central listener, and assuming $R = 0.09$~m, the limit frequencies for first- to third-order are approximately 674~Hz, 1270~Hz, and 1867~Hz.
+For a central listener, and assuming $R = 0.09$~m (approximate radius of a human head), the limit frequencies for first- to third-order are approximately 674~Hz, 1270~Hz, and 1867~Hz.
 
 Ambisonic theory optimises for the velocity vector at low frequencies and the energy vector at higher ones.
 This optimision is performed simply by applying a gain by-order to the input signal.
 At low frequencies the gain is unity and this is known as a basic decoder.
-At higher frequencies it the gains are chosen to psychoacoustically optimised the signal.
+At higher frequencies the gains are chosen to psychoacoustically optimised the signal.
 This is done such that the energy in the decoded loudspeaker array is concentrated in the source direction.
 This is known as max $\textbf{r}_{\textrm{E}}$ decoding.
 
@@ -589,20 +606,20 @@ The filtered signal can then be decoded using a frequency-independent decoder.
     \label{fig:shelf_filters}
 \end{figure}
 
-Psychoacoustic optimisation is implemented in \code{CAmbisonicOptimFilters}.
+Psychoacoustic optimisation is implemented in \code{AmbisonicOptimFilters}.
 In order to apply the optimisation gains in a frequency-dependent manner $\textbf{b}_{N}$ is filtered by shelf filters with a transition frequency set to the limit frequency, unity gain below and $a_{n}$ gain above.
 
 The filters must be phase-matched to ensure correct decoding.
-\code{CAmbisonicOptimFilters} uses 4th-order Linkwitz-Riley filters for this purpose.
+\code{AmbisonicOptimFilters} uses 4th-order Linkwitz-Riley filters for this purpose.
 These are implemented as IIR filters, meaning that the optimisation filtering will have low latency suitable for real-time applications.
 Linkwitz-Riley filters have the advantageous property that when a low-passed and high-passed signal are summed the magnitude response is flat.
-In practice, \code{CAmbisonicOptimFilters} applies a low- and high-pass filter to the input, multiplies the low-passed signal by $a_{n}$ and sums it with the high-passed signal.
+In practice, \code{AmbisonicOptimFilters} applies a low- and high-pass filter to the input, multiplies the low-passed signal by $a_{n}$ and sums it with the high-passed signal.
 
 The magnitude responses of each of the optimisation filters is shown in the \cref{fig:shelf_filters} for orders 1 to 3.
 
-\textbf{Note}: \code{CAmbisonicDecoder} and \code{CAmbisonicAllRAD} already use \code{CAmbisonicOptimFilters} internally. Therefore, psychoacoustic optimisation should not be applied before using these decoders.
+\textbf{Note}: \code{AmbisonicDecoder} and \code{AmbisonicAllRAD} already use \code{AmbisonicOptimFilters} internally. Therefore, psychoacoustic optimisation should not be applied before using these decoders.
 
-\subsection{\code{CAmbisonicOptimFilters}}
+\subsection{\code{AmbisonicOptimFilters}}
 
 \subsubsection{Configuration}
 
@@ -618,7 +635,7 @@ The configuration parameters are:
 
 \subsubsection{Set Custom Optimisation Gains}
 
-\code{CAmbisonicOptimFilters} defaults to using max $r_{E}$ optimisation. However, the user can supply their own optimisation gains to be applied to the high frequency shelf using \code{SetHighFrequencyGains()}. The number of gains should be equal to $N + 1$.
+\code{AmbisonicOptimFilters} defaults to using max $r_{E}$ optimisation. However, the user can supply their own optimisation gains to be applied to the high frequency shelf using \code{SetHighFrequencyGains()}. The number of gains should be equal to $N + 1$.
 
 \subsubsection{Apply Optimisation Filters}
 
@@ -634,6 +651,8 @@ The inputs are:
 \begin{lstlisting}[language=C++]
 #include "Ambisonics.h"
 
+using namespace spaudio;
+
 const unsigned int sampleRate = 48000;
 const int nBlockLength = 512;
 
@@ -648,23 +667,23 @@ for (int i = 0; i < nBlockLength; ++i)
     sinewave[i] = (float)std::sin((float)M_PI * 2.f * 440.f * (float)i / (float)sampleRate);
 
 // B-format buffer
-CBFormat myBFormat;
+BFormat myBFormat;
 myBFormat.Configure(nOrder, true, nBlockLength);
 myBFormat.Reset();
 
 // Encode the signal to Ambisonics
-CAmbisonicEncoder myEncoder;
+AmbisonicEncoder myEncoder;
 myEncoder.Configure(nOrder, true, sampleRate, 0);
-PolarPoint position;
-position.fAzimuth = 0;
-position.fElevation = 0;
-position.fDistance = 1.f;
+PolarPosition<float> position;
+position.azimuth = 0;
+position.elevation = 0;
+position.distance = 1.f;
 myEncoder.SetPosition(position);
 myEncoder.Reset();
 myEncoder.Process(sinewave.data(), nBlockLength, &myBFormat);
 
 // Set up the optimisation filters
-CAmbisonicOptimFilters myOptim;
+AmbisonicOptimFilters myOptim;
 myOptim.Configure(nOrder, true, nBlockLength, sampleRate);
 
 // Filter the Ambisonics signal
@@ -675,7 +694,7 @@ myOptim.Process(&myBFormat, nBlockLength);
 
 \subsection{Theory and Implementation Details}
 An ambisonic signal cannot be played back directly.
-A decoder is required to convert the signal from the spherical harmonic representation to either loudspeaker signals (implemented in \code{CAmbisonicDecoder} and \code{CAmbisonicAllRAD}) or headphone signals (implemented in \code{AmbisonicBinauralizer}).
+A decoder is required to convert the signal from the spherical harmonic representation to either loudspeaker signals (implemented in \code{AmbisonicDecoder} and \code{AmbisonicAllRAD}) or headphone signals (implemented in \code{AmbisonicBinauralizer}).
 
 An ambisonic signal of order $N$ can be decoded to a set of loudspeakers using a decoding matrix $\textbf{D}_{N}^{\mathrm{SN3D}}$ which has size $M \times (N+1)^2$ where $M$ is the total number of loudspeakers. The output loudspeaker signal $\textbf{x}(t)$ is given by
 
@@ -772,9 +791,9 @@ Additional imaginary loudspeakers can also be included in the main real loudspea
 
 The AllRAD method is the preferred decoding method of the EBU Audio Definition Model renderer (Recommendation ITU-R BS.2127-1) and Alliance For Open Media's Immersive Audio Model and Formats (IAMF) specification (\href{https://aomediacodec.github.io/iamf/}{https://aomediacodec.github.io/iamf/}).
 
-\subsection{\code{CAmbisonicDecoder}}\label{CAmbisonicDecoder}
+\subsection{\code{AmbisonicDecoder}}\label{AmbisonicDecoder}
 
-\code{CAmbisonicDecoder} decodes an Ambisonics signal to either predefined or custom layouts using one of several methods:
+\code{AmbisonicDecoder} decodes an Ambisonics signal to either predefined or custom layouts using one of several methods:
 
 \begin{itemize}
     \item the SAD method: sampling at each of the specified loudspeaker directions. This is suboptimal for any layout that is not regular on the sphere.
@@ -782,7 +801,7 @@ The AllRAD method is the preferred decoding method of the EBU Audio Definition M
     \item user decoder definition: the user can define the decoder matrix coefficients directly for the specified layout. This means the class can be used with any decoding method that the user requires. See \href{#cambisonicdecoder-set-custom-decoder-coefficients}{here} for more details on how to set a custom decoder matrix.
 \end{itemize}
 
-When a decoder matrix other than one of the presets is used \code{CAmbisonicDecoder} applies shelf filtering to psychoacoustically optimise the decoded signal. Read more about psychoacoustic optimisation \href{AmbisonicOptimisation.md}{here}.
+When a decoder matrix other than one of the presets is used \code{AmbisonicDecoder} applies shelf filtering to psychoacoustically optimise the decoded signal. Read more about psychoacoustic optimisation \href{AmbisonicOptimisation.md}{here}.
 
 \subsubsection{Configuration}
 
@@ -832,12 +851,14 @@ The inputs are:
     \item \textbf{ppDst}: Array of pointers of size nLdspk x nSamples containing the decoded signal.
 \end{itemize}
 
-\subsection{\code{CAmbisonicDecoder} Code Example}
+\subsection{\code{AmbisonicDecoder} Code Example}
 
 This example shows how to decode an Ambisonics signal to a 5.1 loudspeaker layout. It loads the optimised preset decoder for this layout automatically.
 
 \begin{lstlisting}[language=C++]
 #include "Ambisonics.h"
+
+using namespace spaudio;
 
 const unsigned int sampleRate = 48000;
 const int nBlockLength = 512;
@@ -851,23 +872,23 @@ for (int i = 0; i < nBlockLength; ++i)
     sinewave[i] = (float)std::sin((float)M_PI * 2.f * 440.f * (float)i / (float)sampleRate);
 
 // B-format buffer
-CBFormat myBFormat;
+BFormat myBFormat;
 myBFormat.Configure(nOrder, true, nBlockLength);
 myBFormat.Reset();
 
 // Encode the signal to Ambisonics
-CAmbisonicEncoder myEncoder;
+AmbisonicEncoder myEncoder;
 myEncoder.Configure(nOrder, true, sampleRate, 0);
-PolarPoint position;
-position.fAzimuth = 0;
-position.fElevation = 0;
-position.fDistance = 1.f;
+PolarPosition<float> position;
+position.azimuth = 0;
+position.elevation = 0;
+position.distance = 1.f;
 myEncoder.SetPosition(position);
 myEncoder.Reset();
 myEncoder.Process(sinewave.data(), nBlockLength, &myBFormat);
 
 // Set up the decoder for a 5.1 layout
-CAmbisonicDecoder myDecoder;
+AmbisonicDecoder myDecoder;
 myDecoder.Configure(nOrder, true, nBlockLength, sampleRate, Amblib_SpeakerSetUps::kAmblib_51);
 
 // Configure buffers to hold the decoded signal
@@ -881,15 +902,15 @@ myDecoder.Process(&myBFormat, nBlockLength, ldspkOut);
 
 // Cleanup
 for (unsigned iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
-    delete ldspkOut[iLdspk];
+    delete[] ldspkOut[iLdspk];
 delete[] ldspkOut;
 \end{lstlisting}
 
-\subsection{\code{CAmbisonicAllRAD}}\label{CAmbisonicAllRAD}
+\subsection{\code{AmbisonicAllRAD}}\label{AmbisonicAllRAD}
 
-\code{CAmbisonicAllRAD} decodes an Ambisonics signal to a layout defined in the ADM renderer specification (Recommendation ITU-R BS.2127-1) and AOM's IAMF specification (\href{https://aomediacodec.github.io/iamf/}{https://aomediacodec.github.io/iamf/}). It does not currently support decoding to arbitrary loudspeaker layouts.
+\code{AmbisonicAllRAD} decodes an Ambisonics signal to a layout defined in the ADM renderer specification (Recommendation ITU-R BS.2127-1) and AOM's IAMF specification (\href{https://aomediacodec.github.io/iamf/}{https://aomediacodec.github.io/iamf/}). It does not currently support decoding to arbitrary loudspeaker layouts.
 
-\code{CAmbisonicAllRAD} optionally applies shelf filtering to psychoacoustically optimise the decoded signal. Read more about psychoacoustic optimisation \href{AmbisonicOptimisation.md}{here}.
+\code{AmbisonicAllRAD} optionally applies shelf filtering to psychoacoustically optimise the decoded signal. Read more about psychoacoustic optimisation \href{AmbisonicOptimisation.md}{here}.
 
 \subsubsection{Configuration}
 
@@ -917,8 +938,8 @@ The configuration parameters are:
         \item \code{"2+3+0"}: 3.1.2 (IAMF v1.0.0-errata)
         \item \code{"9+10+5"}: EBU Tech 3369 (BEAR) 9+10+5 - 9+10+3 with LFE1 \& LFE2 removed and B+135 \& B-135 added
     \end{itemize}
-    \item \textbf{useLFE}: The total number of loudspeakers if a custom layout is used. This is ignored if one of the predefined layouts is selected.
-    \item \textbf{useOptimFilts}: (Optional) False by default. If true, then \href{AmbisonicOptimsiation.md}{psychoacoustic optimisation filters} will be applied before decoding the signal.
+    \item \textbf{useLFE}: If \code{true} then the decoded signal will include the LFE channels. If \code{false} then the LFE channels will be excluded i.e. a 0+5+0 (5.1) signal will be output as a 5-channel signal instead of a 6-channel one.
+    \item \textbf{useOptimFilts}: (Optional) \code{false} by default. If true, then \href{AmbisonicOptimsiation.md}{psychoacoustic optimisation filters} will be applied before decoding the signal.
 \end{itemize}
 
 \subsubsection{Decoding a Signal}
@@ -932,12 +953,14 @@ The inputs are:
     \item \textbf{ppDst}: Array of pointers of size nLdspk x nSamples containing the decoded signal.
 \end{itemize}
 
-\subsection{\code{CAmbisonicAllRAD} Code Example}
+\subsection{\code{AmbisonicAllRAD} Code Example}
 
 This example shows how to decode an Ambisonics signal to an ITU 5.1 loudspeaker layout using the AllRAD method.
 
 \begin{lstlisting}[language=C++]
 #include "Ambisonics.h"
+
+using namespace spaudio;
 
 const unsigned int sampleRate = 48000;
 const int nBlockLength = 512;
@@ -951,23 +974,23 @@ for (int i = 0; i < nBlockLength; ++i)
     sinewave[i] = (float)std::sin((float)M_PI * 2.f * 440.f * (float)i / (float)sampleRate);
 
 // B-format buffer
-CBFormat myBFormat;
+BFormat myBFormat;
 myBFormat.Configure(nOrder, true, nBlockLength);
 myBFormat.Reset();
 
 // Encode the signal to Ambisonics
-CAmbisonicEncoder myEncoder;
+AmbisonicEncoder myEncoder;
 myEncoder.Configure(nOrder, true, sampleRate, 0);
-PolarPoint position;
-position.fAzimuth = 0;
-position.fElevation = 0;
-position.fDistance = 1.f;
+PolarPosition<float> position;
+position.azimuth = 0;
+position.elevation = 0;
+position.distance = 1.f;
 myEncoder.SetPosition(position);
 myEncoder.Reset();
 myEncoder.Process(sinewave.data(), nBlockLength, &myBFormat);
 
 // Set up the decoder for a 5.1 layout
-CAmbisonicAllRAD myDecoder;
+AmbisonicAllRAD myDecoder;
 myDecoder.Configure(nOrder, nBlockLength, sampleRate, "0+5+0");
 
 // Configure buffers to hold the decoded signal
@@ -981,7 +1004,7 @@ myDecoder.Process(&myBFormat, nBlockLength, ldspkOut);
 
 // Cleanup
 for (unsigned iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
-    delete ldspkOut[iLdspk];
+    delete[] ldspkOut[iLdspk];
 delete[] ldspkOut;
 \end{lstlisting}
 
@@ -1052,7 +1075,7 @@ For the opposite ear the spherical harmonics that are left-right symmtertic have
   \label{fig:dodeca_third_order}
 \end{figure}
 
-For first-order signals \code{CAmbisonicBinauralizer} uses a virtual layout on the vertices of a cube (8 virtual loudspeakers).
+For first-order signals \code{AmbisonicBinauralizer} uses a virtual layout on the vertices of a cube (8 virtual loudspeakers).
 For second- and third-order a virtual layout on the vertices of a dodecahedron (20 virtual loudspeakers) is used.
 Therefore, in both cases, preprocessing the HRTFs reduces the number of convolutions required (from 8 to 4 for first-order and 20 to 9 or 16 for second- and third-order respectively).
 This meets a requirement of \libspataud to minimise its CPU use.
@@ -1076,11 +1099,7 @@ This may result in small variations in the perceived source width, but this effe
 
 As outlined in \cref{AmbiShelves} shelf filtering can be applied to Ambisonics signal so that they are decoded in a psychoacoustically optimised manner.
 
-In order to reduce the CPU use \code{CAmbisonicBinauralizer} pre-filters the spherical harmonic impulse responses in $\mathbf{Z}_{N,ear}^{\mathrm{bin}}$ rather than applying the shelf filtering at run-time.
-
-This allows the psychoacoustic optimisation to be applied for "free" at runtime, at the minor cost of performing the optimisation filtering during configuration.
-
-\subsection{\code{CAmbisonicBinauralizer}}
+\subsection{\code{AmbisonicBinauralizer}}
 
 \subsubsection{Configuration}
 
@@ -1115,6 +1134,8 @@ This example shows how to decode an Ambisonics signal to binaural.
 \begin{lstlisting}[language=C++]
 #include "Ambisonics.h"
 
+using namespace spaudio;
+
 const unsigned int sampleRate = 48000;
 const int nBlockLength = 512;
 
@@ -1127,23 +1148,23 @@ for (int i = 0; i < nBlockLength; ++i)
     sinewave[i] = (float)std::sin((float)M_PI * 2.f * 440.f * (float)i / (float)sampleRate);
 
 // B-format buffer
-CBFormat myBFormat;
+BFormat myBFormat;
 myBFormat.Configure(nOrder, true, nBlockLength);
 myBFormat.Reset();
 
 // Encode the signal to Ambisonics
-CAmbisonicEncoder myEncoder;
+AmbisonicEncoder myEncoder;
 myEncoder.Configure(nOrder, true, sampleRate, 0);
-PolarPoint position;
-position.fAzimuth = (float)M_PI * 0.5f;
-position.fElevation = 0;
-position.fDistance = 1.f;
+PolarPosition<float> position;
+position.azimuth = (float)M_PI * 0.5f;
+position.elevation = 0;
+position.distance = 1.f;
 myEncoder.SetPosition(position);
 myEncoder.Reset();
 myEncoder.Process(sinewave.data(), nBlockLength, &myBFormat);
 
 // Set up the binaural decoder
-CAmbisonicBinauralizer myDecoder;
+AmbisonicBinauralizer myDecoder;
 unsigned int tailLength = 0;
 myDecoder.Configure(nOrder, true, sampleRate, nBlockLength, tailLength);
 
@@ -1158,7 +1179,7 @@ myDecoder.Process(&myBFormat, earOut, nBlockLength);
 
 // Cleanup
 for (unsigned iEar = 0; iEar < nEar; ++iEar)
-    delete earOut[iEar];
+    delete[] earOut[iEar];
 delete[] earOut;
 \end{lstlisting}
 
@@ -1173,13 +1194,13 @@ The convolved signals are summed to give a final 2-channel binaural signal for l
 \end{equation}
 where $z_{ear}(t)$ is the signal at the left or right ear, $h_{ear}$ is the corresponding HRIR for the left/right ear, $x_{m}(t)$ is the signal of the $m$-th loudspeaker and $M$ is the total number of loudspeakers.
 
-\code{CSpeakersBinauralizer} provides a simple convolution of a set of supplied loudspeaker signals with a pair of HRTFs (one for each ear).
+\code{SpeakersBinauralizer} provides a simple convolution of a set of supplied loudspeaker signals with a pair of HRTFs (one for each ear).
 The convolution is implemented in the frequency domain using an overlap-add algorithm.
 
 If \code{libmysofa} is activated at compile time then the HRTF can be loaded from a .SOFA file, allowing for the use of custom HRTFs.
 Custom HRTFs allow for users to potentially load their own HRTF, giving highly personalised rendering.
 
-\section{\code{CSpeakersBinauralizer}}
+\section{\code{SpeakersBinauralizer}}
 
 \subsection{Configuration}
 
@@ -1189,7 +1210,7 @@ The configuration parameters are:
 \begin{itemize}
     \item \textbf{sampleRate}: The sample rate of the audio being used e.g. 44100 Hz, 48000 Hz etc. This must be an integer value greater than zero.
     \item \textbf{nBlockSize}: The maximum number of samples the decoder is expected to process at a time.
-    \item \textbf{speakers}: A pointer to an array of \code{CAmbisonicSpeaker} holding the speaker directions.
+    \item \textbf{speakers}: A pointer to an array of \code{AmbisonicSpeaker} holding the speaker directions.
     \item \textbf{nSpeakers}: The number of speakers to be binauralized.
     \item \textbf{tailLength}: The value is replaced with the length of the HRIRs used for the binauralisation.
     \item \textbf{HRTFPath}: An optional path to the .SOFA file containing the HRTF. If no path is supplied and the \code{HAVE\_MIT\_HRTF} compiler flag is used, then the MIT HRTF will be used.
@@ -1212,12 +1233,14 @@ This example shows how to convert a set of loudspeaker signals to a 2-channel bi
 \begin{lstlisting}[language=C++]
 #include "SpeakersBinauralizer.h"
 
+using namespace spaudio;
+
 const unsigned int sampleRate = 48000;
 const int nBlockLength = 512;
 
 // Configure the speaker layout
 const unsigned int nSpeakers = 5;
-CAmbisonicSpeaker speakers[nSpeakers];
+AmbisonicSpeaker speakers[nSpeakers];
 speakers[0].SetPosition({ 30.f / 180.f * (float)M_PI, 0.f, 1.f }); // L
 speakers[1].SetPosition({ -30.f / 180.f * (float)M_PI, 0.f, 1.f }); // R
 speakers[2].SetPosition({ 0.f / 180.f * (float)M_PI, 0.f, 1.f }); // C
@@ -1226,7 +1249,7 @@ speakers[4].SetPosition({ -110.f / 180.f * (float)M_PI, 0.f, 1.f }); // Rs
 
 // Configure buffers to hold the 5.0 signal
 float** ldspkInput = new float* [5];
-for (int iLdspk = 0; iLdspk < ; ++iLdspk)
+for (int iLdspk = 0; iLdspk < 5; ++iLdspk)
 {
     ldspkInput[iLdspk] = new float[nBlockLength];
     // Fill L and C channels, panning the signal to half way between both speakers
@@ -1245,26 +1268,133 @@ float** earOut = new float* [nEar];
 for (int iEar = 0; iEar < nEar; ++iEar)
     earOut[iEar] = new float[nBlockLength];
 
-// Decode the Ambisonics signal
+// Convert the loudspeaker signals to binaural
 myBinaural.Process(&ldspkInput[0], earOut);
 
 // Cleanup
 for (unsigned iEar = 0; iEar < nEar; ++iEar)
-    delete earOut[iEar];
+    delete[] earOut[iEar];
 delete[] earOut;
 for (unsigned iLdspk = 0; iLdspk < nSpeakers; ++iLdspk)
-    delete ldspkInput[iLdspk];
+    delete[] ldspkInput[iLdspk];
 delete[] ldspkInput;
 \end{lstlisting}
 
+\chapter{Object Spatialisation}\label{ObjectSpatialisation}
 
-\chapter{ADM Renderer}\label{ADMRenderer}
+\section{Theory and Implementation Details}
+
+Object-based panning is the process of placing a mono signal at an arbitrary position in a loudspeaker layout by distributing its energy across the available loudspeakers.  
+\texttt{ObjectPanner} implements Vector Base Amplitude Panning (VBAP) following the algorithm described in the Audio Definition Model (ADM) renderer specification \cite{Pulkki1997, ITU2127}.
+
+\texttt{ObjectPanner} can be used to pan a mono sound source as a point source on a given loudspeaker array.
+More advanced Object rendering is possible with the \texttt{Renderer} class that allows for metadata to specify additional parameters, such as object extent.
+
+\subsection{VBAP Algorithm}
+
+Classic VBAP works by selecting a subset of loudspeakers (a base) that encloses the desired source direction and calculating gain factors such that the vector sum of the loudspeaker positions matches the target direction. The gains are normalized to preserve energy.
+
+For a source at direction vector $\mathbf{d}$ and a loudspeaker base matrix $\mathbf{L}$ containing unit vectors in the loudspeaker directions, the gains $\mathbf{g}$ are obtained by solving:
+
+\begin{equation}
+\mathbf{L} \mathbf{g} = \mathbf{d}
+\end{equation}
+
+with the constraint that all elements of $\mathbf{g}$ are non-negative. The resulting gains $\mathbf{g}'$ are then normalized:
+
+\begin{equation}
+\mathbf{g}' = \frac{\mathbf{g}}{\|\mathbf{g}\|}
+\end{equation}
+
+\subsection{Gain Interpolation}
+
+To avoid audible artefacts when the source position changes (clicks or ``zipper noise''), \code{ObjectPanner} uses an internal \code{GainInterp} object. When the position is updated, the loudspeaker gain vector is interpolated over a user-specified fade time (typically 10 ms). This ensures smooth transitions.
+
+\section{\code{ObjectPanner}}
+
+The \code{ObjectPanner} class is used to distribute a mono signal across a loudspeaker layout using VBAP. It supports smooth position updates to reduce real-time ``zipper'' effects for moving sources.
+
+\subsection{Configuration}
+
+Before calling any other functions the object must first be configured by calling \code{Configure()} with the appropriate values. If the values are supported then it will return \code{true} and the object can now be used.
+
+The configuration parameters are:
+
+\begin{itemize}
+  \item \textbf{layout}: An \code{OutputLayout} to select a supported output layout.
+  \item \textbf{sampleRate}: The sample rate of the audio being used (e.g.\ 44100 Hz, 48000 Hz). Must be an integer $> 0$.
+  \item \textbf{fadeTimeMilliSec}: The time in milliseconds to fade from an old set of panning gains to another. Lower values reduce latency but may introduce artefacts; higher values increase smoothness at the cost of responsiveness.
+\end{itemize}
+
+\subsection{Set Panning Position}
+
+The panning position is set as a polar direction in radians using the \code{SetPosition()} function. It takes a \code{PolarPosition<double>} as input.
+
+\subsection{Panning a Signal}
+
+An array of floats can be panned using either the \code{Process()} or \code{ProcessAccumul()} functions. These two functions process the input signal in the same way. The only difference is that \code{ProcessAccumul()} will add the newly panned signal to the output with an optional gain, whereas \code{Process()} will replace the destination signal with the panned signal.
+
+The inputs are:
+
+\begin{itemize}
+  \item \textbf{pfSrc}: A pointer to the mono input signal.
+  \item \textbf{nSamples}: The length of the input signal in samples.
+  \item \textbf{ppDst}: A pointer to the destination buffer containing one channel per loudspeaker.
+  \item \code{nSamplesOut}: The number of samples in the output buffer. Must be at least \code{nSamplesIn + nOffset}.
+  \item \code{nOffset}: Optional offset position when writing to the output.
+  \item (\texttt{ProcessAccumul()} only) \code{fGain}: Optional gain to apply before accumulation.
+\end{itemize}
+
+\subsection{Code Example}
+
+This example shows how to pan a mono sine wave into a 5.1 loudspeaker layout using \texttt{ObjectPanner}.
+
+\begin{lstlisting}[language=C++, basicstyle=\ttfamily\small]
+#include "ObjectPanner.h"
+
+using namespace spaudio;
+
+const unsigned int sampleRate = 48000;
+const int nBlockLength = 512;
+
+auto layout = OutputLayout::FivePointOne;
+
+ObjectPanner objPanner;
+objPanner.Configure(layout, sampleRate, 1000.f * (float)nBlockLength / (float)sampleRate);
+unsigned nLdspk = (unsigned)objPanner.GetNumSpeakers();
+
+// Generate a block of sine wave samples
+std::vector<float> sinewave(nBlockLength);
+for (int i = 0; i < nBlockLength; ++i)
+    sinewave[i] = (float)std::sin((float)M_PI * 2.f * 440.f * (float)i / (float)sampleRate);
+
+// Prepare the output stream (5.1 layout)
+float** renderStream = new float* [nLdspk];
+for (unsigned int i = 0; i < nLdspk; ++i)
+{
+    renderStream[i] = new float[nBlockLength];
+    std::fill(renderStream[i], renderStream[i] + nBlockLength, 0.f);
+}
+
+for (float az = 0.f; az < 360.f; az += 1.f)
+{
+    auto position = PolarPosition<double>{ az, 0.f, 1.f };
+    objPanner.SetPosition(position);
+    objPanner.Process(sinewave.data(), nBlockLength, renderStream, nBlockLength);
+}
+
+for (unsigned iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
+    delete[] renderStream[iLdspk];
+delete[] renderStream;
+\end{lstlisting}
+
+\chapter{Renderer}\label{Renderer}
 
 \section{Overview}
 
 \libspataud includes a renderer for the Audio Definition Model (ADM) renderer detailed in Rec. ITU-R BS.2127-1 \cite{ITU2127}. It also aims to support elements of the AOM's Immersive Audio Model and Formats (IAMF) specification\footnote{\href{https://aomediacodec.github.io/iamf/}{https://aomediacodec.github.io/iamf/}}.
 
-The ADM renderer specifies rendering methods for Objects, HOA, and DirectSpeaker streams:
+The Renderer specifies rendering methods for Objects, HOA, and DirectSpeaker streams:
 \begin{itemize}
     \item Object streams consist of a mono audio signal and metadata which specify how they are spatialised. More details can be read in \cref{AdmObject}.
     \item HOA streams are summed and decoded to the target playback format (loudspeakers or binaural). More details and an example can be found in \cref{AdmHOA}.
@@ -1276,7 +1406,7 @@ Rec. ITU-R BS.2127-1 \cite{ITU2127} should be consulted for full details about t
 
 \subsubsection{Supported Output Formats}
 
-\code{CAdmRenderer} supports all of the loudspeaker layouts specified in \cite{ITU2127} as well as additional ones specified in the IAMF. 
+\code{Renderer} supports all of the loudspeaker layouts specified in \cite{ITU2127} as well as additional ones specified in the IAMF.
 
 The supported ITU layouts are:
 \begin{itemize}
@@ -1295,8 +1425,8 @@ The supported ITU layouts are:
 
 The additional IAMF layouts are: 
 \begin{itemize}
-    \item \code{"2+7+0"}: 7.1.2 (IAMF v1.0.0-errata)
-    \item \code{"2+3+0"}: 3.1.2 (IAMF v1.0.0-errata)
+    \item \code{"2+7+0"}: 7.1.2 (IAMF v1.1.0)
+    \item \code{"2+3+0"}: 3.1.2 (IAMF v1.1.0)
 \end{itemize}
 
 A quad layout is also supported, along with the virtual layout specified in \cite{EBU3369}:
@@ -1305,11 +1435,11 @@ A quad layout is also supported, along with the virtual layout specified in \cit
     \item \code{"9+10+5"}: EBU Tech 3369 (BEAR) 9+10+5 - 9+10+3 with LFE1 and LFE2 removed and B+135 and B-135 added. This is used internally for the binaural rendering.
 \end{itemize}
 
-In addition to these loudspeaker layouts, \code{CAdmRenderer} implements a custom binaural renderer that is inspired by the BEAR renderer specified in \cite{EBU3369}. Full details on the binaural rendering processing can be read in \cref{AdmBinaural}.
+In addition to these loudspeaker layouts, \code{Renderer} implements a custom binaural renderer that is inspired by the BEAR renderer specified in \cite{EBU3369}. Full details on the binaural rendering processing can be read in \cref{AdmBinaural}.
 
-\subsection{\code{CAdmRenderer}}
+\subsection{\code{Renderer}}
 
-The \code{CAdmRenderer} is the only class you will need to interact with to render an ADM stream. It accepts audio streams and metadata to produce a signal rendered to the specified output format.
+The \code{Renderer} is the only class you will need to interact with to render an a mixture of Object, DirectSpeaker and/or HOA feeds, such as ADM or IAMF. It accepts audio streams and metadata to produce a signal rendered to the specified output format.
 
 Use the class as follows:
 \begin{enumerate}
@@ -1408,7 +1538,7 @@ Therefore, it is very important that this function only be called after all stre
 
 This example renders an Object, HOA and DirectSpeaker stream to binaural.
 For each of the stream types the metadata is generated along with an audio stream.
-The \code{StreamInformation} used to configure \code{CAdmRenderer} is generated when the metadata is "read".
+The \code{StreamInformation} used to configure \code{Renderer} is generated when the metadata is "read".
 \code{StreamInformation} keeps track of the total number of tracks as well as what type they have.
 Note that when the metadata is being generated the track indices must match the ordering with which the tracks are added to the \code{StreamInformation}.
 
@@ -1433,22 +1563,22 @@ for (unsigned int i = 0; i < nLdspk; ++i)
 
 // Track index for each channel in the streams
 unsigned int trackInd = 0;
-// The stream information used to configure CAdmRenderer
-admrender::StreamInformation streamInfo;
+// The stream information used to configure Renderer
+StreamInformation streamInfo;
 
 // Add an object stream =================================
 // Prepare the metadata for the stream
-admrender::ObjectMetadata objectMetadata;
+ObjectMetadata objectMetadata;
 objectMetadata.trackInd = trackInd++;
 objectMetadata.blockLength = nBlockLength;
 objectMetadata.cartesian = false;
 
 // Channel lock (off by default)
-objectMetadata.channelLock = admrender::ChannelLock();
+objectMetadata.channelLock = ChannelLock();
 objectMetadata.channelLock->maxDistance = 0.f; // <- Increase this to see the signal snap to fully in the left loudspeaker
 
 // Object divergence (off by default)
-objectMetadata.objectDivergence = admrender::ObjectDivergence();
+objectMetadata.objectDivergence = ObjectDivergence();
 objectMetadata.objectDivergence->azimuthRange = 30.; // <- Controls the width of the divergence
 objectMetadata.objectDivergence->value = 0.; // <- Increase this to apply object divergence
 
@@ -1457,7 +1587,7 @@ objectMetadata.width = 0.; // <- Increase this to increase the width and spread 
 
 // Configure the stream information. In this case there is only a single channel stream
 streamInfo.nChannels++;
-streamInfo.typeDefinition.push_back(admrender::TypeDefinition::Objects);
+streamInfo.typeDefinition.push_back(TypeDefinition::Objects);
 
 std::vector<float> objectStream(nSigSamples);
 // Fill the vector with a sine wave
@@ -1475,19 +1605,19 @@ for (int i = 0; i < nSigSamples; ++i)
     hoaSinewave[i] = (float)std::sin((float)M_PI * 2.f * 700.f * (float)i / (float)sampleRate);
 
 // Destination B-format buffer
-CBFormat myBFormat;
+BFormat myBFormat;
 myBFormat.Configure(nOrder, true, nSigSamples);
 myBFormat.Reset();
 
 // Set up and configure the Ambisonics encoder
-CAmbisonicEncoder myEncoder;
+AmbisonicEncoder myEncoder;
 myEncoder.Configure(nOrder, true, sampleRate, fadeTimeInMilliSec);
 
 // Set test signal's initial direction in the sound field
-PolarPoint position;
-position.fAzimuth = 0.5f * (float)M_PI;
-position.fElevation = 0;
-position.fDistance = 1.f;
+PolarPosition<float> position;
+position.azimuth = 0.5f * (float)M_PI;
+position.elevation = 0;
+position.distance = 1.f;
 myEncoder.SetPosition(position);
 myEncoder.Reset();
 myEncoder.Process(hoaSinewave.data(), nSigSamples, &myBFormat);
@@ -1501,14 +1631,14 @@ for (unsigned int i = 0; i < nHoaCh; ++i)
 }
 
 // Prepare the metadata for the stream
-admrender::HoaMetadata hoaMetadata;
+HoaMetadata hoaMetadata;
 hoaMetadata.normalization = "SN3D";
 
 // Configure the stream information. In this case there is only a single HOA stream of (nOrder + 1)^2 channels
 for (unsigned int i = 0; i < nHoaCh; ++i)
 {
     streamInfo.nChannels++;
-    streamInfo.typeDefinition.push_back(admrender::TypeDefinition::HOA);
+    streamInfo.typeDefinition.push_back(TypeDefinition::HOA);
 
     // Set the metadata for each channel
     int order, degree;
@@ -1525,19 +1655,19 @@ for (int i = 0; i < nSigSamples; ++i)
     speakerSinewave[i] = (float)std::sin((float)M_PI * 2.f * 185.f * (float)i / (float)sampleRate);
 
 // Prepare the metadata for the stream
-admrender::DirectSpeakerMetadata directSpeakerMetadata;
+DirectSpeakerMetadata directSpeakerMetadata;
 directSpeakerMetadata.trackInd = trackInd++;
 directSpeakerMetadata.speakerLabel = "M-060"; // Wide-right speaker
-directSpeakerMetadata.audioPackFormatID.push_back("AP_00010009"); // 9+10+3 layout
+directSpeakerMetadata.audioPackFormatID = std::string("AP_00010009"); // 9+10+3 layout
 
 // Configure the stream information. In this case there is only a single channel stream
 streamInfo.nChannels++;
-streamInfo.typeDefinition.push_back(admrender::TypeDefinition::DirectSpeakers);
+streamInfo.typeDefinition.push_back(TypeDefinition::DirectSpeakers);
 
 // Render the stream =================================
-// Set up the ADM renderer
-admrender::CAdmRenderer admRender;
-admRender.Configure(admrender::OutputLayout::Binaural, nOrder, sampleRate, nBlockLength, streamInfo);
+// Set up the Renderer
+Renderer renderer;
+renderer.Configure(OutputLayout::Binaural, nOrder, sampleRate, nBlockLength, streamInfo);
 
 float** renderBlock = new float* [2];
 float** hoaBlock = new float* [nHoaCh];
@@ -1549,28 +1679,28 @@ for (int iBlock = 0; iBlock < nBlocks; ++iBlock)
     // Get "new" Object metadata
     objectMetadata.position.polarPosition().azimuth = (double)iBlock / (double)nBlocks * 360.;
     // Add the Object stream to be rendered
-    admRender.AddObject(&objectStream[iSamp], nBlockLength, objectMetadata);
+    renderer.AddObject(&objectStream[iSamp], nBlockLength, objectMetadata);
 
     // Add the HOA stream to be rendered
     for (unsigned int i = 0; i < nHoaCh; ++i)
         hoaBlock[i] = &hoaStream[i][iSamp];
-    admRender.AddHoa(hoaBlock, nBlockLength, hoaMetadata);
+    renderer.AddHoa(hoaBlock, nBlockLength, hoaMetadata);
 
     // Add the DirectSpeaker stream to be rendered
-    admRender.AddDirectSpeaker(&speakerSinewave[iSamp], nBlockLength, directSpeakerMetadata);
+    renderer.AddDirectSpeaker(&speakerSinewave[iSamp], nBlockLength, directSpeakerMetadata);
 
     // Render the stream
     renderBlock[0] = &renderStream[0][iSamp];
     renderBlock[1] = &renderStream[1][iSamp];
-    admRender.GetRenderedAudio(renderBlock, nBlockLength);
+    renderer.GetRenderedAudio(renderBlock, nBlockLength);
 }
 
 // Cleanup
 for (unsigned i = 0; i < nHoaCh; ++i)
-    delete hoaStream[i];
+    delete[] hoaStream[i];
 delete[] hoaStream;
 for (unsigned i = 0; i < nLdspk; ++i)
-    delete renderStream[i];
+    delete[] renderStream[i];
 delete[] renderStream;
 delete[] renderBlock;
 delete[] hoaBlock;
@@ -1583,7 +1713,7 @@ delete[] hoaBlock;
 When rendering an Object a set of loudspeaker gains are calculated that will pan the object to the direction specified by the metadata.
 The metadata controls properties such as the width of the sound source, as well as whether or not its position is to be modified based on the reproduction system.
 The ratio of direct to diffuse signal is also specified in the metadata.
-The Object direct and diffuse panning gains are computed by \code{CGainCalculator}.
+The Object direct and diffuse panning gains are computed by \code{GainCalculator}.
 Depending on whether the metadata Cartesian flag is true or false the gains will be calculated in one of two ways, described in the following sections.
 
 \subsubsection{Polar Processing Path}
@@ -1650,7 +1780,7 @@ The channel mask from the zone exclusion is used to ensure that the object is no
 Once the position of the Object has been modified ObjectDivergence is applied.
 This can create additional copies of the object panned to the left and right of its position.
 
-For each of the divergence positions a set of loudspeaker gains is calculated using the \code{CAllocentricExtent}, which uses the height, width and depth metadata parameters.
+For each of the divergence positions a set of loudspeaker gains is calculated using the \code{AllocentricExtent}, which uses the height, width and depth metadata parameters.
 The panning uses the Cartesian/Allocentric panner rather than the PointSourcePanner of the Polar path.
 
 These gain vectors are multiplied by their corresponding divergence gains and summed to get the final panning gains for the Object.
@@ -1666,6 +1796,8 @@ For example, increasing the channel lock distance will cause the signal to snap 
 
 \begin{lstlisting}[language=C++]
 #include "AdmRenderer.h"
+
+using namespace spaudio;
 
 const unsigned int sampleRate = 48000;
 const int nBlockLength = 512;
@@ -1687,7 +1819,7 @@ for (unsigned int i = 0; i < nLdspk; ++i)
 }
 
 // Prepare the metadata for the stream
-admrender::ObjectMetadata objectMetadata;
+ObjectMetadata objectMetadata;
 objectMetadata.trackInd = 0;
 objectMetadata.blockLength = nBlockLength;
 objectMetadata.cartesian = false;
@@ -1696,11 +1828,11 @@ objectMetadata.position.polarPosition().elevation = 0.;
 objectMetadata.position.polarPosition().distance = 1.;
 
 // Channel lock (off by default)
-objectMetadata.channelLock = admrender::ChannelLock();
+objectMetadata.channelLock = ChannelLock();
 objectMetadata.channelLock->maxDistance = 0.f; // <- Increase this to see the signal snap to fully in the left loudspeaker
 
 // Object divergence (off by default)
-objectMetadata.objectDivergence = admrender::ObjectDivergence();
+objectMetadata.objectDivergence = ObjectDivergence();
 objectMetadata.objectDivergence->azimuthRange = 30.; // <- Controls the width of the divergence
 objectMetadata.objectDivergence->value = 0.; // <- Increase this to apply object divergence
 
@@ -1708,23 +1840,23 @@ objectMetadata.objectDivergence->value = 0.; // <- Increase this to apply object
 objectMetadata.width = 0.; // <- Increase this to increase the width and spread the Object over more adjacent loudspeakers
 
 // Configure the stream information. In this case there is only a single channel stream
-admrender::StreamInformation streamInfo;
+StreamInformation streamInfo;
 streamInfo.nChannels = 1;
-streamInfo.typeDefinition.push_back(admrender::TypeDefinition::Objects);
+streamInfo.typeDefinition.push_back(TypeDefinition::Objects);
 
-// Set up the ADM renderer
-admrender::CAdmRenderer admRender;
-admRender.Configure(admrender::OutputLayout::ITU_0_5_0, nOrder, sampleRate, nBlockLength, streamInfo);
+// Set up the Renderer
+Renderer renderer;
+renderer.Configure(OutputLayout::FivePointOne, nOrder, sampleRate, nBlockLength, streamInfo);
 
 // Add the Object stream to be rendered
-admRender.AddObject(sinewave.data(), nBlockLength, objectMetadata);
+renderer.AddObject(sinewave.data(), nBlockLength, objectMetadata);
 
 // Render the stream
-admRender.GetRenderedAudio(renderStream, nBlockLength);
+renderer.GetRenderedAudio(renderStream, nBlockLength);
 
 // Cleanup
 for (unsigned i = 0; i < nLdspk; ++i)
-    delete renderStream[i];
+    delete[] renderStream[i];
 delete[] renderStream;
 \end{lstlisting}
 
@@ -1732,12 +1864,12 @@ delete[] renderStream;
 
 \subsection{Overview}
 
-\code{CAdmRenderer} allows for Higher Order Ambisonics (HOA) streams to be decoded to any of the specified loudspeaker layouts.
+\code{Renderer} allows for Higher Order Ambisonics (HOA) streams to be decoded to any of the specified loudspeaker layouts.
 It supports decoding up to a maximum of order 3.
-Decoding is performed using the AllRAD method, using the \code{CAmbisonicAllRAD} class internally. See \cref{AmbiDecoding} for more details about the AllRAD method.
+Decoding is performed using the AllRAD method, using the \code{AmbisonicAllRAD} class internally. See \cref{AmbiDecoding} for more details about the AllRAD method.
 
 The HOA stream has the "order" and "degree" of each channel defined in its metadata which is used to sort the channels of the stream.
-\code{CAdmRenderer} uses the ACN channel sorting internally.
+\code{Renderer} uses the ACN channel sorting internally.
 
 The normalisation of the orders can be SN3D, N3D or FuMa.
 The signals are converted to SN3D, if they are not already.
@@ -1757,6 +1889,8 @@ For a more complete example with multiple different stream types being rendered 
 \begin{lstlisting}[language=C++]
 #include "AdmRenderer.h"
 
+using namespace spaudio;
+
 const unsigned int sampleRate = 48000;
 const int nBlockLength = 512;
 
@@ -1772,19 +1906,19 @@ for (int i = 0; i < nBlockLength; ++i)
     sinewave[i] = (float)std::sin((float)M_PI * 2.f * 440.f * (float)i / (float)sampleRate);
 
 // Destination B-format buffer
-CBFormat myBFormat;
+BFormat myBFormat;
 myBFormat.Configure(nOrder, true, nBlockLength);
 myBFormat.Reset();
 
 // Set up and configure the Ambisonics encoder
-CAmbisonicEncoder myEncoder;
+AmbisonicEncoder myEncoder;
 myEncoder.Configure(nOrder, true, sampleRate, fadeTimeInMilliSec);
 
 // Set test signal's initial direction in the sound field
-PolarPoint position;
-position.fAzimuth = 0.5f * (float)M_PI;
-position.fElevation = 0;
-position.fDistance = 1.f;
+PolarPosition<float> position;
+position.azimuth = 0.5f * (float)M_PI;
+position.elevation = 0;
+position.distance = 1.f;
 myEncoder.SetPosition(position);
 myEncoder.Reset();
 myEncoder.Process(sinewave.data(), nBlockLength, &myBFormat);
@@ -1805,15 +1939,15 @@ for (unsigned int i = 0; i < 2; ++i)
 }
 
 // Prepare the metadata for the stream
-admrender::HoaMetadata hoaMetadata;
+HoaMetadata hoaMetadata;
 hoaMetadata.normalization = "SN3D";
 
 // Configure the stream information. In this case there is only a single HOA stream of (nOrder + 1)^2 channels
-admrender::StreamInformation streamInfo;
+StreamInformation streamInfo;
 for (unsigned int i = 0; i < nHoaCh; ++i)
 {
     streamInfo.nChannels++;
-    streamInfo.typeDefinition.push_back(admrender::TypeDefinition::HOA);
+    streamInfo.typeDefinition.push_back(TypeDefinition::HOA);
 
     // Set the metadata for each channel
     int order, degree;
@@ -1823,22 +1957,22 @@ for (unsigned int i = 0; i < nHoaCh; ++i)
     hoaMetadata.trackInds.push_back(i);
 }
 
-// Set up the ADM renderer
-admrender::CAdmRenderer admRender;
-admRender.Configure(admrender::OutputLayout::Binaural, nOrder, sampleRate, nBlockLength, streamInfo);
+// Set up the Renderer
+Renderer renderer;
+renderer.Configure(OutputLayout::Binaural, nOrder, sampleRate, nBlockLength, streamInfo);
 
 // Add the HOA stream to be rendered
-admRender.AddHoa(hoaStream, nBlockLength, hoaMetadata);
+renderer.AddHoa(hoaStream, nBlockLength, hoaMetadata);
 
 // Render the stream
-admRender.GetRenderedAudio(renderStream, nBlockLength);
+renderer.GetRenderedAudio(renderStream, nBlockLength);
 
 // Cleanup
 for (unsigned i = 0; i < nHoaCh; ++i)
-    delete hoaStream[i];
+    delete[] hoaStream[i];
 delete[] hoaStream;
 for (unsigned i = 0; i < 2; ++i)
-    delete renderStream[i];
+    delete[] renderStream[i];
 delete[] renderStream;
 \end{lstlisting}
 
@@ -1865,6 +1999,8 @@ The stream is first added to be rendered using \code{AddDirectSpeaker()}. When \
 \begin{lstlisting}[language=C++]
 #include "AdmRenderer.h"
 
+using namespace spaudio;
+
 const unsigned int sampleRate = 48000;
 const int nBlockLength = 512;
 
@@ -1885,29 +2021,29 @@ for (unsigned int i = 0; i < nLdspk; ++i)
 }
 
 // Prepare the metadata for the stream
-admrender::DirectSpeakerMetadata directSpeakerMetadata;
+DirectSpeakerMetadata directSpeakerMetadata;
 directSpeakerMetadata.trackInd = 0;
 directSpeakerMetadata.speakerLabel = "M+060"; // Wide-left speaker
-directSpeakerMetadata.audioPackFormatID.push_back("AP_00010009"); // 9+10+3 layout
+directSpeakerMetadata.audioPackFormatID = std::string("AP_00010009"); // 9+10+3 layout
 
 // Configure the stream information. In this case there is only a single channel stream
-admrender::StreamInformation streamInfo;
+StreamInformation streamInfo;
 streamInfo.nChannels = 1;
-streamInfo.typeDefinition.push_back(admrender::TypeDefinition::DirectSpeakers);
+streamInfo.typeDefinition.push_back(TypeDefinition::DirectSpeakers);
 
-// Set up the ADM renderer
-admrender::CAdmRenderer admRender;
-admRender.Configure(admrender::OutputLayout::ITU_0_5_0, nOrder, sampleRate, nBlockLength, streamInfo);
+// Set up the Renderer
+Renderer renderer;
+renderer.Configure(OutputLayout::FivePointOne, nOrder, sampleRate, nBlockLength, streamInfo);
 
 // Add the DirectSpeaker stream to be rendered
-admRender.AddDirectSpeaker(sinewave.data(), nBlockLength, directSpeakerMetadata);
+renderer.AddDirectSpeaker(sinewave.data(), nBlockLength, directSpeakerMetadata);
 
 // Render the stream
-admRender.GetRenderedAudio(renderStream, nBlockLength);
+renderer.GetRenderedAudio(renderStream, nBlockLength);
 
 // Cleanup
 for (unsigned i = 0; i < nLdspk; ++i)
-    delete renderStream[i];
+    delete[] renderStream[i];
 delete[] renderStream;
 \end{lstlisting}
 
@@ -1918,14 +2054,14 @@ delete[] renderStream;
 The ADM specification does not have a specific implementation for rendering to binaural. EBU's BEAR \cite{EBU3369} provides a method for rendering an ADM stream to binaural.
 However, BEAR requires a  binaural room impulse responses (BRIRs) that would increase the size of \libspataud by too large a degree.
 
-Therefore, the binaural rendering of \code{CAdmRenderer} is inspired by BEAR in its use of a virtual loudspeaker layout but the final binauralisation is performed differently, in order to remove the requirement for including more HRTFs than those used for \code{CAmbisonicBinaurlization}.
+Therefore, the binaural rendering of \code{Renderer} is inspired by BEAR in its use of a virtual loudspeaker layout but the final binauralisation is performed differently, in order to remove the requirement for including more HRTFs than those used for \code{AmbisonicBinaurlization}.
 
 BEAR uses a virtual 9+10+5 loudspeaker layout and then binauralises the loudspeaker signals using BRIRs in the corresponding directions based on the loudspeaker position and the listener head orientation.
 
-\code{CAdmRenderer} uses the same virtual loudspeaker layout for rendering Object and DirectSpeaker signals.
+\code{Renderer} uses the same virtual loudspeaker layout for rendering Object and DirectSpeaker signals.
 These loudspeaker signals are then converted to Ambisonics by encoding them based on the loudspeaker directions (ignoring listener head rotation).
 This encoded signal is then summed with any HOA streams that have been added.
-The composite stream is then rotated using `CAmbisonicRotator` to apply the listener head rotation.
+The composite stream is then rotated using `AmbisonicRotator` to apply the listener head rotation.
 Finally, any direct binaural signal are added to the output.
 The signal flow is shown in the \cref{fig:adm_binaural}.
 
@@ -1956,3 +2092,5 @@ See \cref{AdmFullCodeExample} in the main ADM overview for a full code example t
 \bibliography{biblio}
 
 \end{document}
+t}
+}

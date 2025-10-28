@@ -1,11 +1,11 @@
 # Ambisonic Decoding to Loudspeakers
 
-If you are not interested in the theory you can read about how to use `CAmbisonicDecoder` [here](#cambisonicdecoder) and `CAmbisonicAllRAD` [here](#cambisonicallrad).
+If you are not interested in the theory you can read about how to use `AmbisonicDecoder` [here](#ambisonicdecoder) and `AmbisonicAllRAD` [here](#ambisonicallrad).
 
 ## Theory and Implementation Details
 
 An ambisonic signal cannot be played back directly.
-A decoder is required to convert the signal from the spherical harmonic representation to either loudspeaker signals (implemented in `CAmbisonicDecoder` and `CAmbisonicAllRAD`) or headphone signals (implemented in `CAmbisonicBinauralizer`).
+A decoder is required to convert the signal from the spherical harmonic representation to either loudspeaker signals (implemented in `AmbisonicDecoder` and `AmbisonicAllRAD`) or headphone signals (implemented in `AmbisonicBinauralizer`).
 
 An ambisonic signal of order $N$ can be decoded to a set of loudspeakers using a decoding matrix $`\textbf{D}_{N}^{\mathrm{SN3D}}`$ which has size $`M \times (N+1)^2`$ where $`M`$ is the total number of loudspeakers. The output loudspeaker signal $`\textbf{x}(t)`$ is given by
 
@@ -13,7 +13,7 @@ An ambisonic signal of order $N$ can be decoded to a set of loudspeakers using a
 \textbf{x}(t) = \textbf{D}_{N}^{\mathrm{SN3D}} \textbf{b}_{N}(t).
 ```
 
-The decoding matrix can be calculated using a number of different methods [[1]](#ref1)[[2]](#ref2)[[3]](#ref3). If the loudspeaker layout is regularly distributed on a sphere then decoding can be performed simply by sampling the ambisonic signal at each of the directions of the loudspeakers, known as a sampling ambisonic decoder (SAD) [[4]](#ref4).
+The decoding matrix can be calculated using a number of different methods [[1](#ref1), [2](#ref2), [3](#ref3)]. If the loudspeaker layout is regularly distributed on a sphere then decoding can be performed simply by sampling the ambisonic signal at each of the directions of the loudspeakers, known as a sampling ambisonic decoder (SAD) [[4]](#ref4).
 The sampling decoding matrix $`\textbf{D}_{N}`$ is
 
 ```math
@@ -31,7 +31,7 @@ This limits 5.1 to first-order.
 Wiggins [[5]](#ref5) used an optimisation technique that uses the Gerzon velocity and energy vectors [[6]](#ref6), along with the total pressure and energy sum of the loudspeaker gains, to calculate an optimised decoder for the 5.1 layout.
 Due to the optimisation method the higher order spherical harmonics are able to contribute, meaning decoders can be obtained for first- to third-order.
 
-The 5.1 decoders in `libspatialaudio` were kindly provided by Bruce Wiggins. 
+The 5.1 decoders in `libspatialaudio` were kindly provided by Bruce Wiggins.
 The decoders for the 7.1 layout were generated using a method inspired by the non-linear optimisation work of Wiggins.
 A decoder derived in the manner should not have [psychoacoustic optimisation](AmbisonicOptimisation.md) gains or filters applied since the desired optimisations were factored into the decoder optimisation.
 
@@ -53,19 +53,19 @@ The aim is to allow for optimal decoding to the virtual loudspeaker layout and t
 
 Additional imaginary loudspeakers can also be included in the main real loudspeaker layout to help when decoding to, for example, a dome.
 
-The AllRAD method is the preferred decoding method of the EBU Audio Definition Model renderer (Recommendation ITU-R BS.2127-1) and Alliance For Open Media's Immersive Audio Model and Formats (IAMF) specification (https://aomediacodec.github.io/iamf/).
+The AllRAD method is the preferred decoding method of the EBU Audio Definition Model renderer (Recommendation ITU-R BS.2127-1) and Alliance For Open Media's Immersive Audio Model and Formats (IAMF) specification (<https://aomediacodec.github.io/iamf/>).
 
-## CAmbisonicDecoder
+## AmbisonicDecoder
 
-`CAmbisonicDecoder` decodes an Ambisonics signal to either predefined or custom layouts using one of several methods:
+`AmbisonicDecoder` decodes an Ambisonics signal to either predefined or custom layouts using one of several methods:
 
 - the SAD method: sampling at each of the specified loudspeaker directions. This is suboptimal for any layout that is not regular on the sphere.
 - optimised decoder: the 5.1 and 7.1 preset layouts use the non-linearly optimised decoder matrices described above, since the SAD method is particularly unsuited to these layouts. The preset decoder matrices are loaded automatically if either of those layouts are selected or if a custom array that matches the directions is defined.
 - user decoder definition: the user can define the decoder matrix coefficients directly for the specified layout. This means the class can be used with any decoding method that the user requires. See [here](#cambisonicdecoder-set-custom-decoder-coefficients) for more details on how to set a custom decoder matrix.
 
-When a decoder matrix other than one of the presets is used `CAmbisonicDecoder` applies shelf filtering to psychoacoustically optimise the decoded signal. Read more about psyschoacoustic optimisation [here](AmbisonicOptimisation.md).
+When a decoder matrix other than one of the presets is used `AmbisonicDecoder` applies shelf filtering to psychoacoustically optimise the decoded signal. Read more about psyschoacoustic optimisation [here](AmbisonicOptimisation.md).
 
-### CAmbisonicDecoder: Configuration
+### AmbisonicDecoder: Configuration
 
 Before calling any other functions the object must first be configured by calling `Configure()` with the appropriate values. If the values are supported then the it will return `true` and the object can now be used.
 
@@ -78,7 +78,7 @@ The configuration parameters are:
 - **nSpeakerSetup**: Choice of loudspeaker layout from one of the predefined options or to indicate use of a custom layout. Note that the 5.1 and 7.1 layouts **do not** use the ITU ordering. They use L/R/Ls/Rs/C/LFE and L/R/Ls/Rs/Lr/Rr/C/LFE respectively. This matches the channel ordering in VLC media player.
 - **nSpeakers**: The total number of loudspeakers if a custom layout is used. This is ignored if one of the predefined layouts is selected.
 
-### CAmbisonicDecoder: Set Custom Decoder Coefficients
+### AmbisonicDecoder: Set Custom Decoder Coefficients
 
 The `SetCoefficient()` function can be used to define a custom decoder for the currently selected layout.
 
@@ -100,7 +100,7 @@ for (int iSpeaker = 0; iSpeaker < nLdspk; ++iSpeaker)
 
 **Note**: Calling `Refresh()` will overwrite any coefficients set in this way and replace them with the default values for the selected layout (either a SAD matrix or a preset).
 
-### CAmbisonicDecoder: Decoding a Signal
+### AmbisonicDecoder: Decoding a Signal
 
 A B-format signal can be decoded to the loudspeaker signals using the `Process()` function. The processing is non-replacing, so the original B-format signal is unchanged and the decoded signal is contained in the output array.
 
@@ -110,7 +110,7 @@ The inputs are:
 - **nSamples**: The length of the input signal in samples.
 - **ppDst**: Array of pointers of size nLdspk x nSamples containing the decoded signal.
 
-### CAmbisonicDecoder Code Example
+### AmbisonicDecoder Code Example
 
 This example shows how to decode an Ambisonics signal to a 5.1 loudspeaker layout. It loads the optimised preset decoder for this layout automatically.
 
@@ -119,6 +119,8 @@ This example shows how to decode an Ambisonics signal to a 5.1 loudspeaker layou
 
 const unsigned int sampleRate = 48000;
 const int nBlockLength = 512;
+
+using namespace spaudio;
 
 // Higher ambisonic order means higher spatial resolution and more channels required
 const unsigned int nOrder = 1;
@@ -129,23 +131,23 @@ for (int i = 0; i < nBlockLength; ++i)
     sinewave[i] = (float)std::sin((float)M_PI * 2.f * 440.f * (float)i / (float)sampleRate);
 
 // B-format buffer
-CBFormat myBFormat;
+BFormat myBFormat;
 myBFormat.Configure(nOrder, true, nBlockLength);
 myBFormat.Reset();
 
 // Encode the signal to Ambisonics
-CAmbisonicEncoder myEncoder;
+AmbisonicEncoder myEncoder;
 myEncoder.Configure(nOrder, true, sampleRate, 0);
-PolarPoint position;
-position.fAzimuth = 0;
-position.fElevation = 0;
-position.fDistance = 1.f;
+PolarPosition<float> position;
+position.azimuth = 0;
+position.elevation = 0;
+position.distance = 1.f;
 myEncoder.SetPosition(position);
 myEncoder.Reset();
 myEncoder.Process(sinewave.data(), nBlockLength, &myBFormat);
 
 // Set up the decoder for a 5.1 layout
-CAmbisonicDecoder myDecoder;
+AmbisonicDecoder myDecoder;
 myDecoder.Configure(nOrder, true, nBlockLength, sampleRate, Amblib_SpeakerSetUps::kAmblib_51);
 
 // Configure buffers to hold the decoded signal
@@ -159,17 +161,17 @@ myDecoder.Process(&myBFormat, nBlockLength, ldspkOut);
 
 // Cleanup
 for (unsigned iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
-    delete ldspkOut[iLdspk];
+    delete[] ldspkOut[iLdspk];
 delete[] ldspkOut;
 ```
 
-## CAmbisonicAllRAD
+## AmbisonicAllRAD
 
-`CAmbisonicAllRAD` decodes an Ambisonics signal to a layout defined in the ADM renderer specification (Recommendation ITU-R BS.2127-1) and AOM's IAMF specification (https://aomediacodec.github.io/iamf/). It does not currently support decoding to arbitrary loudspeaker layouts.
+`AmbisonicAllRAD` decodes an Ambisonics signal to a layout defined in the ADM renderer specification (Recommendation ITU-R BS.2127-1) and AOM's IAMF specification (<https://aomediacodec.github.io/iamf/>). It does not currently support decoding to arbitrary loudspeaker layouts.
 
-`CAmbisonicAllRAD` optionally applies shelf filtering to psychoacoustically optimise the decoded signal. Read more about psychoacoustic optimisation [here](AmbisonicOptimisation.md).
+`AmbisonicAllRAD` optionally applies shelf filtering to psychoacoustically optimise the decoded signal. Read more about psychoacoustic optimisation [here](AmbisonicOptimisation.md).
 
-### CAmbisonicAllRAD: Configuration
+### AmbisonicAllRAD: Configuration
 
 Before calling any other functions the object must first be configured by calling `Configure()` with the appropriate values. If the values are supported then the it will return `true` and the object can now be used.
 
@@ -193,10 +195,10 @@ The configuration parameters are:
   - `"2+7+0"`: 7.1.2 (IAMF v1.0.0-errata)
   - `"2+3+0"`: 3.1.2 (IAMF v1.0.0-errata)
   - `"9+10+5"`: EBU Tech 3369 (BEAR) 9+10+5 - 9+10+3 with LFE1 & LFE2 removed and B+135 & B-135 added
-- **useLFE**: The total number of loudspeakers if a custom layout is used. This is ignored if one of the predefined layouts is selected.
-- **useOptimFilts**: (Optional) False by default. If true then [psychoacoustic optimisation filters](AmbisonicOptimsiation.md) will be applied before decoding the signal.
+- **useLFE**: If `true` then the decoded signal will include the LFE channels. If `false` then the LFE channels will be excluded i.e. a `0+5+0` (5.1) signal will be output as a 5-channel signal instead of a 6-channel one.
+- **useOptimFilts**: (Optional) `false` by default. If `true` then [psychoacoustic optimisation filters](AmbisonicOptimsiation.md) will be applied before decoding the signal.
 
-### CAmbisonicAllRAD: Decoding a Signal
+### AmbisonicAllRAD: Decoding a Signal
 
 A B-format signal can be decoded to the loudspeaker signals using the `Process()` function. The processing is non-replacing, so the original B-format signal is unchanged and the decoded signal is contained in the output array.
 
@@ -206,12 +208,14 @@ The inputs are:
 - **nSamples**: The length of the input signal in samples.
 - **ppDst**: Array of pointers of size nLdspk x nSamples containing the decoded signal.
 
-### CAmbisonicAllRAD Code Example
+### AmbisonicAllRAD Code Example
 
 This example shows how to decode an Ambisonics signal to an ITU 5.1 loudspeaker layout using the AllRAD method.
 
 ```c++
 #include "Ambisonics.h"
+
+using namespace spaudio;
 
 const unsigned int sampleRate = 48000;
 const int nBlockLength = 512;
@@ -225,23 +229,23 @@ for (int i = 0; i < nBlockLength; ++i)
     sinewave[i] = (float)std::sin((float)M_PI * 2.f * 440.f * (float)i / (float)sampleRate);
 
 // B-format buffer
-CBFormat myBFormat;
+BFormat myBFormat;
 myBFormat.Configure(nOrder, true, nBlockLength);
 myBFormat.Reset();
 
 // Encode the signal to Ambisonics
-CAmbisonicEncoder myEncoder;
+AmbisonicEncoder myEncoder;
 myEncoder.Configure(nOrder, true, sampleRate, 0);
-PolarPoint position;
-position.fAzimuth = 0;
-position.fElevation = 0;
-position.fDistance = 1.f;
+PolarPosition<float> position;
+position.azimuth = 0;
+position.elevation = 0;
+position.distance = 1.f;
 myEncoder.SetPosition(position);
 myEncoder.Reset();
 myEncoder.Process(sinewave.data(), nBlockLength, &myBFormat);
 
 // Set up the decoder for a 5.1 layout
-CAmbisonicAllRAD myDecoder;
+AmbisonicAllRAD myDecoder;
 myDecoder.Configure(nOrder, nBlockLength, sampleRate, "0+5+0");
 
 // Configure buffers to hold the decoded signal
@@ -255,17 +259,17 @@ myDecoder.Process(&myBFormat, nBlockLength, ldspkOut);
 
 // Cleanup
 for (unsigned iLdspk = 0; iLdspk < nLdspk; ++iLdspk)
-    delete ldspkOut[iLdspk];
+    delete[] ldspkOut[iLdspk];
 delete[] ldspkOut;
 ```
 
 ## References
 
-<a name="ref1">[1]</a> Franz Zotter, Hannes Pomberger, and Markus Noisternig. Energy-Preserving Ambisonic Decoding. Acta Acustica united with Acustica, 98(1):37–47, January 2012. doi: http://dx.doi.org/10.3813/AAA.918490.
+<a name="ref1">[1]</a> Franz Zotter, Hannes Pomberger, and Markus Noisternig. Energy-Preserving Ambisonic Decoding. Acta Acustica united with Acustica, 98(1):37-47, January 2012. doi: <http://dx.doi.org/10.3813/AAA.918490>.
 
-<a name="ref2">[2]</a> Franz Zotter and Matthias Frank. All-round ambisonic panning and decoding. Journal of the Audio Engineering Society, 60(10):807–820, 2012.
+<a name="ref2">[2]</a> Franz Zotter and Matthias Frank. All-round ambisonic panning and decoding. Journal of the Audio Engineering Society, 60(10):807-820, 2012.
 
-<a name="ref3">[3]</a> MA Poletti. Three-Dimensional Surround Sound Systems Based on Spherical Harmonics. J. Audio Eng. Soc, 53(11):1004–1025, 2005.
+<a name="ref3">[3]</a> MA Poletti. Three-Dimensional Surround Sound Systems Based on Spherical Harmonics. J. Audio Eng. Soc, 53(11):1004-1025, 2005.
 
 <a name="ref4">[4]</a> Franz Zotter and Matthias Frank. Ambisonics: A practical 3D audio theory for recording, studio production, sound reinforcement, and virtual reality. Springer Nature, 2019.
 

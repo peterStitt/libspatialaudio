@@ -1,21 +1,21 @@
 # Ambisonic Zoomer
 
-If you are not interested in the theory you can read about how to use `CAmbisonicZoomer` [here](#cambisoniczoomer).
+If you are not interested in the theory you can read about how to use `AmbisonicZoomer` [here](#ambisoniczoomer).
 
 ## Theory and Implementation Details
 
-The `CAmbisonicZoomer` class allows for a kind of acoustic zoom to the front of the sound field.
+The `AmbisonicZoomer` class allows for a kind of acoustic zoom to the front of the sound field.
 It was implemented for use with the zoom function with 360-videos in VLC Media Player to place emphasis on sounds in the view direction.
 
 It samples the sound field to the front with a virtual cardioid microphone with order matching the order of the input signal.
-This mono virtual microphone signal is then re-encoded back to a signal at the front of the sound field and blended with the full sound field based on the zoom value set in `CAmbisonicZoomer::SetZoom`.
+This mono virtual microphone signal is then re-encoded back to a signal at the front of the sound field and blended with the full sound field based on the zoom value set in `AmbisonicZoomer::SetZoom`.
 
 A zoom value of 0 will perform no transformation to the ambisonic signal while a zoom of 1 will lead to an extreme zoom, which results in mono signal encoded to the front of the sound field.
 
 Another method for achieving a similar effect would be to decode the Ambisonics signal to a set of points regularly spaced on the sphere, applying a directional weight to these points, then re-encoding the points to Ambisonics.
 However, this requires a transformation from and to the Ambisonics domain over a large number of points. This makes it more CPU intensive than the simple method used here, and so it is not implemented in `libspatialaudio`.
 
-## CAmbisonicZoomer
+## AmbisonicZoomer
 
 ### Configuration
 
@@ -26,7 +26,7 @@ The configuration parameters are:
 - **nOrder**: The ambisonic order from 1 to 3.
 - **b3D**: A bool to indicate if the signal is to be decoded is 2D (azimuth only) or 3D (azimuth and elevation).
 - **nBlockSize**: The maximum block size `Process()` is expected to handle.
-- **nMisc**: Unused parameter to match base class's form.
+- **sampleRate**: The sample rate of the signal expected by `Process()`.
 
 ### Setting the Zoom Amount
 
@@ -49,6 +49,8 @@ This example shows how to apply zooming to an Ambisonics signal.
 ```c++
 #include "Ambisonics.h"
 
+using namespace spaudio;
+
 const unsigned int sampleRate = 48000;
 const int nBlockLength = 512;
 
@@ -61,23 +63,23 @@ for (int i = 0; i < nBlockLength; ++i)
     sinewave[i] = (float)std::sin((float)M_PI * 2.f * 440.f * (float)i / (float)sampleRate);
 
 // B-format buffer
-CBFormat myBFormat;
+BFormat myBFormat;
 myBFormat.Configure(nOrder, true, nBlockLength);
 myBFormat.Reset();
 
 // Encode the signal to Ambisonics
-CAmbisonicEncoder myEncoder;
+AmbisonicEncoder myEncoder;
 myEncoder.Configure(nOrder, true, sampleRate, 0);
-PolarPoint position;
-position.fAzimuth = 0;
-position.fElevation = 0;
-position.fDistance = 1.f;
+PolarPosition<float> position;
+position.azimuth = 0;
+position.elevation = 0;
+position.distance = 1.f;
 myEncoder.SetPosition(position);
 myEncoder.Reset();
 myEncoder.Process(sinewave.data(), nBlockLength, &myBFormat);
 
 // Set up the zoomer processor
-CAmbisonicZoomer myZoomer;
+AmbisonicZoomer myZoomer;
 myZoomer.Configure(nOrder, true, nBlockLength, 0);
 myZoomer.SetZoom(0.5f);
 

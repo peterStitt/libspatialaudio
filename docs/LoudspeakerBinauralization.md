@@ -1,6 +1,6 @@
 # Loudspeaker Binauralization
 
-If you are not interested in the theory you can read about how to use `CSpeakerBinauralization` [here](#cspeakersbinauralizer).
+If you are not interested in the theory you can read about how to use `SpeakerBinauralization` [here](#speakersbinauralizer).
 
 ## Theory and Implementation Details
 
@@ -14,13 +14,13 @@ z_{ear}(t) = \sum_{m = 0}^{M - 1} h_{m,ear}(t)\circledast x_{m}(t)
 
 where $`z_{ear}(t)`$ is the signal at the left or right ear, $`h_{ear}`$ is the corresponding HRIR for the left/right ear, $`x_{m}(t)`$ is the signal of the $m$-th loudspeaker and $M$ is the total number of loudspeakers.
 
-`CSpeakersBinauralizer` provides a simple convolution of a set of supplied loudspeaker signals with a pair of HRTFs (one for each ear).
+`SpeakersBinauralizer` provides a simple convolution of a set of supplied loudspeaker signals with a pair of HRTFs (one for each ear).
 The convolution is implemented in the frequency domain using an overlap-add algorithm.
 
 If `libmysofa` is activated at compile time then the HRTF can be loaded from a .SOFA file, allowing for the use of custom HRTFs.
 Custom HRTFs allow for users to potentially load their own HRTF, giving highly personalised rendering.
 
-## CSpeakersBinauralizer
+## SpeakersBinauralizer
 
 ### Configuration
 
@@ -30,7 +30,7 @@ The configuration parameters are:
 
 - **sampleRate**: The sample rate of the audio being used e.g. 44100 Hz, 48000 Hz etc. This must be an integer value greater than zero.
 - **nBlockSize**: The maximum number of samples the decoder is expected to process at a time.
-- **speakers**: A pointer to an array of `CAmbisonicSpeaker` holding the speaker directions.
+- **speakers**: A pointer to an array of `AmbisonicSpeaker` holding the speaker directions.
 - **nSpeakers**: The number of speakers to be binauralized.
 - **tailLength**: The value is replaced with the length of the HRIRs used for the binauralisation.
 - **HRTFPath**: An optional path to the .SOFA file containing the HRTF. If no path is supplied and the `HAVE_MIT_HRTF` compiler flag is used then the MIT HRTF will be used.
@@ -51,12 +51,14 @@ This example shows how to convert a set of loudspeaker signals to a 2-channel bi
 ```c++
 #include "SpeakersBinauralizer.h"
 
+using namespace spaudio;
+
 const unsigned int sampleRate = 48000;
 const int nBlockLength = 512;
 
 // Configure the speaker layout
 const unsigned int nSpeakers = 5;
-CAmbisonicSpeaker speakers[nSpeakers];
+AmbisonicSpeaker speakers[nSpeakers];
 speakers[0].SetPosition({ 30.f / 180.f * (float)M_PI, 0.f, 1.f }); // L
 speakers[1].SetPosition({ -30.f / 180.f * (float)M_PI, 0.f, 1.f }); // R
 speakers[2].SetPosition({ 0.f / 180.f * (float)M_PI, 0.f, 1.f }); // C
@@ -65,7 +67,7 @@ speakers[4].SetPosition({ -110.f / 180.f * (float)M_PI, 0.f, 1.f }); // Rs
 
 // Configure buffers to hold the 5.0 signal
 float** ldspkInput = new float* [5];
-for (int iLdspk = 0; iLdspk < ; ++iLdspk)
+for (int iLdspk = 0; iLdspk < 5; ++iLdspk)
 {
     ldspkInput[iLdspk] = new float[nBlockLength];
     // Fill L and C channels, panning the signal to half way between both speakers
@@ -84,14 +86,14 @@ float** earOut = new float* [nEar];
 for (int iEar = 0; iEar < nEar; ++iEar)
     earOut[iEar] = new float[nBlockLength];
 
-// Decode the Ambisonics signal
+// Convert the loudspeaker signals to binaural
 myBinaural.Process(&ldspkInput[0], earOut);
 
 // Cleanup
 for (unsigned iEar = 0; iEar < nEar; ++iEar)
-    delete earOut[iEar];
+    delete[] earOut[iEar];
 delete[] earOut;
 for (unsigned iLdspk = 0; iLdspk < nSpeakers; ++iLdspk)
-    delete ldspkInput[iLdspk];
+    delete[] ldspkInput[iLdspk];
 delete[] ldspkInput;
 ```

@@ -1,35 +1,56 @@
 # Spatial audio encoding / decoding and binauralization library
 
-**libspatialaudio** is an open-source and cross-platform C++ library for spatial audio encoding and decoding, filtering and **binaural** rendering.
-It is able to render *High-Order Ambisonic* (**HOA**) and *VR/3D audio* samples in multiple environments, from headphones to classic loudspeakers.
-Its *binaural rendering* can be used for classical 5.1/7.1 spatial channels as well as Ambisonics inputs.
-**libspatialaudio** also includes a renderer for the Audio Definition Model (ADM) that outputs to a number of ITU loudspeaker layouts as well as binaural.
+**libspatialaudio** is an open-source, real-time and cross-platform C++ library for spatial audio encoding, decoding and rendering.
+It provides a unified framework for working with different spatial audio formats and playback environments, from multichannel loudspeakers to headphones.
 
-Originally it is a fork of **ambisonic-lib** from Aristotel Digenis. In 2017 this version was developed to support Higher Order Ambisonics *HOA* and to support **ACN/SN3D** Ambisonics audio streams following the **Google spatial audio** specification:
-https://github.com/google/spatial-media/blob/master/docs/spatial-audio-rfc.md and the **IETF codec Ambisonics** specification https://tools.ietf.org/html/draft-ietf-codec-ambisonics
+At its core is the `Renderer` class, which brings together multiple spatial audio techniques under one umbrella. Whether you are working with Ambisonics (HOA), audio objects, direct speaker feeds (e.g. 5.1/7.1), or binaural rendering, the `Renderer` provides a consistent interface for rendering multiple different streams.
 
-It has since been expanded to include an ADM renderer based on Rec. ITU-R BS.2127-1.
+Originally forked from **ambisonic-lib** by Aristotel Digenis it was expanded to support Higher Order Ambisonics *HOA* (**ACN/SN3D**) Ambisonics audio streams following the **Google spatial audio** specification:
+<https://github.com/google/spatial-media/blob/master/docs/spatial-audio-rfc.md> and the **IETF codec Ambisonics** specification <https://tools.ietf.org/html/draft-ietf-codec-ambisonics>
 
-The library allows you to encode, decode, rotate, zoom **HOA Ambisonics** audio streams up to the *3rd order*. It can output to standard and custom loudspeakers arrays. To playback with headphones, the binauralizer applies an HRTF *(either a SOFA file or  the included MIT HRTF)* to provide a spatial binaural rendering effect. The binauralization can also be used to render multichannel streams (5.1, 7.1...).
+It has since been expanded to include Object and speaker rendering, making it a more general purpose spatial audio library. These additions allow it to be used to render ITU Audio Definition Model **ADM** feeds (based on Rec. ITU-R BS.2127-1) and Alliance for Open Media's Immersive Audio and Formats **IAMF**.
+
+## What You Can Do with libspatialaudio
+
+**libspatialaudio** contains classes for implementing different spatial audio techniques and processing:
+
+- **Ambisonics**: Encode, rotate, zoom, and decode HOA (up to 3rd order). Includes psychoacoustic optimizations for improved spatial perception. For more details on the Ambisonics capabilities of **libspatialaudio** please go [here](docs/AmbisonicsOverview.md).
+- **Object-based Audio**: Encode and position individual sound sources in 3D space, rendered to speakers or headphones. Read more on how to spatialise object signals [here](docs/ObjectPanning.md).
+- **Speaker Rendering**: Decode and route speaker streams or layouts to chosen output loudspeaker layouts. For a guide on how to render speaker signals see [here](docs/RendererOverview.md).
+- **Binaural Rendering**: Render immersive audio for headphones using HRTFs (either custom SOFA files or the included MIT HRTF). Works with Ambisonics, object-based audio, or multichannel speaker layouts (5.1, 7.1, etc.). Read more on how to binauralise loudspeaker signals [here](docs/LoudspeakerBinauralization.md).
+
+## Applications
+
+While **libspatialaudio** is designed around core processing types rather than specific standards, it can be applied in workflows that use formats such as:
+
+- **ADM (Audio Definition Model)**: for metadata-driven rendering of objects, speakers and HOA.
+- **IAMF (Immersive Audio Model and Format)**: for next-generation immersive audio delivery.
+
+Both of these application use the `Renderer` class to interpret metadata and route signals appropriately, whether for loudspeaker layouts or binaural output.
 
 ## Features
 
-The library has three main uses:
-
-- **Ambisonics**: encoding, rotation, zooming, psychoacoustic optimisation and decoding of HOA signals is provided. These function up to 3rd order Ambisonics. For more details on the Ambisonics capabilities of **libspatialaudio** please go [here](docs/AmbisonicsOverview.md).
-- **Loudspeaker Binauralization**: convert loudspeaker signals to binaural, with the option to use custom HRTFs loaded via a SOFA file. Read more on how to binauralise loudspeaker signals [here](docs/LoudspeakerBinauralization.md).
-- **ADM Renderer**: render Object, DirectSpeaker, HOA and Binaural streams using their metadata based on Rec. ITU-R BS.2127-1. For a guide on how to use the ADM renderer see [here](docs/AdmRendererOverview.md).
+- Unified `Renderer` class for HOA, Object, Speaker, and Binaural processing.
+- Ambisonics encoding, processing and decoding up to 3rd order (ACN/SN3D).
+- Loudspeaker rendering to ITU and custom layouts.
+- Binauralization with SOFA-based or built-in HRTFs.
+- Object-based rendering with dynamic positioning.
+- Suitable for both real-time and offline rendering workflows.
+- Cross-platform C++ implementation.
 
 ## Learning About libspatialaudio
 
-The documentation includes elements of background theory (mathematical, psychoacoustic, DSP), implementation details (layout out the choices made while writing the library) and code examples (overviews of the main classes and code examples).
+The documentation includes:
 
-All background theory sections have been written such that it should be accessible to anyone with some mathematical background.
+- background theory (mathematical, psychoacoustic, DSP)
+  - All background theory sections have been written such that it should be accessible to anyone with some mathematical background.
 However, even without a mathematical background you should still be able to follow what is going on.
+- implementation details (lays out the choices made while writing the library).
+- code examples (overviews of the main classes and code examples).
 
 To learn more about the Ambisonics processors start [here](docs/AmbisonicsOverview.md).
 
-To learn more about the ADM renderer start [here](docs/AdmRendererOverview.md).
+To learn more about the main `Renderer` start [here](docs/AdmRendererOverview.md).
 
 These two documents provide full examples of both signal flows, as well as links to more details for those who want to learn more or get more specific details.
 
